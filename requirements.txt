@@ -1,0 +1,9 @@
+setuptools
+pytest
+pandas
+astropy
+astroquery
+numpy
+skyfield
+photutils
+statsmodels
