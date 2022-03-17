@@ -7,4 +7,8 @@ This is the documentation for astropack.
 Reference/API
 =============
 
-.. automodapi:: astropack.haha
+.. automodapi:: astropack.almanac
+   :no-inheritance-diagram:
+
+.. automodapi:: astropack.ini
+   :no-inheritance-diagram:

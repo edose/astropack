@@ -13,6 +13,8 @@ from math import pi, cos
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+__all__ = ['Site']
+
 
 __________SITE_INI_____________________________________________________ = 0
 
@@ -64,9 +66,14 @@ class SiteValueError(Exception):
 
 
 class Site:
-    """ Holds one telescope site's information. Immutable.
-        Gets info from one .ini file.
+    """ Holds one telescope site's information. Immutable. Gets info from one .ini file.
+
+    Parameters
+    ----------
+    fullpath : str
+        Full path to site's .ini file.
     """
+
     def __init__(self, fullpath):
         self.fullpath, self.filename, i = get_ini_data(fullpath)
         self.name = i.get('Site', 'Name')
@@ -134,9 +141,16 @@ class Site:
 
     def midnight_temperature_for_date(self, date):
         """ Return interpolated nominal midnight temperature for date, based on summer and winter values.
-        :param: date: date in question, including year. UTC will be assumed if no timezone info
-             is given. [py datetime object]
-        :return: nominal midnight temperature for date, in deg C. [float]
+
+        Parameters
+        -----------
+        date : datetime
+            date in question, including year. UTC will be assumed if no timezone info is given.
+
+        Returns
+        -------
+        temp : float
+            nominal midnight temperature for date, in deg C. [float]
         """
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
@@ -146,9 +160,16 @@ class Site:
 
     def midnight_humidity_for_date(self, date):
         """ Return interpolated nominal midnight humidity for date, based on summer and winter values.
-        :param: date: date in question, including year. UTC will be assumed if no timezone info
-             is given. [py datetime object]
-        :return: nominal midnight relative humidity for date, in percent. [float]
+
+        Parameters
+        -----------
+        date : datetime
+            date in question, including year. UTC will be assumed if no timezone info is given.
+
+        Returns
+        -------
+        rel_humidity : float
+            nominal midnight relative humidity for date, in range 0-100. [float]
         """
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
@@ -158,10 +179,20 @@ class Site:
 
     def extinction_for_date(self, date, filter):
         """ Return interpolated extinction for date, based on summer and winter values.
-        :param: date: date in question, including year. UTC will be assumed if no timezone info
-             is given.[py datetime object]
-        :param: filter: filter for which extinction is to be computed. [string]
-        :return: extinction [float]."""
+
+        Parameters
+        -----------
+        date : datetime
+            Date in question, including year. UTC will be assumed if no timezone info is given.
+
+        filter : str
+            Filter for which extinction is wanted.
+
+        Returns
+        -------
+        extinction : float
+            optical extinction value for date, always positive.
+        """
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
         summer_extinction, winter_extinction = self.extinction[filter][0], self.extinction[filter][1]

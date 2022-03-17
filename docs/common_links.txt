@@ -2,19 +2,24 @@
 .. (and docstrings) because they are added to ``docs/conf.py::rst_epilog``.
 .. Some of the links are in curly braces for ``.format`` substitutions.
 
-.. Modified 2022-03-15 for package astropak.
+.. Modified 2022-03-15 for package astropack.
+.. use as |Astronight| wherever required.
 
 .. ------------------------------------------------------------------
 .. RST SUBSITUTIONS
 
-..                               astropak
-.. |Astronight| replace:: :class:`~astropak.almanac.Astronight`
-.. |AtlasRefcat2| replace:: `:class:~astropak.catalogs.AtlasRefcat2`
-.. |XY| replace:: :class:`~astropak.geometry.XY`
-.. |DXY| replace:: :class:`~astropak.geometry.DXY`
-.. |Rectangle_in_2D| replace:: :class:`~astropak.geometry.Rectangle_in_2D`
-.. |Circle_in_2D| replace:: :class:`~astropak.geometry.Circle_in_2D`
+..                               astropack
+.. |Astronight| replace:: :class:`~astropack.almanac.Astronight`
+.. |AtlasRefcat2| replace:: `:class:~astropack.catalogs.AtlasRefcat2`
+.. |XY| replace:: :class:`~astropack.geometry.XY`
+.. |DXY| replace:: :class:`~astropack.geometry.DXY`
+.. |Rectangle_in_2D| replace:: :class:`~astropack.geometry.Rectangle_in_2D`
+.. |Circle_in_2D| replace:: :class:`~astropack.geometry.Circle_in_2D`
+.. |Site| replace:: :class:`~astropack.ini.Site`
 .. TODO: CONTINUE THIS when possible (or necessary).
+
+..              skyfield (deviant Sphinx format, unfortunately)
+.. |skyfield.GP| replace:: https://rhodesmill.org/skyfield/api-topos.html#skyfield.toposlib.GeographicPosition
 
 ..                                 NumPy
 .. |ndarray| replace:: :class:`numpy.ndarray`

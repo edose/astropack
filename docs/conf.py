@@ -47,6 +47,8 @@ setup_cfg = dict(conf.items('metadata'))
 # Add package root directory (one level above this file) to sys.path:
 sys.path.insert(0, os.path.abspath('..'))
 
+graphviz_dot = 'C:/Programs/graphviz/bin/dot.exe'
+
 # By default, highlight as Python 3.
 highlight_language = 'python3'
 
@@ -60,6 +62,7 @@ intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/'
 intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)  # noqa: F405, E501
 intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)  # noqa: F405, E501
 intersphinx_mapping['h5py'] = ('https://docs.h5py.org/en/stable/', None)  # noqa: F405
+# intersphinx_mapping['skyfield'] = ('https://rhodesmill.org/skyfield/documentation/', None)  # noqa: F405
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.2'
@@ -67,6 +70,42 @@ intersphinx_mapping['h5py'] = ('https://docs.h5py.org/en/stable/', None)  # noqa
 # To perform a Sphinx version check that needs to be more specific than
 # major.minor, call `check_sphinx_version("X.Y.Z")` here.
 # check_sphinx_version("1.2.1")
+
+# Whether to create cross-references for the parameter types in the
+# Parameters, Other Parameters, Returns and Yields sections of the docstring.
+numpydoc_xref_param_type = True
+
+# Additional, package-specific cross-references to fully qualified paths
+# (or correct ReST references) for the
+# aliases/shortcuts used when specifying the types of parameters.
+# (Numpy provides some defaults
+# https://github.com/numpy/numpydoc/blob/b352cd7635f2ea7748722f410a31f937d92545cc/numpydoc/xref.py#L62-L94
+# and a base set comes from sphinx-astropy.)
+numpydoc_xref_aliases.update({
+    # python & adjacent
+    "Any": "`~typing.Any`",
+    "file-like": ":term:`python:file-like object`",
+    "file": ":term:`python:file object`",
+    "path-like": ":term:`python:path-like object`",
+    "module": ":term:`python:module`",
+    "buffer-like": ":term:buffer-like",
+    "hashable": ":term:`python:hashable`",
+    # for matplotlib
+    "color": ":term:`color`",
+    # for numpy and python primitives
+    # "ints": ":class:`python:int` values",
+    # "floats": ":class:`python:float` values",
+    # "tuples": ":class:`python:tuple` values",
+    # for astropy
+    "number": ":term:`number`",
+    "writable": ":term:`writable file-like object`",
+    "readable": ":term:`readable file-like object`",
+    "BaseHDU": ":doc:`HDU </io/fits/api/hdus>`"
+})
+
+# Add from sphinx-astropy 1) glossary aliases 2) physical types.
+numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
+
 
 # -- Project information ------------------------------------------------------
 
@@ -106,9 +145,9 @@ release = version
 # global configuration are listed below, commented out.
 
 # Add any paths that contain templates here, relative to this directory.
-if 'templates_path' not in locals():  # in case parent conf.py defines it
-    templates_path = []
-templates_path.append('_templates')
+# if 'templates_path' not in locals():  # in case parent conf.py defines it
+#     templates_path = []
+# templates_path.append('_templates')
 
 # Add any paths that contain custom themes here, relative to this directory.
 # To use a different custom theme, add the directory containing the theme.
@@ -182,6 +221,14 @@ htmlhelp_basename = project + 'doc'
 # Prefixes that are ignored for sorting the Python module index
 modindex_common_prefix = ["astropack."]
 
+# Required by sphinx-automodapi extension:
+numpydoc_show_class_members = False
+
+autosummary_generate = True
+
+# print()
+# for e in extensions:
+#     print(str(e))
 
 # -- Options for LaTeX output -------------------------------------------------
 

@@ -8,6 +8,7 @@ __author__ = "Eric Dose, Albuquerque"
 
 # Python core:
 import os
+from math import cos, sin
 
 # External packages:
 from astropy import units as u
@@ -15,9 +16,26 @@ from astropy.coordinates.representation import SphericalRepresentation, Cartesia
 
 # Author's packages:
 
+# Only these items will appear in documentation:
+__all__ = ['cartesian_to_spherical', 'Hahahoho', 'NotSoFast']
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INI_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, 'ini')
+
+
+class Hahahoho:
+    """You are kidding, right, son?"""
+    pass
+
+
+class NotSoFast(Hahahoho):
+    """Child of You Are Kidding."""
+    pass
+
+
+class StupidError(Exception):
+    """Because you messed up, son."""
+    pass
 
 
 def cartesian_to_spherical(x, y, z):
@@ -65,10 +83,13 @@ def cartesian_to_spherical(x, y, z):
     cart = CartesianRepresentation(x, y, z)
     sph = cart.represent_as(SphericalRepresentation)
 
+    a = cos(2)
+    # b = math.sin(3)
+
     return sph.distance, sph.lat, sph.lon
 
 
-def more_hahaha(a, b=3):
+def _more_hahaha(a, b=3):
     """Stupid hahaha, would ya believe it?
 
     This is the extended explanation. Ja ja ja.
