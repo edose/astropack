@@ -67,8 +67,18 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
+#######################
+# Sphinx documentation -- the following are derived by Sphinx and thus not needed,
+#    BUT docs/_build/_static has user file and is needed quite badly,
+#    so DON'T exclude docs/_build/_static, rather exclude around it.
+docs/api
+docs/_build/doctrees
+docs/_build/html/_modules
+docs/_build/html/_sources
+docs/_build/html/api
+docs/_build/html/astropack
+
+
 
 # PyBuilder
 target/
@@ -122,3 +132,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Author's changes
+/.idea
+*.bsp

@@ -1,0 +1,17 @@
+@import url("bootstrap-astropy.css");
+
+/* remove Astropy home link from top bar. */
+div.topbar ul li a.homelink {
+    /* background: none; */
+    background-image: none;
+}
+
+/* calm highlighting to a light yellow. */
+dt:target, span.highlighted {
+    background-color: #fff290;
+}
+
+div.topbar a.brand {
+    background-image: url("backpack-star.png"), none;
+    background-size: 25px 32px;
+}
