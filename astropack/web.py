@@ -1,4 +1,4 @@
-""" Module astropak.web:
+""" Module astropack.web:
     Web and internet utilities.
     Includes useful parsing utilities for certain astronomy data websites, notably:
         MPES, the Minor Planet Center's "minor planet ephemeris service".
@@ -19,8 +19,9 @@ from astropy.time import Time
 # from astropy.coordinates import Latitude, Longitude
 from astroquery.mpc import MPC
 
-# From other modules, this package:
-# from astropak.ini import Site
+
+__all__ = ['get_mp_ephem',
+           'get_mp_info']
 
 
 __________FUNCTIONS___________________________________________________________ = 0
@@ -28,23 +29,35 @@ __________FUNCTIONS___________________________________________________________ =
 
 def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
     """Return pandas DataFrame containing MPES information from one MPES web page.
-       Step between entries is hourly.
-    :param mp_id: MP identifier for which to query. [string, or int for numbered MP]
-    Allowable formats:
-        (3202)     numbered MP
-        14442      numbered MP
-        1997 XF11  unnumbered MP
-        Badenia    MP name
-    :param utc_start: Date and time to start. [py datetime, astropy Time object, or
-    string convertible to astropy Time object]
-    Will be truncated to most recent hour, zero minutes and seconds.
-    If py datetime object in UTC (any timezone information will be overwritten, not converted).
-    :param step_hours: hours between sequential entries. [int]
-    :param num_entries: number of entries to be returned in dataframe. [int]
-    :param site: Site object, or None for geocentric. [astropak Site object]
-    :return: dataframe of MPES data for requested minor planet. [pandas DataFrame]
-    Columns:
 
+    Parameters
+    ----------
+    mp_id : int for numbered Minor Planet, or str
+        Identifier for the minor planet.
+        Allowable formats:
+            (3202)     numbered MP
+            14442      numbered MP
+            1997 XF11  unnumbered MP
+            Badenia    MP name
+
+    utc_start : py datetime, |Time|, or str the |Time| can parse
+        Date and time to start. Will be truncated to most recent hour (i.e.,
+        minutes and seconds are set to zero).
+
+    step_hours : int
+        Number of hours between sequential entries in the result table.
+
+    num_entries : int
+        Number of entries wanted.
+
+    site : `~.ini.Site` instance, or None, optional
+        The earth location for which data are wanted, or
+        None (default) for geocentric data.
+
+    Returns
+    -------
+    df_mp : |DataFrame|
+        Pandas DataFrame containing MPES data for minor planet `mp_id`.
     """
     target = str(mp_id)
     if isinstance(utc_start, datetime):
@@ -72,11 +85,22 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
 
 
 def get_mp_info(mp_number=None, mp_name=None):
-    """For one MP, retrieve selected MP info from MPC database.
-    MP designation is not allowed, as MPC gives no data when designation passed in.
-    :param mp_number: e.g., 333. [int]
-    :param mp_name: e.g., 'Badenia'. Used if mp_number is not given. [string]
-    :return: dictionary of selected MP data. [py dict]
+    """Given either a Minor Planet number or name,
+    return a python dictionary of relevant data retrieved from the Minor Planet
+    Center database.
+
+    Parameters
+    ----------
+    mp_number : int
+        Number of target minor planet.
+    mp_name : str
+        Name of target minor planet, e.g., 'Badenia'. This may not be a designation,
+        as the MPC database does not currently (March 2022) accept them.
+
+    Returns
+    -------
+    info_dict : dict
+        Dictionary of selected MP data, including orbital period, G, and H.
     """
     result = None  # keep IDE happy.
     if mp_number is not None:

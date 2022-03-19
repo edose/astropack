@@ -1,5 +1,5 @@
 """
-The astropak.geometry package provides classes and functions to create and
+The astropack.geometry package provides classes and functions to create and
 manipulate elementary geometric objects, especially useful for building
 apertures and aperture masks.
 """
@@ -14,23 +14,28 @@ from math import sqrt, atan2, pi
 # External packages:
 import numpy as np
 
+__all__ = ['XY',
+           'DXY',
+           'Rectangle_in_2D',
+           'Circle_in_2D',
+           'distance_to_line',
+           'make_golden_spiral']
+
 
 __________CLASSES_____________________________________________________________ = 0
 
 
 class XY(namedtuple('XY', ['x', 'y'])):
-    """
-    Holds one Cartesian point (x,y) in a plane.
-
-    Arithmetic operators behave as you would expect, especially with vector objects dxy
-    of class DXY:
-        xy + dxy -> new xy, displaced
-        xy1 - xy2 -> dxy, the displacement from xy2 to xy1
-        xy - dxy -> new xy, displaced
-        other math operators are not implemented and will raise exception
-        other operators are largely as for namedtuple, but probably rarely used.
+    """Represents a Cartesian point (x,y) in a plane.
 
     Parameters
+    ----------
+    x : float
+        X point location.
+    y : float
+        Y point location.
+
+    Attributes
     ----------
     x : float
         X point location.
@@ -41,93 +46,102 @@ class XY(namedtuple('XY', ['x', 'y'])):
 
     @staticmethod
     def from_tuple(tup):
-        """Alternate constructor consuming a 2-tuple as input."""
+        """Alternate constructor taking a tuple (x, y) of 2 float values as input."""
         if isinstance(tup, tuple):
             if len(tup) == 2:
                 return XY(tup[0], tup[1])
         raise TypeError('XY.from_tuple() requires a 2-tuple as input.')
 
     def __add__(self, dxy):
-        """
-        Add to this XY object a DXY object dxy, returning a new XY point displaced by dxy.
+        """Add a displacement to this point.
 
         Parameters
         ----------
-        dxy : '~astropak.geometry.DXY'
+        dxy : `~.geometry.DXY`
             Distance by which to displace this XY object to yield new XY object.
-
-        Returns
-        -------
-        new_xy : '~astropak.geometry.XY'
-            New XY object (point) displaced from this XY object by dxy.
-
         """
         if isinstance(dxy, DXY):
             return XY(self.x + dxy.dx, self.y + dxy.dy)
         raise TypeError('XY.__add__() requires type DXY as operand.')
 
-    def __and__(self, other):
-        raise NotImplementedError
-
-    def __bool__(self, other):
-        raise NotImplementedError
-
-    def __or__(self, other):
-        raise NotImplementedError
-
     def __sub__(self, other):
+        """Subtract a displacement to give a new point, or
+        subtract another point to give the displacement from this point to new point.
+
+        Parameters
+        ----------
+        other : `~.geometry.DXY` or `~.geometry.XY`
+            If `~.geometry.DXY` instance, the inverse of distance by which to displace
+            this point to yield new point.
+            If `~.geometry.XY`, the starting point of a vector ending in this point.
+
+        Returns
+        -------
+        new_xy : `~.geometry.XY` or `~.geometry.DXY`
+            If `other` is `~.geometry.DXY`, a new `~.geometry.XY` (point) which is
+            displaced from this point by `other`.
+            If `other` is `~.geometry.XY`, a new `~.geometry.DXY` (vector) which
+            is the displacement `other` to this point.
         """
-    Subtract from this XY object a DXY object dxy, returning a new XY point displaced by -dxy.
-
-    Parameters
-    ----------
-    other : '~astropak.geometry.DXY' or '~astropak.geometry.XY'
-        If DXY object, the inverse of distance by which to displace this XY object to yield new XY object.
-        If XY object, the starting point of a vector ending in this XY object.
-
-    Returns
-    -------
-    new_xy : '~astropak.geometry.XY'
-        If other is DXY object, a new XY object (point) displaced from this XY object by -dxy.
-        If other is XY object, a DXY object (vector) from other XY object to this XY object.
-
-    """
         if isinstance(other, XY):
             return DXY(self.x - other.x, self.y - other.y)
         elif isinstance(other, DXY):
             return XY(self.x - other.dx, self.y - other.dy)
         raise TypeError('XY.__sub__() requires type XY or DXY as operand.')
 
-    def __truediv__(self, other):
-        raise NotImplementedError
-
     def vector_to(self, other):
-        """ Returns DXY vector to other XY point. """
+        """Returns `~.geometry.DXY` vector from this point to another point.
+
+        Parameters
+        ----------
+        other : `~.geometry.XY`
+            Another point, defining the end of the result vector.
+
+        Returns
+        -------
+        new_vector : `~.geometry.DXY`
+            Vector from this point to`other`.
+        """
         if isinstance(other, XY):
             return other - self
         raise TypeError('XY.vector_to() requires type XY as operand.')
 
 
 class DXY(namedtuple('DXY', ['dx', 'dy'])):
-    """ Holds one vector (dx, dy), that is, a displacement from one point to another in a plane.
-            Operators behave as you would expect, especially with point objects xy:
-            dxy1 + dxy1 -> new dxy, vector sum
-            dxy + dy -> new xy, new XY point, displaced by DXY vector
-            bool(dxy) -> True iff vector of non-zero length
-            dxy * a, a * dxy -> vector with length multiplied by a, same direction
-            dxy - dxy -> new dxy, vector sum
-            dxy / a -> vector with length divided by a, same direction
-            .angle_with(dxy2) -> angle with other DXY vector, in radians, within range 0 to pi
-            .dot(dxy2) -> dot product with other DXY vector
-            .length2 -> vector's squared length
-            .length -> vector's length
-            .direction -> vector's direction relative to +x axis, within range 0 to pi, in radians
-            other math operators are not implemented and will raise exception
-            other operators are largely as for namedtuple, but probably rarely used.
+    """Represents a vector (dx, dy) in a plane. A two-dimensional displacement.
+
+    Parameters
+    ----------
+    dx : float
+        Vector magnitude in X direction.
+    dy : float
+        Vector magnitude in Y direction.
+
+    Attributes
+    ----------
+    dx : float
+        Vector magnitude in X direction.
+    dy : float
+        Vector magnitude in Y direction.
     """
+
     __slots__ = ()
 
     def __add__(self, other):
+        """Adds two vectors to make a sum vector,
+        or adds this vector to a point to make a new displaced point.
+
+        Parameters
+        ----------
+        other : `~.geometry.DXY` or `~.geometry.XY`
+            Vector to add to this vector, or
+            a point to which this vector shall be added.
+
+        Returns
+        -------
+        result : `~.geometry.DXY` or `~.geometry.XY`
+            Sum of vectors, or a new point displaced by this vector from point `other'.
+        """
         if isinstance(other, DXY):
             return DXY(self.dx + other.dx, self.dy + other.dy)
         elif isinstance(other, XY):
@@ -135,24 +149,75 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
         raise TypeError('DXY.__add__() requires type DXY or XY as operand.')
 
     def __bool__(self):
+        """Returns True if length > 0, else False."""
         return self.length2 > 0
 
-    def __mul__(self, other):
-        if isinstance(other, numbers.Real):
-            return DXY(other * self.dx, other * self.dy)
+    def __mul__(self, factor):
+        """Multiplies a diplacement by a scalar factor.
+
+        Parameters
+        ----------
+        factor : float
+            Factor by which to multiply this vector. May be negative or zero.
+            Handles syntax case `dxy * factor` (in that order).
+
+        Returns
+        -------
+        new_displacement : `~.geometry.DXY`
+            This vector multiplied by factor `other`.
+        """
+        if isinstance(factor, numbers.Real):
+            return DXY(factor * self.dx, factor * self.dy)
         raise TypeError('DXY.__mul__() requires float scalar as operand.')
 
-    def __rmul__(self, other):
-        if isinstance(other, numbers.Real):
-            return DXY(other * self.dx, other * self.dy)
+    def __rmul__(self, factor):
+        """Alias of __mul__(), to handle case of dxy * factor (in that order).
+
+        Parameters
+        ----------
+        factor : float
+            Factor by which to multiply this vector. May be negative or zero.
+            Handles syntax case dxy * factor (in that order).
+
+        Returns
+        -------
+        new_vector : `~.geometry.DXY`
+            This vector multiplied by factor `other`.
+        """
+        if isinstance(factor, numbers.Real):
+            return DXY(factor * self.dx, factor * self.dy)
         raise TypeError('DXY.__rmul__() requires float scalar as operand.')
 
     def __sub__(self, other):
+        """Subtracts vector `other` from this one, yielding new vector.
+
+        Parameters
+        ----------
+        other : `~.geometry.DXY`
+            Vector to subtract from this vector.
+
+        Returns
+        -------
+        new_vector : `~.geometry.DXY`
+            New vector after subtracting `other`.
+        """
         if isinstance(other, DXY):
             return DXY(self.dx - other.dx, self.dy - other.dy)
         raise TypeError('DXY.__sub__() requires type DXY as operand.')
 
     def __truediv__(self, other):
+        """Divides this vector by a scalar factor to yield a new vector.
+
+        Parameters
+        ----------
+        other : float
+            Scalar number by which to divide this vector.
+
+        Returns
+        -------
+        new_displacement : `~.geometry.DXY`
+            Vector divided by scalar factor `other`.
+        """
         if isinstance(other, numbers.Real):
             if other != 0:
                 return DXY(self.dx / other, self.dy / other)
@@ -160,7 +225,19 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
         raise TypeError('DXY.__div__() requires float scalar as operand.')
 
     def angle_with(self, other):
-        """ Returns angle with other DXY vector, in radians, within range 0 to pi. """
+        """Returns angle with other DXY vector, in radians, within range [0, 2 * pi].
+
+        Parameters
+        ----------
+        other : `~.geometry.DXY`
+            Another vector.
+        Returns
+        -------
+        angle : float
+            Angle between this vector and `other`.
+        """
+
+        """ """
         if isinstance(other, DXY):
             angle = other.direction - self.direction
             if angle < 0:
@@ -169,25 +246,54 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
         raise TypeError('DXY.angle_with() requires type DXY as operand.')
 
     def dot(self, other):
-        """ Returns dot product with other DXY vector. """
+        """Returns dot product of this vector with another DXY vector.
+
+        Parameters
+        ----------
+        other : `~.geometry.DXY`
+            Vector with which to determine dot product with this vector.
+
+        Returns
+        -------
+        dot_procduct : float
+            Dot product of this vector with `other`.
+        """
         if isinstance(other, DXY):
             return self.dx * other.dx + self.dy * other.dy
         raise TypeError('DXY.dot () requires type DXY as operand.')
 
     @property
     def length2(self):
-        """ Return square of vector length. """
+        """Return square of vector length.
+
+        Returns
+        -------
+        l2 : float
+            Square of this vector's length.
+        """
         return self.dx ** 2 + self.dy ** 2
 
     @property
     def length(self):
-        """ Return vector length. """
+        """Return vector length.
+
+        Returns
+        -------
+        l1 : float
+            This vector's length.
+        """
         return sqrt(self.length2)
 
     @property
     def direction(self):
-        """ Return angle of vector's angle relative to positive x axis
+        """Return angle of this vector relative to positive x-axis
             (e.g., +y yields +pi/2), in radians. Returns zero if vector is zero-length.
+
+        Returns
+        -------
+        direction : float
+            Angle of this vector relative to positive x-axis, in radians.
+            In range [0, 2 * pi].
         """
         if self.length2 > 0.0:
             return atan2(self.dy, self.dx)
@@ -195,28 +301,43 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
 
 
 class Rectangle_in_2D:
-    """ Contains one rectangle in a 2-D Cartesian plane. """
+    """Represents a rectangle of any orientation within a 2-D Cartesian plane.
+
+    Parameters
+    ----------
+    xy_a, xy_b, xy_c: each `~.geometry.DXY`
+        Each a vertex of the new rectangle.
+        Vertices must be adjacent, clockwise or counter-clockwise.
+
+    Attributes
+    ----------
+    area : float
+        Area of this rectangle.
+    """
+
     def __init__(self, xy_a, xy_b, xy_c):
-        """
-        :param xy_a: a vertex of rectangle. [XY object]
-        :param xy_b: a vertex of rectangle, adjacent to xy_a. [XY object]
-        :param xy_c: a vertex of rectangle, adjacent to xy_b and opposite xy_a. [XY object]
-        """
         self.a, self.b, self.c = (xy_a, xy_b, xy_c)
         self.ab, self.bc = (self.b - self.a, self.c - self.b)
         if abs(self.ab.dot(self.bc)) > 1e-10 * min(self.ab.length, self.bc.length):
             raise ValueError('Rectangle_in_2D edges are not perpendicular.')
-
-    @property
-    def area(self):
-        """ Return area of rectangle. """
-        return self.ab.length * self.bc.length
+        self.area = self.ab.length * self.bc.length
 
     def contains_point(self, xy, include_edges=True):
-        """ Returns True iff this rectangle contains point xy, else return False.
-        :param xy: point to test. [XY object]
-        :param include_edges: True iff a point on rectangle edge is to count as contained. [boolean]
-        :return: True iff this rectangle contains point xy, else return False. [boolean]
+        """Returns True if this rectangle contains point `xy`, else return False.
+
+        Parameters
+        ----------
+        xy : `~.geometry.XY`
+            Point to determine whether inside or outside rectangle.
+
+        include_edges : bool
+            If and only if `include_edges` is True, a point on the rectangle's
+            boundaries will be considered contained.
+
+        Returns
+        -------
+        is_contained : bool
+            True if point `xy` is contained within this rectangle.
         """
         dot_ab = self.ab.length2  # reflexive dot product.
         dot_bc = self.bc.length2  # "
@@ -227,12 +348,23 @@ class Rectangle_in_2D:
         return (0 < dot_ab_pt < dot_ab) and (0 < dot_bc_pt < dot_bc)
 
     def contains_points(self, xy_array, include_edges=True):
-        """ Returns True for each corresponding point in xy_array iff this rectangle contains that point,
-            else return False. General case.
-        :param xy_array: points to test, in arbitrary position and ordering. [list or tuple of XY objects]
-        :param include_edges: True iff a point on rectangle edge is to count as contained. [boolean]
-        :return: List of booleans corresponding to xy_array, each element True iff this rectangle contains
-                 that point, else False. [list of boolean, same length as xy_array]
+        """Returns True for each corresponding point in xy_array if this rectangle
+         contains that point, else return False. Array version of `contains_point()`.
+
+        Parameters
+        ----------
+        xy_array : array or list of `~.geometry.XY`
+            Points to determine whether inside or outside rectangle.
+
+        include_edges : bool
+            If and only if `include_edges` is True, points on the rectangle's
+            boundaries will be considered contained.
+
+        Returns
+        -------
+        are_contained : array or list of bool
+            Boolean values, each True if corresponding point in `xy_array` is contained
+            within this rectangle.
         """
         dot_ab = self.ab.length2  # reflexive dot product, compute only once for array.
         dot_bc = self.bc.length2  # "
@@ -245,18 +377,29 @@ class Rectangle_in_2D:
                for (dot_a_pt, dot_b_pt) in zip(dot_ab_array, dot_bc_array)]
 
     def contains_points_unitgrid(self, x_min, x_max, y_min, y_max, include_edges=True):
-        """ Returns True for each point in a unit grid iff this rectangle contains that point,
-            else return False. Numpy-optimized case.
-            Unit grid x: x_min, x_min+1, x_min+2, ... , x_max. Same for y.
-            All 4 input values must be integers.
-            Return array is (x,y), NOT numpy index convention.
-        :param x_min: [integer]
-        :param x_max: must >= x_min. [integer]
-        :param y_min: [integer]
-        :param y_max: must >= y_min. [integer]
-        :param include_edges: True iff a point on rectangle edge is to count as contained. [boolean]
-        :return: array, True iff each corresponding point is contained by rectangle.
-                 [Indices are (x,y), NOT numpy index convention. [numpy array of booleans]
+        """Constructs a unit grid in X and Y, then sets each point in the grid to
+        True if and only if that point's coordinates fall within this rectangle,
+        else sets the point to False.
+        All 4 coordinate input values must be integers.
+        The implementation is numpy-optimized, but
+        the return array indices are as (x, y), NOT in numpy index convention (y, x).
+
+        Parameters
+        ----------
+        x_min, x_max: each int
+            Minimum and maximum X values in unit grid.
+        y_min, y_max: each int
+            Minimum and maximum Y values in unit grid.
+        include_edges : bool
+            If and only if `include_edges` is True, grid points lying exactly
+            on the rectangle's boundaries will be considered contained.
+
+        Returns
+        -------
+        grid : 2-dimensional |ndarray|
+            Unit grid in X and Y, with each point in the grid set to
+            True if and only if that point's coordinates fall within this rectangle,
+            else False.
         """
         if any(not isinstance(val, int) for val in (x_min, x_max, y_min, y_max)):
             raise TypeError('All 4 grid edges must be integers but are not.')
@@ -265,37 +408,61 @@ class Rectangle_in_2D:
         dot_ab = self.ab.length2  # reflexive dot product, precompute once for array.
         dot_bc = self.bc.length2  # "
         # NB: indexing='ij' actually gives (x,y) indices:
-        x, y = np.meshgrid(range(x_min, x_max + 1), range(y_min, y_max + 1), indexing='ij')
-        dot_ab_xy = self.ab.dx * (x - self.a.x) + self.ab.dy * (y - self.a.y)  # grid of a dot products.
-        dot_bc_xy = self.bc.dx * (x - self.b.x) + self.bc.dy * (y - self.b.y)  # grid of b "
+        x, y = np.meshgrid(range(x_min, x_max + 1), range(y_min, y_max + 1),
+                           indexing='ij')
+        # Grids (numpy arrays) of dot products:
+        dot_ab_xy = self.ab.dx * (x - self.a.x) + self.ab.dy * (y - self.a.y)
+        dot_bc_xy = self.bc.dx * (x - self.b.x) + self.bc.dy * (y - self.b.y)
         if include_edges:
-            return (0 <= dot_ab_xy) & (dot_ab_xy <= dot_ab) & (0 <= dot_bc_xy) & (dot_bc_xy <= dot_bc)
-        return (0 < dot_ab_xy) & (dot_ab_xy < dot_ab) & (0 < dot_bc_xy) & (dot_bc_xy < dot_bc)
+            return (0 <= dot_ab_xy) & (dot_ab_xy <= dot_ab) & \
+                   (0 <= dot_bc_xy) & (dot_bc_xy <= dot_bc)
+        return (0 < dot_ab_xy) & (dot_ab_xy < dot_ab) & \
+               (0 < dot_bc_xy) & (dot_bc_xy < dot_bc)
 
 
 class Circle_in_2D:
-    """ Contains one circle in a 2-D Cartesian plane. """
+    """Represents a circle in a 2-D Cartesian plane.
+
+    Parameters
+    ----------
+
+    xy_origin : `~.geometry.DXY`
+        Location of circle's center.
+
+    radius : float
+        Radius of circle.
+
+    Attributes
+    ----------
+
+    area : float
+        Area of circle.
+    """
+
     def __init__(self, xy_origin, radius):
-        """
-        :param xy_origin: x,y origin of circle. [XY object]
-        :param radius: [float]
-        """
         self.origin = xy_origin
         self.radius = radius
         if not isinstance(self.origin, XY):
             raise TypeError('Circle origin must be a XY object')
         self.x, self.y = (self.origin.x, self.origin.y)
-
-    @property
-    def area(self):
-        """ Return area of this circle. """
-        return pi * (self.radius ** 2)
+        self.area = pi * (self.radius ** 2)
 
     def contains_point(self, xy, include_edges=True):
-        """ Returns True iff this circle contains point xy, else return False.
-        :param xy: point to test. [XY object]
-        :param include_edges: True iff a point on circle edge is to count as contained. [boolean]
-        :return: True iff this circle contains point xy, else return False. [boolean]
+        """Returns True if this circle contains point `xy`, else return False.
+
+        Parameters
+        ----------
+        xy : `~.geometry.XY`
+            Point to determine whether inside or outside this circle.
+
+        include_edges : bool
+            If and only if `include_edges` is True, a point on the circle's
+            boundaries will be considered contained.
+
+        Returns
+        -------
+        is_contained : bool
+            True if point `xy` is contained within this circle.
         """
         distance2 = (xy - self.origin).length2
         if include_edges:
@@ -303,12 +470,23 @@ class Circle_in_2D:
         return distance2 < self.radius ** 2
 
     def contains_points(self, xy_array, include_edges=True):
-        """ Returns True for each corresponding point in xy_array iff this circle contains that point,
-            else return False. General case.
-        :param xy_array: points to test, in arbitrary position and ordering. [list or tuple of XY objects]
-        :param include_edges: True iff a point on circle edge is to count as contained. [boolean]
-        :return: List of booleans corresponding to xy_array, each element True iff this circle contains
-        that point, else False. [list of booleans, same length as xy_array]
+        """Returns True for each corresponding point in xy_array if this circle
+         contains that point, else return False. Array version of `contains_point()`.
+
+        Parameters
+        ----------
+        xy_array : array or list of `~.geometry.XY`
+            Points to determine whether inside or outside this circle.
+
+        include_edges : bool
+            If and only if `include_edges` is True, points on this circle's
+            boundaries will be considered contained.
+
+        Returns
+        -------
+        are_contained : array or list of bool
+            Boolean values, each True if corresponding point in `xy_array` is contained
+            within this circle.
         """
         distances2 = [(xy - self.origin).length2 for xy in xy_array]
         if include_edges:
@@ -316,18 +494,29 @@ class Circle_in_2D:
         return [distance2 < self.radius ** 2 for distance2 in distances2]
 
     def contains_points_unitgrid(self, x_min, x_max, y_min, y_max, include_edges=True):
-        """ Returns True for each point in a unit grid (e.g., pixel grid) iff this circle contains
-            that point, else return False. Numpy-optimized case.
-            Unit grid x: x_min, x_min+1, x_min+2, ... , x_max. Same for y.
-            All 4 input values must be integers.
-            Return array is (x,y), NOT numpy index convention.
-        :param x_min: [integer]
-        :param x_max: must >= x_min. [integer]
-        :param y_min: [integer]
-        :param y_max: must >= y_min. [integer]
-        :param include_edges: True iff a point exactly on circle edge shall count as contained. [boolean]
-        :return: array, True iff each corresponding point is contained by circle.
-                 Indices are (x,y), NOT numpy index convention. [numpy array of booleans]
+        """Constructs a unit grid in X and Y, then sets each point in the grid to
+        True if and only if that point's coordinates fall within this circle,
+        else sets the point to False.
+        All 4 coordinate input values must be integers.
+        The implementation is numpy-optimized, but
+        the return array indices are as (x, y), NOT in numpy index convention (y, x).
+
+        Parameters
+        ----------
+        x_min, x_max: each int
+            Minimum and maximum X values in unit grid.
+        y_min, y_max: each int
+            Minimum and maximum Y values in unit grid.
+        include_edges : bool
+            If and only if `include_edges` is True, grid points lying exactly
+            on the circle's boundaries will be considered contained.
+
+        Returns
+        -------
+        grid : 2-dimensional |ndarray|
+            Unit grid in X and Y, with each point in the grid set to
+            True if and only if that point's coordinates fall within this circle,
+            else False.
         """
         if any(not isinstance(val, int) for val in (x_min, x_max, y_min, y_max)):
             raise TypeError('All 4 grid edges must be integers but are not.')
@@ -335,7 +524,7 @@ class Circle_in_2D:
             raise ValueError('Grid point specifications must be in ascending order.')
         dx2_values = [(x - self.origin.x) ** 2 for x in range(x_min, x_max + 1)]
         dy2_values = [(y - self.origin.y) ** 2 for y in range(y_min, y_max + 1)]
-        dx2, dy2 = np.meshgrid(dx2_values, dy2_values, indexing='ij')  # to give (x,y) indexes.
+        dx2, dy2 = np.meshgrid(dx2_values, dy2_values, indexing='ij')
         if include_edges:
             return (dx2 + dy2) <= self.radius ** 2
         return (dx2 + dy2) < self.radius ** 2
@@ -345,16 +534,28 @@ __________FUNCTIONS_____________________________________________________________
 
 
 def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
-    """ Yield the closest (perpendicular) distance from point (xpt, ypt) to the line (not necessarily
-        within the closed line segment) passing through (x1,y1) and (x2,y2).
-        :param xy_pt: (x,y) coordinates of point. [tuple or XY object]
-        :param xy_1: (x,y) coordinates of one point on the line. [tuple or XY object]
-        :param xy_2: (x,y) coordinates of a second point on the line. [tuple or XY object]
-        :param dist_12: distance between points xy_a and xy_b (length of line segment) if known,
-            otherwise just leave at None and it will be calculated (normal case). [float]
-        :return: shortest (perpendicular) distance from point xy_pt to line segment defined by
-            points xy_a and xy_b. [float]
-        """
+    """Shortest from a point to a line. Line is consdered to extend infinitely
+    in both directions (formally a line, not a line segment).
+
+    Parameters
+    ----------
+    xy_pt : `~.geometry.XY`
+        The point whose distance to measure.
+
+    xy_1, xy_2 : each `~.geometry.XY`
+        Two distinct points lying on the line.
+
+    dist_12 : float, optional
+        Square of distance between `xy_1` and `xy_2` if already computed and available.
+        None (commonest case, and default) lets this function compute the
+        squared distance.
+
+    Returns
+    -------
+    distance : float
+        Shortest distance between `xy_pt` and the line defined by points
+        `xy_1` and `xy_2`.
+    """
     xpt, ypt = tuple(xy_pt)
     x1, y1 = tuple(xy_1)
     x2, y2 = tuple(xy_2)
@@ -367,7 +568,18 @@ def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
 
 
 def make_golden_spiral(n_points):
-    """Make n points evenly spaced on a sphere. Returns list of n (az, alt) tuples, each in degrees.
+    """Return points evenly spaced on a sphere.
+
+    Parameters
+    ----------
+    n_points : int
+        Number of points wanted, which points will be distributed
+        over the entire sphere.
+
+    Returns
+    -------
+    az_alt_list : list of namedtuple 'azalt' having members `az` and `alt` each float.
+        Each tuple represents one (azimuth, altitude) sky position.
     """
     indices = np.arange(0, n_points, dtype=float) + 0.5
     phi = np.arccos(1 - 2 * indices / n_points)  # altitude in radians

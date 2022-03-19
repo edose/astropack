@@ -1,16 +1,16 @@
-""" Module astropak.reference
+""" Module astropack.reference
     Permanent constants.
 """
 
 __author__ = "Eric Dose, Albuquerque"
 
-from math import pi, sqrt, log
+import math
 
 # NUMERICAL CONSTANTS:
-RADIANS_PER_DEGREE = pi / 180.0
-DEGREES_PER_RADIAN = 1 / RADIANS_PER_DEGREE        # ca. 57.396
-ARCSECONDS_PER_RADIAN = 3600 * DEGREES_PER_RADIAN  # ca. 206265
-FWHM_PER_SIGMA = 2.0 * sqrt(2.0 * log(2))          # ca. 2.35482
+RADIANS_PER_DEGREE = math.pi / 180.0
+DEGREES_PER_RADIAN = 1 / RADIANS_PER_DEGREE          # ca. 57.396
+ARCSECONDS_PER_RADIAN = 3600 * DEGREES_PER_RADIAN    # ca. 206265
+FWHM_PER_SIGMA = 2.0 * math.sqrt(2.0 * math.log(2))  # ca. 2.35482
 DAYS_PER_YEAR_NOMINAL = 365.25
 
 
@@ -28,7 +28,7 @@ DEGREE_SIGN = '\u00B0'
 PLUS_MINUS = '\u00B1'
 MICRO_SIGN = '\u00B5'
 MOON_CHARACTER = '\u263D'  # open to left. Open to right = '\u263E'
-# MOON_CHARACTER = '\U0001F319'  # Drat, matplotlib complains 'glyph missing from current font'.
+# MOON_CHARACTER = '\U0001F319'  # Matplotlib says 'glyph missing from current font'.
 COMET_CHARACTER = '\u2604'
 STAR_CHARACTER_WHITE = '\u2606'
 STAR_CHARACTER_BLACK = '\u2605'

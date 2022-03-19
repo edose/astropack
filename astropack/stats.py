@@ -1,4 +1,4 @@
-""" Module 'astrosupport.stats'.
+""" Module 'astropack.stats'.
     Numerous statistics and regression classes and functions.
     Fork of (extract of) photrix.util, begun 2020-10-23.
     Intentions: (1) a separate, importable module for use by all EVD astro python projects.
@@ -17,75 +17,87 @@ import statsmodels.regression.mixed_linear_model as sm_mm  # NB: only statsmodel
 import statsmodels.api as sm_api  # sm version >= 0.8
 
 
+__all__ = ['MixedModelFit', 'LinearFit', 'weighted_mean']
+
+
 _____REGRESSION_____________________________________________ = 0
 
 
 class MixedModelFit:
-    """ Object: holds info for one mixed-model (py::statsmodel) fit.  TESTS OK 2020-10-25.
-        Generic in nature--NOT tied to astronomical usage.
-        Uses formula form, i.e., statsmodel::sm_mm.MixedLM.from_formula()
+    """ Represents one mixed-model (statsmodel) fit. Generic; not tied to astronomy.
 
-        Usage: fit = MixedModel(df_input, 'Y', ['X1', 'X2'], 'a_group_type']
-               fit = MixedModel(df_input, 'Y', 'X1', 'a_group_type'] (OK if only one indep var)
+    Results of the fit are made available as attributes.
+    Current implementation uses formula form, i.e.,
+    statsmodel::sm_mm.MixedLM.from_formula()
 
-        Fields available from MixedModelFit object:
-            .converged: True iff mixed model regression converged, else False. [boolean]
-            .dep_var: name of dependent variable. [string]
-            .df_fixed_effects, one row per fixed effect & intercept [pandas Dataframe]
-                columns:
-                    (index): 'Intercept' or name of fixed effect (independent variable)
-                    Name: same as (index)
-                    Value: best value (coefficient) of indep variable from fit
-                    Stdev: std deviation of Value  from fit
-                    Tvalue: Value / Stdev from fit
-                    Pvalue: [ignore]
-            .df_observations, one row per observation used in fit:
-                columns:
-                    (index):
-                    FittedValue: value predicted from fit for observation
-                    Residual: obs value - fitted value for observation
-            .df_random_effects: one row per effect group (for photometry, usually one row per image):
-                columns:
-                    (index): ID of group (for photometry, usually imageID = FITS file name)
-                    GroupName: same as index.
-                    Group ['GroupValue' previously but now obsolete]: random effect for this group
-                        (for photometry, usually 'cirrus effect',
-                        the image's average intensity over targets
-                        minus the average of these values over all targets)
-            .fixed_vars: list of fixed variable names, does not include 'Intercept' [list of strings]
-            .likelihood: ?
-            .nobs: count of observations [int]
-            .sigma: std deviation of residuals over all observations [float]
-            .statsmodels_object: embedded MixedMLResults object from statsmodels.
-                (needed for predictions using .predict(); not too directly useful to user)
+    >>> fit = MixedModelFit(df, 'Y', ['X1', 'X2'], 'a_group_type']
+    >>> fit = MixedModelFit(df, 'Y', 'X1', 'a_group_type'] (one indep var)
+
+    Parameters
+    ----------
+    data : |DataFrame|
+        input data, one variable per column, one data point per row.
+
+    dep_var : str
+        Name of column in `data` that serves as dependent 'Y' variable.
+
+    fixed_vars : str, or list of str
+        One or more names of columns in `data` that serve as
+        independent 'X' variable(s).
+
+    group_var : str
+        Name of column in `data` that serves as random-effect (group) variable.
+
+    Attributes
+    ----------
+    statsmodels_object : ~statsmodels.regression.mixed_linear_model.MixedLMResults
+        The complex results object as returned from statsmodels' Mixed Model fit.
+
+    converged : bool
+        True if Mixed Model fit converged, else False.
+
+    nobs : int
+        Number of data points (observations) used in the fit.
+
+    likelihood : float
+        Likelihood of the fit, as returned by statsmodels.
+
+    dep_var : str
+        Column name in `data` of the dependent 'Y' variable used in the fit.
+
+    fixed_vars : list of str
+        Column name(s) in `data` of the independent 'X' variable(s) used in the fit.
+
+    group_var : str
+        Column name in `data` of the 'random' group variable used in the fit.
+
+    sigma : float
+        RMS residual for the fit, in dependent-variable units.
+
+    df_fixed_effects : |DataFrame|
+        Dataframe, one row per independent 'X' variable, of data related to those
+        variables, including their best-fit values, standard deviation, t-value, and
+        P-value. Dataframe row index is the variable's name.
+
+    df_random_effects : |DataFrame|
+        Dataframe, one row per 'random-effects' group, of data related to those groups,
+        especially the groups' effect sizes.
+
+    df_observations : |DataFrame|
+        Dataframe, one per input data point, of data related to each data point,
+        including their fitted values and fit residuals.
     """
-    # TODO: (someday, maybe) Replace internal 'formula' API with superior column-name API.
-    # But this will require statsmodels to fix their code.
-    # .predict() currently (v. 0.13.2) FAILS for column-name API.
-    # Column-name API would much more forgiving of var names.
-    # BUT, given that statsmodels currently:
-    #    (1) fails to .predict() from models built with column-name API, and
-    #    (2) fails to allow any debugger-mode tests under pytest,
-    # I guess we'll suffer their API.
-    # But enough hours wasted on this nonsense.
-    # Please get it together, statsmodels. Is there anyone home? Anyone? Hello?????
+    # TODO: Replace internal 'formula' API with more robust column-name API.
     def __init__(self, data, dep_var=None, fixed_vars=None, group_var=None):
-        """ Executes mixed-model fit & makes data available.
-        :param data: input data, one variable per column, one point per row. [pandas Dataframe]
-        :param dep_var: one column name as dependent 'Y' variable. [string]
-        :param fixed_vars: one or more column names as independent 'X' variable. [string or
-                  list of strings]
-        :param group_var: one column name as group. (category; random-effect) variable [string]
-        """
         if not isinstance(data, pd.DataFrame):
-            print('Parameter \'data\' must be a pandas Dataframe of input data.')
-            return
+            raise TypeError('Parameter \'data\' must be a pandas Dataframe'
+                            ' of input data.')
         if dep_var is None or fixed_vars is None or group_var is None:
-            print('Provide all parameters: dep_var, fixed_vars, and group_var.')
-            return
+            raise ValueError('Must provide all parameters: dep_var, '
+                             'fixed_vars, and group_var.')
         if not isinstance(dep_var, str) or not isinstance(group_var, str):
-            print('Parameters \'dep_var\' and \'group_var\' must both be strings.')
-            return
+            raise TypeError('Parameters \'dep_var\' and \'group_var\' '
+                            'must both be strings.')
         fixed_vars_valid = False  # default if not validated
         if isinstance(fixed_vars, str):
             fixed_vars = list(fixed_vars)
@@ -95,8 +107,8 @@ class MixedModelFit:
                 if all([isinstance(var, str) for var in fixed_vars]):
                     fixed_vars_valid = True
         if not fixed_vars_valid:
-            print('Parameter \'fixed_vars\' must be a string or a list of strings.')
-            return
+            raise TypeError('Parameter \'fixed_vars\' must be '
+                            'a string or a list of strings.')
         formula = dep_var + ' ~ ' + ' + '.join(fixed_vars)
 
         model = sm_mm.MixedLM.from_formula(formula, groups=data[group_var], data=data)
@@ -113,11 +125,13 @@ class MixedModelFit:
         self.group_var = group_var
         self.sigma = sqrt(sum(fit.resid**2)/(fit.nobs-len(fixed_vars)-2))
 
-        # Fixed-effects dataframe (use joins, so that we don't count on consistent input ordering):
+        # Fixed-effects dataframe (use joins, so that we don't count on
+        # consistent input ordering):
         df = pd.DataFrame({'Value': fit.fe_params})
-        df = df.join(pd.DataFrame({'Stdev': fit.bse_fe}))     # join on index (enforce consistency)
-        df = df.join(pd.DataFrame({'Tvalue': fit.tvalues}))   # " & any random effect discarded
-        df = df.join(pd.DataFrame({'Pvalue': fit.pvalues}))   # " & "
+        # Join on index (enforce consistency):
+        df = df.join(pd.DataFrame({'Stdev': fit.bse_fe}))
+        df = df.join(pd.DataFrame({'Tvalue': fit.tvalues}))
+        df = df.join(pd.DataFrame({'Pvalue': fit.pvalues}))
         df['Name'] = df.index
         self.df_fixed_effects = df.copy()
 
@@ -127,32 +141,52 @@ class MixedModelFit:
         df['GroupName'] = df.index
         self.df_random_effects = df.copy()
 
-        # Observation dataframe (safe to count on consistent input ordering -> easier construction):
+        # Observation dataframe (safe to count on consistent input
+        # ordering, so fit construction is easier and safer:
         df = pd.DataFrame({'FittedValue': fit.fittedvalues})
         df['Residual'] = fit.resid
         self.df_observations = df.copy()
 
     def predict(self, df_predict_input, include_random_effect=True):
-        """ Takes new_data and renders predicted dependent-variable values.
-            Optionally includes effect of groups (random effects), unlike py::statsmodels.
-        :param: new_data: new input data used to render predictions.[pandas DataFrame]
-           Extra (unused) columns are OK; model selects only needed columns.
-           The columns must include all (indep var and random-effect) columns used to make the model!
-        :param: include_random_effect: True to include them, False to omit/ignore [bool]
-        :return: predictions of dependent-variable values matching rows of new data (pandas Series)
-        """
-        # Get predicted values on fixed effects only (per statsmodels' weird def. of 'predicted'):
-        fixed_effect_inputs = df_predict_input[self.fixed_vars]  # 1 col per fixed effect variable
-        predicted_on_fixed_only = self.statsmodels_object.predict(exog=fixed_effect_inputs)
+        """Takes new_data and renders predicted dependent-variable values.
 
-        # If requested, add RE contibs (that were not included in MixedModels object 'fit'):
+        Optionally includes effect of groups (random effects), unlike statsmodels
+        itself.
+
+        Parameters
+        ----------
+        df_predict_input : |DataFrame|
+            New input data from which to make predictions, one row per new data point
+            from which to predict dependent variable.
+            Columns must include all independent variables and the 'random' group
+            variable used in the fit.
+
+        include_random_effect : bool, optional
+            True if the effect of the 'random' group variable is to be included in the
+            predicted values. Default is True, which is almost always correct.
+
+        Returns
+        -------
+        total_prediction : |Series|
+            Predictions of dependent-variable values matching rows of new data.
+        """
+        # First, get predicted values on fixed effects only
+        # (per statsmodels' somewhat weird def. of 'predicted'):
+        # One column per fixed-effect (independent, 'X') variable.
+        fixed_effect_inputs = df_predict_input[self.fixed_vars]
+        predicted_on_fixed_only = \
+            self.statsmodels_object.predict(exog=fixed_effect_inputs)
+
+        # If requested, add random-effect (group variable) contibutions
+        # (which were not included in statsmodels' MixedModels object 'fit'):
         if include_random_effect:
             df_random_effect_inputs = pd.DataFrame(df_predict_input[self.group_var])
-            df_random_effect_values = self.df_random_effects[['Group']]  # was ['GroupValue']
-            predicted_on_random_only = pd.merge(df_random_effect_inputs, df_random_effect_values,
+            df_random_effect_values = self.df_random_effects[['Group']]
+            predicted_on_random_only = pd.merge(df_random_effect_inputs,
+                                                df_random_effect_values,
                                                 left_on=self.group_var,
                                                 right_index=True, how='left',
-                                                sort=False)['Group']  # was 'GroupValue'
+                                                sort=False)['Group']
             total_prediction = predicted_on_fixed_only + predicted_on_random_only
         else:
             total_prediction = predicted_on_fixed_only
@@ -161,42 +195,58 @@ class MixedModelFit:
 
 
 class LinearFit:
-    """ Object: holds info for one ordinary multivariate least squares fit.  TESTS OK 2020-10-25.
-    Generic in nature--not tied to astronomical usage.
+    """Represents one multivariate linear (statsmodel) fit.
+    Generic; not tied to astronomy.
+
     Internally uses column-name API to statsmodels OLS.
 
-        Usage: fit = LinearFit(df_input, 'Y', ['X1', 'X2']]
-               fit = LinearFit(df_input, 'Y', 'X1'] (OK if only one indep var)
+    >>> fit = LinearFit(df_input, 'Y', ['X1', 'X2']]
+    >>> fit = LinearFit(df_input, 'Y', 'X1'] (one indep var)
 
-        Fields available from LinearFit object:
-            .indep_vars: names of independent variables. [list of strings]
-            .dep_var: name of dependent variable. [string]
-            .nobs: count of observations. [int]
-            .sigma: std deviation of residuals over all observations [float]
-            .statsmodels_object: embedded RegressionResults object from statsmodels.
-                (needed for predictions using .predict(); not too directly useful to user
+    Parameters
+    ----------
 
-            .df_indep_vars, one row per intercept & independent variables. [pandas Dataframe]
-                columns:
-                    (index): 'Intercept' or name of fixed effect (independent variable)
-                    Name: same as (index)
-                    Value: best value (coefficient) of indep variable from fit
-                    Stdev: std deviation of Value  from fit
-                    Tvalue: Value / Stdev from fit
-                    Pvalue: [ignore]
-            .df_observations, one row per observation used in fit:
-                columns:
-                    (index): [int]
-                    FittedValue: value predicted from fit for observation
-                    Residual: obs value - fitted value for observation
+    data : |DataFrame|
+        input data, one variable per column, one data point per row.
+
+    dep_var : str
+        Name of column in `data` that serves as dependent 'Y' variable.
+
+    indep_vars : str, or list of str
+        One or more names of columns in `data` that serve as
+        independent 'X' variable(s).
+
+    Attributes
+    ----------
+
+    statsmodels_object : ~statsmodels.regression.linear_model.RegressionResults
+        The complex results object as returned from statsmodels' linear (OLS) fit.
+
+    indep_vars : list of str
+        Column name(s) in `data` of the independent 'X' variable(s) used in the fit.
+
+    dep_var :str
+        Column name in `data` of the dependent 'Y' variable used in the fit.
+
+    nobs : int
+        Number of data points (observations) used in the fit.
+
+    sigma : float
+        RMS residual for the fit, in dependent-variable units.
+
+    r2 : float
+        R^2 correlation coefficient for the fit.
+
+    df_indep_vars : |DataFrame|
+        Dataframe, one row per independent 'X' variable, of data related to those
+        variables, including their best-fit values, standard deviation, t-value, and
+        P-value. Dataframe row index is the variable's name.
+
+    df_observations : |DataFrame|
+        Dataframe, one per input data point, of data related to each data point,
+        including their fitted values and fit residuals.
     """
     def __init__(self, data, dep_var=None, indep_vars=None):
-        """ Executes ordinary least-squares multivariate linear fit, makes data available.
-        :param data: input data, one variable per column, one point per row. [pandas Dataframe]
-        :param dep_var: one column name as dependent 'Y' variable. [string]
-        :param indep_vars: one or more column names as independent 'X' variable. [string or
-                  list of strings]
-        """
         if not isinstance(data, pd.DataFrame):
             print('Parameter \'data\' must be a pandas Dataframe of input data.')
             return
@@ -248,7 +298,20 @@ class LinearFit:
         self.df_observations = df.copy()
 
     def predict(self, df_predict_input):
-        """Return newly predicted indep variable (Y) values from independent variable (X) values."""
+        """Takes new_data and renders predicted dependent-variable values.
+
+        Parameters
+        ----------
+        df_predict_input : |DataFrame|
+            New input data from which to make predictions, one row per new data point
+            from which to predict dependent variable.
+            Columns must include all independent variables used in the fit.
+
+        Returns
+        -------
+        predicted_y_values : |Series|
+            Predictions of dependent-variable values matching rows of new data.
+        """
         indep_var_inputs = df_predict_input[self.indep_vars]  # 1 column per independent (x) variable
         predicted_y_values = self.statsmodels_object.predict(exog=indep_var_inputs)
         return predicted_y_values
@@ -258,18 +321,38 @@ _____STATISTICAL_FUNCTIONS__________________________________ = 0
 
 
 def weighted_mean(values, weights):
-    """  Returns weighted mean, weighted std deviation of values, and weighted std deviation of the mean.
-    TESTS OK 2020-10-25.
-    :param values: list (or other iterable) of values to be averaged [list of floats]
-    :param weights: list (or other iterable) of weights; length must = length of values [list of floats]
-    :return: (weighted mean, weighted std dev (population), weighted std dev of mean) [3-tuple of floats]
+    """Returns weighted mean, weighted standard deviation of values, and
+    weighted standard deviation of the mean.
+
+    Parameters
+    ----------
+    values : list of float, or |Series| of float
+        Values to be averaged.
+
+    weights : list of float, or |Series| of float
+        Weights, corresponding to `values`, used in making the weighted average.
+
+    Returns
+    -------
+    w_mean, w_stdev_pop, w_stdev_w_mean : tuple of 3 float
+        Weighted mean, weighted standard deviation of the population of values,
+        weighted standard deviation of the mean of values.
+
+    Raises
+    ------
+    VelueError
+        If values and weights are unequal in number, as required.
+
+    ValueError
+        If sum of weights is not positive, as required.
     """
     if (len(values) != len(weights)) or (len(values) == 0) or (len(weights) == 0):
         raise ValueError('lengths of values & weights must be equal & non-zero.')
     if sum(weights) <= 0:
         raise ValueError('sum of weights must be positive.')
-    value_list = list(values)    # py list comprehension often misunderstands pandas Series indices.
-    weight_list = list(weights)  # "
+    # Convert to lists, because py list comprehension can mangle pandas Series indices:
+    value_list = list(values)
+    weight_list = list(weights)
     norm_weights = [wt/sum(weights) for wt in weight_list]
     w_mean = sum(nwt * val for (nwt, val) in zip(norm_weights, value_list))
     n_nonzero_weights = sum(w != 0 for w in weight_list)

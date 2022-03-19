@@ -8,21 +8,18 @@
 .. ------------------------------------------------------------------
 .. RST SUBSITUTIONS
 
-..                               astropack
-.. |Astronight| replace:: :class:`~astropack.almanac.Astronight`
-.. |AtlasRefcat2| replace:: `:class:~astropack.catalogs.AtlasRefcat2`
-.. |XY| replace:: :class:`~astropack.geometry.XY`
-.. |DXY| replace:: :class:`~astropack.geometry.DXY`
-.. |Rectangle_in_2D| replace:: :class:`~astropack.geometry.Rectangle_in_2D`
-.. |Circle_in_2D| replace:: :class:`~astropack.geometry.Circle_in_2D`
-.. |Site| replace:: :class:`~astropack.ini.Site`
-.. TODO: CONTINUE THIS when possible (or necessary).
-
 ..              skyfield (deviant Sphinx format, unfortunately)
 .. |skyfield.GP| replace:: https://rhodesmill.org/skyfield/api-topos.html#skyfield.toposlib.GeographicPosition
+.. |skyfield.ME| replace:: https://rhodesmill.org/skyfield/api-ephemeris.html#skyfield.jpllib.SpiceKernel
+.. |skyfield.TS| replace:: https://rhodesmill.org/skyfield/api-time.html#skyfield.timelib.Timescale
+.. |skyfield.Star| replace:: https://rhodesmill.org/skyfield/api-stars.html#skyfield.starlib.Star
 
 ..                                 NumPy
 .. |ndarray| replace:: :class:`numpy.ndarray`
+
+..                                 pandas
+.. |Series| replace:: :class:`pandas.Series`
+.. |DataFrame| replace:: :class:`pandas.DataFrame`
 
 ..                                Astropy
 .. Coordinates

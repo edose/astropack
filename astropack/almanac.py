@@ -1,4 +1,4 @@
-""" Module astropak.almanac:
+""" Module astropack.almanac:
     Astronight class + other almanac code.
 """
 
@@ -27,6 +27,7 @@ THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__
 INI_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, 'test', '$data_for_test')
 
 HORIZON_USNO = -0.833  # USNO sun & moon effective horizon (radius & refraction), in degrees.
+HOURS_TO_ASSURE_HALF_NIGHT = 14
 
 __all__ = ['SunAlwaysUpError', 'NoDarkTimeError',
            'Astronight',
@@ -117,9 +118,9 @@ class Astronight:
         Moon's Right Ascension at local middark, in degrees, in range [0, 360).
     moon_dec : float
         Moon's Declination at local middark, in degrees, in range [-90, +90].
-    moon_skycoord : SkyCoord
+    moon_skycoord : |SkyCoord|
         Moon's sky location at local middark.
-    moon_transit : `~astropy.time.Time`
+    moon_transit : |Time|
         Time, nearest local middark, at which moon crosses local meridian.
     moon_up_timespans : `~astropak.util.Timespan`, or list of two such timespans
         Timespan when moon is above horizon, as limited by ``timespan_no_sun``.
@@ -196,7 +197,7 @@ class Astronight:
             TimeDelta(-longitude_hours * 3600, format='sec') + TimeDelta(24 * 3600, format='sec')
 
         # No-sun (sun below horizon) timespan:
-        self.timespan_no_sun = find_no_sun(self.obs, self.master_eph, self.timescale, approx_midnight, 12)
+        self.timespan_no_sun = find_no_sun(self.obs, self.master_eph, self.timescale, approx_midnight)
         if self.timespan_no_sun is None:
             raise SunAlwaysUpError('Astronight date ' + self.an_date_string +
                                    ', latitude=' + '{0:.2f}'.format(site.latitude))
@@ -238,13 +239,13 @@ class Astronight:
 
         Parameters
         ----------
-        target_skycoord : `SkyCoord`
-            The sky position of the target to observe.
+        target_skycoord : |SkyCoord|
+            Sky position of the target to observe.
 
         Returns
         -------
-        transit_time : `Time`
-            The transit (local meridian crossing) time of the target at the astronight `Site`.
+        transit_time : |Time|
+            Transit (local meridian crossing) time of the target at the astronight `Site`.
         """
         return target_transit_time(self.obs, self.master_eph, self.timescale, target_skycoord,
                                    self.local_middark_utc)
@@ -256,20 +257,20 @@ class Astronight:
 
         Parameters
         ----------
-        target_skycoord : `SkyCoord`
+        target_skycoord : |SkyCoord|
             Sky position of the target to observe.
 
-        min_alt : float or `astropy.Angle`
+        min_alt : float or |Angle|
             Minimum altitude for target to be observable. In degrees, if a float.
             Set to zero to disable. Required.
 
-        min_moon_dist : float or `astropy.Angle`
+        min_moon_dist : float or |Angle|
             Minimum distance from the moon for the target is observable (but only
             when the moon is up. In degrees, if a float. Set to zero to disable. Required.
 
         Returns
         -------
-        timespan_observable : `~astropy.util.Timespan`
+        timespan_observable : `~.util.Timespan`
             Timespan for which target is observable.
 
         Raises
@@ -304,7 +305,7 @@ __________PUBLIC_FUNCTIONS______________________________________________________
 
 
 def ha_dec_from_az_alt(latitude, az_alt):
-    """Return hour angle declination for a given azimuth and altitude, at a site's known
+    """Return hour angle and declination for a given azimuth and altitude, at a site's known
      latitude.
 
      Parameters
@@ -312,12 +313,12 @@ def ha_dec_from_az_alt(latitude, az_alt):
      latitude : float
         Site latitude, in degrees.
 
-     az_alt : tuple of 2 floats, or list of such tuples
-        (azimuth, altitude), in degrees.
+     az_alt : tuple of 2 float, or list of such tuples
+        Tuple is (azimuth, altitude), in degrees.
 
     Returns
     -------
-    ha_dec : 2-tuple of float values, or list of such tuples
+    ha_dec : 2-tuple of float, or list of such tuples
        (hourangle, declination), in degrees.
     """
     az_alt_is_list = isinstance(az_alt, list)
@@ -357,52 +358,54 @@ def make_skyfield_observatory_from_site(site):
 
     Parameters
     ----------
-    site : `~ini.Site`
-        site to convert to `skyfield` observatory object.
+    site : `~.ini.Site`
+        Earth location..
 
     Returns
     -------
-    skyfield_obs : `skyfield.toposlib.GeographicPosition`
+    skyfield_obs : |skyfield.GP|
         Skyfield GeographicPosition object.
-    """
-    # https://rhodesmill.org/skyfield/api-topos.html#skyfield.toposlib.GeographicPosition
 
+        See: https://rhodesmill.org/skyfield/api-topos.html#skyfield.toposlib.GeographicPosition
+    """
     obs = wgs84.latlon(site.latitude, site.longitude, site.elevation)
     return obs
 
 
-def find_no_sun(obs, master_eph, timescale, approx_midnight, hours_each_side=12):
+def find_no_sun(obs, master_eph, timescale, approx_midnight):
     """Return Timespan from sunset to sunrise within given Timespan.
-       Special case required to handle 'nights' with no rise and/or no set.
+       Special case required to handle nighttimes with no rise and/or no set.
 
     Parameters
     ----------
-    obs : `skyfield.Observer`
-        Observer's earth location.
+    obs : skyfield.toposlib.GeographicPosition
+        Skyfield GeographicPosition object.
 
-    master_eph : `skyfield.ephemeris`
-        Skyfield master ephemeris, typically available as Astronight.skyfield_eph
+        See: |skyfield.GP|
 
-    timescale: `skyfield.timescale`
-        Skyfield timescale object, typically available as Astronight.skyfield.ts
+    master_eph :  skyfield.jpllib.SpiceKernel
+        Skyfield master ephemeris, available as Astronight.skyfield_eph
 
-    approx_midnight : Time
-        approximate midnight, UTC.
+        See: |skyfield.ME|
 
-    hours_each_side: float
-        Some number of hours on each side of midnight sufficient to capture
-        both nearest sunset and nearest sunrise. Default is 12.
+    timescale:  skyfield.timelib.Timescale
+        Skyfield timescale object, available as Astronight.skyfield.ts
+
+        See: |skyfield.TS|
+
+    approx_midnight : |Time|
+        Approximate midnight, UTC.
 
     Returns
     -------
-    timespan_no_sun : `~astropack.util.Timespan`
+    timespan_no_sun : `~.util.Timespan`
         Timespan from sunset to sunrise.
     """
     # print(approx_midnight)
     # print(type(approx_midnight))
     midnight = timescale.from_astropy(approx_midnight)  # skyfield Time obj.
-    time_before = midnight - timedelta(hours=hours_each_side)
-    time_after = midnight + timedelta(hours=hours_each_side)
+    time_before = midnight - timedelta(hours=HOURS_TO_ASSURE_HALF_NIGHT)
+    time_after = midnight + timedelta(hours=HOURS_TO_ASSURE_HALF_NIGHT)
     sun_fn = risings_and_settings(master_eph, master_eph['sun'], obs, HORIZON_USNO)
     sun_fn.step_days = 1.0 / 12.0
     set_times, set_values = find_discrete(time_before, midnight, sun_fn)
@@ -428,37 +431,47 @@ def find_no_sun(obs, master_eph, timescale, approx_midnight, hours_each_side=12)
 
 
 def find_target_up_down(obs, master_eph, target_eph, timescale, timespan, up_down, horizon=0.0):
-    """Return timespan for which target is either up or down (above or below given horizon),
+    """Returns imespan for which target is either up or down (above or below given horizon),
        within a given timespan.
 
     Parameters
     ----------
-    obs : `~skyfield.Observer`
-        Skyfield observer object representing observing location.
+    obs : skyfield.toposlib.GeographicPosition
+        Skyfield GeographicPosition object.
 
-    master_eph : `~skyfield.ephemeris`
-        Skyfield master ephemeris, typically available as Astronight.skyfield_eph
+        See: |skyfield.GP|
 
-    target_eph : `~skyfield.ephemeris` or `~skyfield.Star`
-        Target ephemeris; either a solar-system ephemeris or a Star object.
+    master_eph :  skyfield.jpllib.SpiceKernel
+        Skyfield master ephemeris, available as Astronight.skyfield_eph
 
-    timescale : `~skyfield.timescale`
-        Skyfield timescale object, typically available as Astronight.skyfield.ts
+        See: |skyfield.ME|
 
-    timespan : `~astropack.util.Timespan`
+    target_eph : skyfield.vectorlib.VectorSum or skyfield.starlib.Star
+        Target ephemeris; either a solar-system ephemeris (selected from 'master_eph')
+        or a skyfield Star object.
+
+        See: https://github.com/skyfielders/python-skyfield/blob/master/skyfield/vectorlib.py
+        or https://rhodesmill.org/skyfield/api-stars.html#skyfield.starlib.Star
+
+    timescale:  skyfield.timelib.Timescale
+        Skyfield timescale object, available as Astronight.skyfield.ts
+
+        See: |skyfield.TS|
+
+    timespan : `~.util.Timespan`
         Timespan within which result will be constrained.
 
-    up_down : 'up' or 'down', string
+    up_down : {'up', 'down'}
         If 'up', results represent when target is above horizon.
         If 'down', results represent when target is below horizon. Required.
 
     horizon: float, optional
         Altitude above actual horizon that separates 'up' from 'down', in degrees.
-        Default is zero (uses actual horizon).
+        Default is zero (ideal horizon).
 
     Returns
     -------
-    timespan_up_down : list of `~astropack.util.Timespan`, or None.
+    timespan_up_down : list of `~.util.Timespan`, or None.
         list of timespans for which target is either up or down as selected.
         Returns list even if only one Timespan.
         If up_down is satisfied throughout input timespan, the returned list will
@@ -499,25 +512,31 @@ def find_target_up_down(obs, master_eph, target_eph, timescale, timespan, up_dow
 
 
 def moon_ra_dec(obs, master_eph, timescale, time):
-    """Return moon's sky location at given earth location and time.
+    """Returns moon's sky location at given earth location and time.
 
     Parameters
     ----------
-    obs : `~skyfield.Observer`
-        Location of observer on earth surface.
+    obs : skyfield.toposlib.GeographicPosition
+        Skyfield GeographicPosition object.
 
-    master_eph : `~skyfield.ephemeris`
-        Skyfield master ephemeris, typically available as Astronight.skyfield_eph
+        See: |skyfield.GP|
 
-    timescale : `~skyfield.timescale`
-        Skyfield timescale object, typically available as Astronight.skyfield.ts
+    master_eph :  skyfield.jpllib.SpiceKernel
+        Skyfield master ephemeris, available as Astronight.skyfield_eph
+
+        See: |skyfield.ME|
+
+    timescale:  skyfield.timelib.Timescale
+        Skyfield timescale object, available as Astronight.skyfield.ts
+
+        See: |skyfield.TS|
 
     time : |Time|
         Time at which moon's sky location is wanted.
 
     Returns
     -------
-    ra, dec : 2-tuple of floats
+    ra, dec : tuple of float
         (RA, Declination), in degrees, of moon at observer location and given time.
     """
     time_sf = timescale.from_astropy(time)
@@ -530,14 +549,20 @@ def moon_transit_time(obs, master_eph, timescale, time):
 
     Parameters
     ----------
-    obs : `~skyfield.Observer`
-        Location of observer on earth surface.
+    obs : skyfield.toposlib.GeographicPosition
+        Skyfield GeographicPosition object.
 
-    master_eph : `~skyfield.ephemeris`
-        Skyfield master ephemeris, typically available as Astronight.skyfield_eph
+        See: |skyfield.GP|
 
-    timescale : `skyfield.timescale`
-        Skyfield timescale object, typically available as Astronight.skyfield.ts
+    master_eph :  skyfield.jpllib.SpiceKernel
+        Skyfield master ephemeris, available as Astronight.skyfield_eph
+
+        See: |skyfield.ME|
+
+    timescale:  skyfield.timelib.Timescale
+        Skyfield timescale object, available as Astronight.skyfield.ts
+
+        See: |skyfield.TS|
 
     time : `Time`
         Time from which moon's nearest transit time is wanted.
@@ -562,24 +587,30 @@ def target_transit_time(obs, master_eph, timescale, target_skycoord, time):
     Parameters
     ----------
 
-    obs : `~skyfield.Observer`
-        Location of observer on earth surface.
+    obs : skyfield.toposlib.GeographicPosition
+        Skyfield GeographicPosition object.
 
-    master_eph : `~skyfield.ephemeris`
-        Skyfield master ephemeris, typically available as Astronight.skyfield_eph
+        See: |skyfield.GP|
 
-    timescale : `skyfield.timescale`
-        Skyfield timescale object, typically available as Astronight.skyfield.ts
+    master_eph :  skyfield.jpllib.SpiceKernel
+        Skyfield master ephemeris, available as Astronight.skyfield_eph
 
-    target_skycoord : SkyCoord
+        See: |skyfield.ME|
+
+    timescale:  skyfield.timelib.Timescale
+        Skyfield timescale object, available as Astronight.skyfield.ts
+
+        See: |skyfield.TS|
+
+    target_skycoord : |SkyCoord|
         Target's fixed sky position.
 
-    time : `Time`
+    time : |Time|
         Time from which target's nearest transit time is wanted.
 
     Returns
     -------
-    transit_time : `Time`
+    transit_time : |Time|
         Moon's transit time at observer's location and nearest to given time
     """
     star_list = _skycoords_to_skyfield_star_list(target_skycoord)
@@ -612,18 +643,20 @@ def local_sidereal_time(longitude, timescale, time):
     Parameters
     ----------
     longitude : float
-        longitude of observer's earth location, in degrees, in range -180 to 180.
+        longitude of observer's earth location, in degrees, in range [-180, +180].
 
-    timescale : `skyfield.timescale`
-        Skyfield timescale object, typically available as Astronight.skyfield.ts
+    timescale:  skyfield.timelib.Timescale
+        Skyfield timescale object, available as Astronight.skyfield.ts
+
+        See: |skyfield.TS|
 
     time : |Time|
-        Time for which LST is wanted.
+        Time for which local sidereal time is wanted.
 
     Returns
     -------
     lst : float
-        local sidereal time at longitude and time, in hours
+        local sidereal time at observer's longitude and time, in hours
     """
     from skyfield.earthlib import sidereal_time
     time_sf = timescale.from_astropy(time)  # skyfield Time obj.
@@ -638,19 +671,23 @@ def moon_illumination_pct(master_eph, timescale, time):
     Parameters
     ----------
 
-    master_eph : `~skyfield.ephemeris`
-        Skyfield master ephemeris, typically available as Astronight.skyfield_eph
+    master_eph :  skyfield.jpllib.SpiceKernel
+        Skyfield master ephemeris, available as Astronight.skyfield_eph
 
-    timescale : `~skyfield.timelib.Timescale`
-        Skyfield timescale object, typically available as Astronight.skyfield.ts
+        See: |skyfield.ME|
 
-    time : `~astropy.time.Time`
+    timescale:  skyfield.timelib.Timescale
+        Skyfield timescale object, available as Astronight.skyfield.ts
+
+        See: |skyfield.TS|
+
+    time : |Time|
         Time for which moon's illumination is wanted.
 
     Returns
     -------
     moon_pct : float
-        Moon's percent illumination at given time. Range 0 to 100.
+        Moon's percent illumination at given time. Range [0, 100].
     """
     time_sf = timescale.from_astropy(time)  # skyfield Time obj.
     fraction = 100.0 * fraction_illuminated(master_eph, 'moon', time_sf)
