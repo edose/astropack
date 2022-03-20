@@ -53,6 +53,7 @@ class AtlasRefcat2:
     ra_deg_range : tuple of 2 float
         Minimum and maximum Right Ascension of range from which to select catalog stars.
         Tuple is (ra_min, ra_max), in degrees.
+
         RA zero-crossing is handled gracefully, e.g.,
         `ra_deg_range` of (359, 2) will include both stars with RA in range [359, 360]
         and those with RA in range [0, 2].
@@ -61,9 +62,10 @@ class AtlasRefcat2:
         Minimum and maximum Declination of range from which to select catalog stars.
         Tuple is (ra_min, dec_max), in degrees.
 
-    target_epoch : py datetime or |time|
-        The date for which catalog RA and Dec should be updated for proper motion.
-        Typically, `target_epoch` will be the date when images were taken (for which
+    target_epoch : datetime or |time|
+        Date for which catalog RA and Dec should be updated for proper motion.
+
+        Typically, this will be the date when images were taken (for which
         catalog data are needed).
 
     overlap_distance : float, optional
@@ -77,7 +79,8 @@ class AtlasRefcat2:
     Attributes
     ----------
     target_epoch : |Time|
-        The time from input parameter `target_epoch`.
+        Date to which catalog RA and Dec should be updated for proper motion,
+        from input parameter `target_epoch`.
 
     df_all : |DataFrame|
         Dataframe of stars from ATLAS refcat2 catalog within RA and Dec ranges.
@@ -143,8 +146,7 @@ class AtlasRefcat2:
 
     @staticmethod
     def _get_stars_by_index(df_subcat, ra_deg_range, dec_deg_range):
-        """Get star data from catalog within RA and Dec range, return as a dataframe.
-        """
+        """Get catalog star data within RA and Dec range, return as a dataframe."""
         # Make lists of all integer RA and Dec indices to retrieve from catalog:
         ra_index_list = _make_ra_index_list(ra_deg_range, include_max_bound=False)
         dec_index_list = _make_dec_index_list(dec_deg_range, include_max_bound=False)
@@ -165,7 +167,7 @@ class AtlasRefcat2:
     @staticmethod
     def _read_one_subdir_one_file(gri_max, subdir_path,
                                   ra_index, dec_index, max_stars=None):
-        """Read one file (square degree) from one subdirectory."""
+        """Read one file (square degree) from one catalog subdirectory."""
         filename = '{:03d}'.format(ra_index) + '{:+03d}'.format(dec_index) + '.rc2'
         fullpath = os.path.join(subdir_path, filename)
         df = pd.read_csv(fullpath, sep=',', engine='python', header=None,
@@ -245,8 +247,7 @@ class AtlasRefcat2:
 
     @staticmethod
     def _add_new_columns(df):
-        """Add new columns with derived data.
-        Currently, new columns are 'BminusV', 'APASS_R', and 'ri_color'."""
+        """Add new columns 'BminusV', 'APASS_R', and 'ri_color' with derived data."""
         df.loc[:, 'BminusV'] = [(0.830 * g - 0.803 * r)
                                 for (g, r) in zip(df['g'], df['r'])]
         df.loc[:, 'APASS_R'] = [(0.950 * r + 0.05 * i)
@@ -315,7 +316,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='g', minimum=min_g_mag, maximum=max_g_mag)
 
@@ -332,7 +333,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='r', minimum=min_r_mag, maximum=max_r_mag)
 
@@ -349,7 +350,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='i', minimum=min_i_mag, maximum=max_i_mag)
 
@@ -369,7 +370,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='dg', minimum=min_g_uncert, maximum=max_g_uncert)
 
@@ -389,7 +390,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='dr', minimum=min_r_uncert, maximum=max_r_uncert)
 
@@ -409,7 +410,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='di', minimum=min_i_uncert, maximum=max_i_uncert)
 
@@ -428,7 +429,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='BminusV',
                         minimum=min_bv_color, maximum=max_bv_color)
@@ -448,7 +449,7 @@ class AtlasRefcat2:
         Returns
         -------
         None.
-            Modifies df_selected in place.
+            Modifies ``df_selected`` in place.
         """
         self._select_on(column_name='ri_color',
                         minimum=min_ri_color, maximum=max_ri_color)

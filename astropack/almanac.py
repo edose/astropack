@@ -382,7 +382,7 @@ __________SUPPORT_FUNCTIONS_____________________________________________________
 
 
 def make_skyfield_observatory_from_site(site):
-    """ Return Skyfield observer (earth location) object
+    """ Return Skyfield observer (earth location) object made
     from astropack |Site| instance.
 
     Parameters
@@ -423,7 +423,7 @@ def calc_timespan_no_sun(obs, master_eph, timescale, approx_midnight):
         See: |skyfield.TS|
 
     approx_midnight : |Time|
-        Approximate midnight, UTC.
+        Approximate local midnight, UTC.
 
     Returns
     -------
@@ -432,8 +432,6 @@ def calc_timespan_no_sun(obs, master_eph, timescale, approx_midnight):
         None if there is no time near ``approx_midnight`` when sun is down
         (polar summer).
     """
-    # print(approx_midnight)
-    # print(type(approx_midnight))
     midnight = timescale.from_astropy(approx_midnight)  # skyfield Time obj.
     time_before = midnight - timedelta(hours=HOURS_TO_ASSURE_HALF_NIGHT)
     time_after = midnight + timedelta(hours=HOURS_TO_ASSURE_HALF_NIGHT)
@@ -571,7 +569,7 @@ def moon_ra_dec(obs, master_eph, timescale, time):
         See: |skyfield.TS|
 
     time : |Time|
-        Time at which moon's sky location is wanted.
+        Time UTC at which moon's sky location is wanted.
 
     Returns
     -------
@@ -605,12 +603,12 @@ def moon_transit_time(obs, master_eph, timescale, time):
         See: |skyfield.TS|
 
     time : |Time|
-        Time from which moon's nearest transit time is wanted.
+        Time UTC from which moon's nearest transit time is wanted.
 
     Returns
     -------
     transit_time : |Time|
-        Moon's transit time at observer's location and nearest to given time
+        Moon's transit time UTC at observer's location and nearest to given time.
     """
     time_sf = timescale.from_astropy(time)  # skyfield Time obj.
     time_start = time_sf - timedelta(hours=14)
@@ -645,12 +643,12 @@ def target_transit_time(obs, master_eph, timescale, target_skycoord, time):
         Target's fixed sky position.
 
     time : |Time|
-        Time nearest which target's nearest transit time is wanted.
+        Time UTC nearest which target's nearest transit time is wanted.
 
     Returns
     -------
     transit_time : |Time|
-        Moon's transit time at observer's location and nearest to given time
+        Moon's transit time UTC at observer's location and nearest to given time
     """
     star_list = _skycoords_to_skyfield_star_list(target_skycoord)
     time_sf = timescale.from_astropy(time)  # skyfield Time obj.
@@ -692,7 +690,7 @@ def local_sidereal_time(longitude, timescale, time):
         See: |skyfield.TS|
 
     time : |Time|
-        UTC time for which local sidereal time is wanted.
+        Time UTC for which local sidereal time is wanted.
 
     Returns
     -------
@@ -723,7 +721,7 @@ def moon_illumination_pct(master_eph, timescale, time):
         See: |skyfield.TS|
 
     time : |Time|
-        Time for which moon's illumination is wanted.
+        Time UTC for which moon's illumination is wanted.
 
     Returns
     -------

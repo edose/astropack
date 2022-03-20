@@ -36,17 +36,17 @@ class MixedModelFit:
     Parameters
     ----------
     data : |DataFrame|
-        input data, one variable per column, one data point per row.
+        Input data, one variable per column, one data point per row.
 
     dep_var : str
-        Name of column in `data` that serves as dependent 'Y' variable.
+        Name of column in ``data`` that serves as dependent 'Y' variable.
 
     fixed_vars : str, or list of str
-        One or more names of columns in `data` that serve as
+        One or more names of columns in ``data`` that serve as
         independent 'X' variable(s).
 
     group_var : str
-        Name of column in `data` that serves as random-effect (group) variable.
+        Name of column in ``data`` that serves as random-effect (group) variable.
 
     Attributes
     ----------
@@ -54,7 +54,17 @@ class MixedModelFit:
         The complex results object as returned from statsmodels' Mixed Model fit.
 
     converged : bool
-        True if Mixed Model fit converged, else False.
+        True if Mixed Model fit successfully converged, else False.
+
+        For mixed-model fits, failure to converge is not necessarily fatal, especially
+        for trial fits. When a mixed-model fit fails to converge, the results are
+        usually still useful for model refinement and especially for removal of outlier
+        data points.
+
+        The most common causes of failure to converge are:
+        (1) a significant 'wild' outlier data point, and
+        (2) trying to fit using too many independent variables for the quantity
+        and quality of data points.
 
     nobs : int
         Number of data points (observations) used in the fit.
@@ -63,13 +73,16 @@ class MixedModelFit:
         Likelihood of the fit, as returned by statsmodels.
 
     dep_var : str
-        Column name in `data` of the dependent 'Y' variable used in the fit.
+        Column name in ``data`` of the dependent 'Y' variable used in the fit,
+        from input parameter ``dep_var``.
 
     fixed_vars : list of str
-        Column name(s) in `data` of the independent 'X' variable(s) used in the fit.
+        Column name(s) in ``data`` of the independent 'X' variable(s) used in the fit,
+        from input parameter ``fixed_vars``.
 
     group_var : str
-        Column name in `data` of the 'random' group variable used in the fit.
+        Column name in ``data`` of the 'random' group variable used in the fit,
+        from input parameter ``group_var``.
 
     sigma : float
         RMS residual for the fit, in dependent-variable units.
@@ -148,8 +161,7 @@ class MixedModelFit:
         self.df_observations = df.copy()
 
     def predict(self, df_predict_input, include_random_effect=True):
-        """Takes new_data and renders predicted dependent-variable values.
-
+        """From new data points, renders predicted dependent-variable values.
         Optionally includes effect of groups (random effects), unlike statsmodels
         itself.
 
@@ -207,13 +219,13 @@ class LinearFit:
     ----------
 
     data : |DataFrame|
-        input data, one variable per column, one data point per row.
+        Input data, one variable per column, one data point per row.
 
     dep_var : str
-        Name of column in `data` that serves as dependent 'Y' variable.
+        Name of column in ``data`` that serves as dependent 'Y' variable.
 
     indep_vars : str, or list of str
-        One or more names of columns in `data` that serve as
+        One or more names of columns in ``data`` that serve as
         independent 'X' variable(s).
 
     Attributes
@@ -223,10 +235,12 @@ class LinearFit:
         The complex results object as returned from statsmodels' linear (OLS) fit.
 
     indep_vars : list of str
-        Column name(s) in `data` of the independent 'X' variable(s) used in the fit.
+        Column name(s) in ``data`` of the independent 'X' variable(s) used in the fit,
+        from input parameter ``indep_vars``.
 
     dep_var :str
-        Column name in `data` of the dependent 'Y' variable used in the fit.
+        Column name in `data` of the dependent 'Y' variable used in the fit,
+        from input parameter ``dep_var``.
 
     nobs : int
         Number of data points (observations) used in the fit.
@@ -298,7 +312,7 @@ class LinearFit:
         self.df_observations = df.copy()
 
     def predict(self, df_predict_input):
-        """Takes new_data and renders predicted dependent-variable values.
+        """From new data points, renders predicted dependent-variable values.
 
         Parameters
         ----------
@@ -312,7 +326,7 @@ class LinearFit:
         predicted_y_values : |Series|
             Predictions of dependent-variable values matching rows of new data.
         """
-        indep_var_inputs = df_predict_input[self.indep_vars]  # 1 column per independent (x) variable
+        indep_var_inputs = df_predict_input[self.indep_vars]
         predicted_y_values = self.statsmodels_object.predict(exog=indep_var_inputs)
         return predicted_y_values
 
@@ -341,10 +355,9 @@ def weighted_mean(values, weights):
     Raises
     ------
     VelueError
-        If values and weights are unequal in number, as required.
+        Raised when values and weights are unequal in number, as required.
 
-    ValueError
-        If sum of weights is not positive, as required.
+        Raised when sum of weights is not positive, as required.
     """
     if (len(values) != len(weights)) or (len(values) == 0) or (len(weights) == 0):
         raise ValueError('lengths of values & weights must be equal & non-zero.')

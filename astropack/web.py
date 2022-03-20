@@ -28,7 +28,8 @@ __________FUNCTIONS___________________________________________________________ =
 
 
 def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
-    """Return pandas DataFrame containing MPES information from one MPES web page.
+    """Return MPES ephemeris information from one MPES web page
+    (i.e., for one asteroid/minor planet).
 
     Parameters
     ----------
@@ -40,24 +41,24 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
             1997 XF11  unnumbered MP
             Badenia    MP name
 
-    utc_start : py datetime, |Time|, or str the |Time| can parse
+    utc_start : py datetime, |Time|, or str that |Time| can parse
         Date and time to start. Will be truncated to most recent hour (i.e.,
         minutes and seconds are set to zero).
 
     step_hours : int
-        Number of hours between sequential entries in the result table.
+        Number of hours between sequential ephemeris entries in the result table.
 
     num_entries : int
-        Number of entries wanted.
+        Number of ephemeris entries wanted.
 
-    site : `~.ini.Site` instance, or None, optional
+    site : |Site| instance, or None, optional
         The earth location for which data are wanted, or
-        None (default) for geocentric data.
+        None (default) for geocentric data. Default is None.
 
     Returns
     -------
     df_mp : |DataFrame|
-        Pandas DataFrame containing MPES data for minor planet `mp_id`.
+        Pandas DataFrame containing MPES ephemeris data for minor planet ``mp_id``.
     """
     target = str(mp_id)
     if isinstance(utc_start, datetime):
@@ -94,7 +95,7 @@ def get_mp_info(mp_number=None, mp_name=None):
     mp_number : int
         Number of target minor planet.
     mp_name : str
-        Name of target minor planet, e.g., 'Badenia'. This may not be a designation,
+        Name of target minor planet, e.g., 'Badenia'. This may *not* be a designation,
         as the MPC database does not currently (March 2022) accept them.
 
     Returns

@@ -53,10 +53,10 @@ class Timespan:
         Attributes
         ----------
         start : |Time|
-            Start time for this timespan.
+            Start time for this timespan, from input parameter ``start_time``.
 
         end : |Time|
-            End time for this timespan.
+            End time for this timespan, from input parameter ``end_time``.
 
         duration : |TimeDelta|
             Time duration, from start time to end time.
@@ -73,12 +73,12 @@ class Timespan:
         Raises
         ------
         TypeError
-            If ``start_time`` or ``end_time`` is not datetime or
-            a scalar |Time|
+            Raised when ``start_time`` or ``end_time`` is not datetime or
+            a scalar |Time|.
 
         ValueError
-            If either ``start_time`` or ``end_time`` has no timezone information,
-            or has a timezone other than UTC.
+            Raised when either ``start_time`` or ``end_time`` has no
+            timezone information, or has a timezone other than UTC.
 
         Examples
         --------
@@ -331,6 +331,7 @@ class Timespan:
         max_events : positive int, or None, optional
             Maximum number of event times to be returned.
             If None, number of returned event times is not limited.
+            Default is 10.
 
         Returns
         -------
@@ -367,11 +368,11 @@ __________TIME_and_DATE_FUNCTIONS_____________________________________________ =
 
 
 def hhmm_from_datetime_utc(datetime_utc):
-    """Return UTC time-of-day string of form 'hhmm' for UTC datetime.
+    """Return UTC time-of-day string of form 'hhmm' for a UTC datetime.
 
     Parameters
     ----------
-    datetime_utc : py datetime
+    datetime_utc : datetime
         UTC date and time.
 
     Returns
@@ -532,7 +533,7 @@ def ra_as_hours(ra_degrees, seconds_decimal_places=2):
 
 
 def dec_as_hex(dec_degrees, arcseconds_decimal_places=0):
-    """Takes degrees declination, returns sexigesimal string representation.
+    """Takes degrees Declination, returns sexigesimal string representation.
 
     Parameters
     ----------
@@ -545,7 +546,7 @@ def dec_as_hex(dec_degrees, arcseconds_decimal_places=0):
 
     Returns
     -------
-    dec_string : str or None
+    dec_string : str, or None
         String representing declination in sexigesimal format.
         If outside range [-90, 90], return None.
     """
@@ -625,7 +626,7 @@ def parse_hex(hex_string):
     Returns
     -------
     strings : list of 3 str
-        List of three strings parsed from `hex_string`.
+        List of three strings parsed from ``hex_string``.
     """
     colon_list = hex_string.split(':')
     space_list = hex_string.split()  # multiple spaces act as one delimiter
@@ -687,7 +688,6 @@ def combine_ra_dec_bounds(skycoord_input, extension_percent=3):
 
         These are usually the coordinates of all corners of one or more images.
 
-
     extension_percent: float, non-negative, optional
         Percent of bounding box dimensions by which to extend the bounding box,
         at user's discretion. Default is 3.
@@ -698,7 +698,7 @@ def combine_ra_dec_bounds(skycoord_input, extension_percent=3):
         RA and Dec of bounding box edges, each in degrees, as
         (ra_min, ra_max, dec_min, dec_max).
         RA zero-crossing is handled gracefully.
-        None, if no sky coordinates in skycoord_list.
+        If no sky coordinates in ``skycoord_list``, return None.
     """
     sc = concatenate_skycoords(skycoord_input)
     if len(sc) == 0:
@@ -727,7 +727,7 @@ __________FILESYSTEM_FUNCTIONS___________________________________ = 0
 
 def make_directory_if_not_exists(directory_path):
     """Makes new directory on the file system only if no directory already exists
-    at `directory_path`.
+    at ``directory_path``.
 
     Parameters
     ----------
@@ -737,8 +737,8 @@ def make_directory_if_not_exists(directory_path):
     Returns
     -------
     path_preexists : bool
-        True if directory already existed at `directory_path` (and no action taken),
-        else False (and directory created).
+        True if directory already existed at ``directory_path`` (and no action taken),
+        else False (and directory is created).
     """
     path_preexists = (os.path.exists(directory_path) and os.path.isdir(directory_path))
     if not path_preexists:
@@ -758,7 +758,7 @@ def count_files_immediate(dir_fullpath):
     Returns
     -------
     n_files : int
-        Count of files in directory `dir_fullpath`.
+        Count of files in directory ``dir_fullpath``.
     """
     n_files = sum(1 for element in os.scandir(dir_fullpath) if element.is_file())
     return n_files
