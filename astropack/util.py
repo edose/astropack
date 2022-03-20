@@ -16,23 +16,24 @@ from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 from astropy.stats import circmean
 
-_all__ = ['Timespan',
-          'hhmm_from_datetime_utc',
-          'ra_as_degrees',
-          'hex_as_degrees',
-          'dec_as_degrees',
-          'ra_as_hours',
-          'dec_as_hex',
-          'degrees_as_hex',
-          'parse_hex',
-          'concatenate_skycoords',
-          'combine_ra_dec_bounds',
-          'make_directory_if_not_exists',
-          'count_files_immediate',
-          'pressure_from_elevation']
+__all__ = ['Timespan',                  # ok
+           'hhmm_from_datetime_utc',    # ok
+           'ra_as_degrees',             # ok
+           'hex_as_degrees',            # ok
+           'dec_as_degrees',            # ok
+           'ra_as_hours',               # ok
+           'dec_as_hex',                # ok
+           'degrees_as_hex',            # ok
+           'parse_hex',                 # ok
+           'concatenate_skycoords',     # ok
+           'combine_ra_dec_bounds',     # ok
+           'make_directory_if_not_exists',  # ok
+           'count_files_immediate',     # ok
+           'pressure_from_elevation']   # ok
 
 
-THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+THIS_PACKAGE_ROOT_DIRECTORY = \
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 _____CLASSES________________________________________________ = 0
@@ -43,22 +44,22 @@ class Timespan:
 
         Parameters
         ----------
-        start_time : python datetime or |Time|
-            Start time of new Timespan.
+        start_time : datetime or |Time|
+            Start time of new |Timespan|.
 
-        end_time :  python datetime or |Time|
-            End time of new Timespan.
+        end_time :  datetime or |Time|
+            End time of new |Timespan|.
 
         Attributes
         ----------
         start : |Time|
-            Start time for the Timespan.
+            Start time for this timespan.
 
         end : |Time|
-            End time for the Timespan.
+            End time for this timespan.
 
         duration : |TimeDelta|
-            Time duration, from start time to end time, as astropy TimeDelta instance.
+            Time duration, from start time to end time.
 
         seconds : float
             Time duration, from start time to end time, in seconds.
@@ -67,17 +68,17 @@ class Timespan:
             Time duration, from start time to end time, in days.
 
         midpoint : |Time|
-            Time that exactly divides Timespan into two equal durations.
+            Time that exactly divides this timespan into two equal durations.
 
         Raises
         ------
         TypeError
-            If `start_time` or `end_time` are not py datetime or
-              a scalar |Time| instance
+            If ``start_time`` or ``end_time`` is not datetime or
+            a scalar |Time|
 
         ValueError
-            If `start_time` or `end_time` have no timezone information, or if
-            in a timezone other than UTC.
+            If either ``start_time`` or ``end_time`` has no timezone information,
+            or has a timezone other than UTC.
 
         Examples
         --------
@@ -114,21 +115,22 @@ class Timespan:
         return self.start == other.start and self.end == other.end
 
     def copy(self):
-        """Return new Timespan exactly equivalent to this Timespan."""
+        """Return new |Timespan| exactly equivalent to this timespan."""
         return Timespan(self.start, self.end)
 
     def delay_by(self, delay):
-        """ Return new Timespan with start and end delayed by param 'delay'.
+        """ Return new |Timespan| with start and end delayed by param 'delay'.
+
         Parameters
         ----------
-        :param delay : float or py timedelta or |TimeDelta|
+        delay : float, or timedelta, or |TimeDelta|
             A duration by which to delay the start and end of new Timespan, relative
             to the present instance. If float, delay is in seconds.
 
         Returns
         -------
-        new_timespan : ~util.Timespan
-            A new Timespan made later by duration `delay`.
+        new_timespan : |Timespan|
+            A new Timespan made later by duration ``delay``.
         """
         if isinstance(delay, (int, float)):
             delay = TimeDelta(delay, format='sec')
@@ -140,22 +142,22 @@ class Timespan:
         return Timespan(self.start + delay, self.end + delay)
 
     def expand_by(self, expansion):
-        """ Return new Timespan object expanded or contracted at both start and end.
+        """ Return new |Timespan| expanded or contracted at both start and end.
 
         Parameters
         ----------
-        :param expansion : float or py timedelta or |TimeDelta|
+        expansion : float, or timedelta, or |TimeDelta|
             The extent to which to extend both the start and the end away from the
-            midpoint, relative to the present instance.
+            midpoint, relative to this timespan.
             If float, expansion is in seconds.
-            If negative, new Timespan is contracted relative to the present instance,
-            but it will not contract beyond zero duration, in which case the new
-            Timespan's start and end will equal the present instance's midpoint.
+            If negative, new |Timespan| is contracted relative to this timespan,
+            but it will not contract beyond zero duration, in which case both
+            start and end of the new |Timespan| will equal this timespan's ``midpoint``.
 
         Returns
         -------
-        new_timespan : ~util.Timespan
-            A new Timespan expanded at each limit by duration `expansion`.
+        new_timespan : |Timespan|
+            A new |Timespan| expanded at each limit by duration ``expansion``.
         """
         if isinstance(expansion, (int, float)):
             delay = TimeDelta(expansion, format='sec')
@@ -171,67 +173,67 @@ class Timespan:
         return Timespan(new_start, new_end)
 
     def intersection(self, other):
-        """Return new Timespan containing only times common to (overlapping with)
-        this instance and `other`. Returns zero-duration Timespan if timespans
+        """Return new |Timespan| containing only times common to (overlapping with)
+        this timespan and ``other``. Returns zero-duration |Timespan| if timespans
         do not intersect.
 
         Parameters
         ----------
-        other : ~util.Timespan
-            Instance to intersect with this Timespan.
+        other : |Timespan|
+            Timespan to intersect with this Timespan.
 
         Returns
         -------
-        new_timespan : ~util.Timespan
-            Intersection timespan.
+        new_timespan : |Timespan|
+            Intersection of timespans.
         """
         new_start = max(self.start, other.start)
         new_end = min(self.end, other.end)
         return Timespan(new_start, new_end)
 
     def union(self, other):
-        """Return a new ~util.Timespan representing all times in either timespan.
-        If the present and other timespan do not intersect, return list of or list of two Timespans if the two do not
-        intersect.
+        """Return a new |Timespan| representing all times in either timespan.
+        If the present and other timespan do not intersect,
+        return list of the two |Timespan|.
 
         Parameters
         ----------
-        other : ~util.Timespan
+        other : |Timespan|
             The timespan to combine with the present timespan.
 
         Returns
         -------
-        new_timespan : ~util.Timespan, or list of 2 ~util.Timespan
-            Union (combination) of the present timespan with `other`.
+        new_timespan : |Timespan|, or list of 2 |Timespan|
+            Union (combination) of the present timespan with ``other``.
         """
         if (self.end < other.start) or (self.start > other.end):
             return [self, other]
         return Timespan(min(self.start, other.start), max(self.end, other.end))
 
     def add(self, other):
-        """Alias for Timespan.union()."""
+        """Alias for :meth:`Timespan.union()`."""
         return self.union(other)
 
     def subtract(self, other):
-        """Return a new timespan having all times in the present instance but not
-        in `other`, in effect subtracting any times in `other`.
+        """Return a new |Timespan| having all times in this timespan, but not
+        in ``other``, in effect subtracting any times in ``other``.
 
         Parameters
         ----------
-        other : ~util.Timespan
-
+        other : |Timespan|
+            Timespan to subtract from this timespan.
 
         Returns
         -------
-        new_timespan : ~util.Timespan or list of 2 ~util.Timespan
-            A new timespan having all times in the present instance but not
-            in `other`.
+        new_timespan : |Timespan| or list of 2 |Timespan|
+            A new |Timespan| having all times in this timespan but not
+            in ``other``.
             If the two timespans do not intersect,
             returns a copy of the present timespan.
-            If the present timespan is wholly contained within `other`,
-            returns zero-length ~util.Timespan instance.
-            If `other` is wholly contained within the prsent timespan,
-            returns a list of 2 timespans.
+            If this timespan is wholly contained within ``other``,
+            returns zero-length |Timespan| instance.
+            If ``other`` is wholly contained within the prsent timespan,
+            returns a list of 2 |Timespan|.
         """
         if (self.intersection(other).seconds == 0) or (other.seconds == 0):
             return self.copy()
@@ -247,18 +249,18 @@ class Timespan:
         return Timespan(other.end, self.end)
 
     def contains(self, other):
-        """Returns True iff this timespan wholly contains `other`, else return False.
+        """Returns True if this timespan wholly contains ``other``, else returns False.
 
         Parameters
         ----------
-        other : py datetime or |Time| or ~util.Timespan
+        other : datetime, or |Time|, or |Timespan|
             The time or timespan to be tested as wholly contained within the present
             timespan.
 
         Returns
         -------
         is_contained : bool
-            True iff `other` is contained within this timespan, else False.
+            True iff ``other`` is contained within this timespan, else False.
         """
         if isinstance(other, (Time, datetime)):
             return self.start <= Time(other) <= self.end
@@ -268,23 +270,24 @@ class Timespan:
                         'or Timespan object as parameter.')
 
     def split_at(self, time):
-        """Splits current timespan at time to give two contiguous timespans,
-        or the original timespan if time is not contained.
+        """Splits current timespan at ``time`` to give two contiguous |Timespan|,
+        or the original timespan if ``time`` is not contained.
 
         Parameters
         ----------
-        time : py datetime or |Time|
+        time : datetime, or |Time|
             Time at which to split this timespan.
 
         Returns
         -------
-        timespans : list of 2 ~util.Timespan, or ~util.Timespan
-            Two contiguous timespans split at `time.
-            If `time` is not contained within this timespan, return a copy
+        timespans : list of 2 |Timespan|, or |Timespan|
+            Two contiguous timespans split at ``time``.
+            If ``time`` is not contained within this timespan, return a copy
             this timespan.
         """
         if not isinstance(time, (Time, datetime)):
-            raise TypeError('Timespan.split_at() requires Time or datetime object as parameter.')
+            raise TypeError('Timespan.split_at() requires Time '
+                            'or datetime object as parameter.')
         time = Time(time)
         if self.start < time < self.end:
             return [Timespan(self.start, time), Timespan(time, self.end)]
@@ -292,18 +295,18 @@ class Timespan:
 
     @staticmethod
     def longer(ts1, ts2):
-        """Returns the timespan with longer duration (larger .seconds).
-        If of equal duration, return ts1.
+        """Returns the |Timespan| with longer duration (larger ``.seconds``).
+        If of equal duration, return ``ts1``.
 
         Parameters
         ----------
-        ts1, ts2 : ~util.Timespan
+        ts1, ts2 : |Timespan|
             The two timespans, from which the longer is to be selected.
 
         Returns
         -------
-        longer_timespan : ~util.Timespan
-            the timespan having longer duration, or ts1 if durations are equal.
+        longer_timespan : |Timespan|
+            Timespan having longer duration, or ``ts1`` if durations are equal.
         """
         if ts1.seconds > ts2.seconds:
             return ts1
@@ -314,18 +317,18 @@ class Timespan:
         return ts2
 
     def periodic_events(self, ref_time, period, max_events=10):
-        """Returns times of periodic events that occur within a given timespan.
+        """Returns times of periodic events that occur within a given |Timespan|.
 
         Parameters
         ----------
-        ref_time : py datetime or |Time|
+        ref_time : datetime or |Time|
             Time of any occurence of the periodic event.
             Need not be contained within present timespan.
 
-        period : ~datetime.timedelta or |TimeDelta|
+        period : timedelta or |TimeDelta|
             Length of time between periodic events.
 
-        max_events : positive int or None, optional
+        max_events : positive int, or None, optional
             Maximum number of event times to be returned.
             If None, number of returned event times is not limited.
 
@@ -364,7 +367,7 @@ __________TIME_and_DATE_FUNCTIONS_____________________________________________ =
 
 
 def hhmm_from_datetime_utc(datetime_utc):
-    """Return UTC time-of-day string of form 'hhmm' for any UTC datetime.
+    """Return UTC time-of-day string of form 'hhmm' for UTC datetime.
 
     Parameters
     ----------
@@ -376,7 +379,7 @@ def hhmm_from_datetime_utc(datetime_utc):
     hhmm : str
         String of form 'hhmm' (e.g., '1352') representing UTC time of day.
     """
-    # Apply banker's rounding, giving nearest even value, if a tie)
+    # Apply banker's rounding: for a tie, give the nearest even value:
     minutes_of_day = int(round(datetime_utc.hour*60
                                + datetime_utc.minute
                                + datetime_utc.second/60
@@ -400,14 +403,16 @@ def ra_as_degrees(ra_string):
 
     Returns
     -------
-    ra_degrees : float
+    ra_degrees : float, or None
         Right Ascension in degrees in range [0, 360], or None if value is < 0 or > 360.
     """
     ra_list = parse_hex(ra_string)
     if len(ra_list) == 1:
-        ra_degrees = float(ra_list[0])  # input assumed to be in degrees.
+        # input assumed to be in degrees:
+        ra_degrees = float(ra_list[0])
     elif len(ra_list) == 2:
-        ra_degrees = 15 * (float(ra_list[0]) + float(ra_list[1])/60.0)  # input assumed in hex.
+        # input assumed to be in sexigesimal:
+        ra_degrees = 15 * (float(ra_list[0]) + float(ra_list[1])/60.0)
     else:
         ra_seconds = float(ra_list[2].split()[0])  # in case trailing comments
         ra_degrees = 15 * (float(ra_list[0]) + float(ra_list[1]) / 60.0 +
@@ -456,13 +461,13 @@ def dec_as_degrees(dec_string):
 
     Parameters
     ----------
-    dec_string : string
+    dec_string : str
         String representing declination in full sexigesimal format (e.g.,
         "-12:34:56.7777", or "-12 34 56.7777") or in decimal degrees (e.g., "-24.55").
 
     Returns
     -------
-    dec_degrees : float or None
+    dec_degrees : float, or None
         Declination in degrees, or None if outside range [-90, 90].
     """
     dec_degrees = hex_as_degrees(dec_string)
@@ -481,7 +486,7 @@ def ra_as_hours(ra_degrees, seconds_decimal_places=2):
 
     seconds_decimal_places : non-negative int, optional
         Number of decimal places after the decimal point.
-        If zero, decimal point is removed.
+        If zero, decimal point is removed. Default is 2.
 
     Returns
     -------
@@ -491,7 +496,7 @@ def ra_as_hours(ra_degrees, seconds_decimal_places=2):
     """
     if (ra_degrees < 0) | (ra_degrees > 360):
         return None
-    seconds_decimal_places = int(max(0, seconds_decimal_places))  # ensure int and non-negative.
+    seconds_decimal_places = int(max(0, seconds_decimal_places))
     total_ra_seconds = ra_degrees * (3600 / 15)
     # TODO: remove code duplication (next ca. 20 lines).
     int_hours = int(total_ra_seconds // 3600)
@@ -517,15 +522,17 @@ def ra_as_hours(ra_degrees, seconds_decimal_places=2):
     if int_hours >= 24:
         int_hours -= 24
     if seconds_decimal_places > 0:
-        format_string = '{0:02d}:{1:02d}:{2:02d}.{3:0' + str(int(seconds_decimal_places)) + 'd}'
+        format_string = '{0:02d}:{1:02d}:{2:02d}.{3:0' + \
+                        str(int(seconds_decimal_places)) + 'd}'
     else:
         format_string = '{0:02d}:{1:02d}:{2:02d}'
-    ra_string = format_string.format(int_hours, int_minutes, int_seconds, int_fract_seconds)
+    ra_string = format_string.format(int_hours, int_minutes, int_seconds,
+                                     int_fract_seconds)
     return ra_string
 
 
 def dec_as_hex(dec_degrees, arcseconds_decimal_places=0):
-    """
+    """Takes degrees declination, returns sexigesimal string representation.
 
     Parameters
     ----------
@@ -534,7 +541,7 @@ def dec_as_hex(dec_degrees, arcseconds_decimal_places=0):
 
     arcseconds_decimal_places : non-negative int
         In the arcseconds place, the number of decimal places after the decimal point.
-        If zero, decimal point is removed.
+        If zero, decimal point is removed. Default is zero.
 
     Returns
     -------
@@ -563,14 +570,11 @@ def degrees_as_hex(angle_degrees, arcseconds_decimal_places=2):
     Returns
     -------
     hex_string : str
-        sexigesimal string representation of angle, e.g., '-23:44:51.22'.
+        Sexigesimal string representation of angle, e.g., '-23:44:51.22'.
     """
-    if angle_degrees < 0:
-        sign = "-"
-    else:
-        sign = "+"
+    sign = '-' if angle_degrees < 0 else '+'
     abs_degrees = abs(angle_degrees)
-    arcseconds_decimal_places = int(max(0, arcseconds_decimal_places))  # ensure int and non-negative.
+    arcseconds_decimal_places = int(max(0, arcseconds_decimal_places))
     total_arcseconds = abs_degrees * 3600
     # TODO: remove code duplication (next ca. 20 lines).
     int_degrees = int(total_arcseconds // 3600)
@@ -579,9 +583,11 @@ def degrees_as_hex(angle_degrees, arcseconds_decimal_places=2):
     remaining_arcseconds -= 60 * int_arcminutes
     if arcseconds_decimal_places > 0:
         arcseconds, fract_arcseconds = divmod(remaining_arcseconds, 1)
-        int_fract_arcseconds = int(round(fract_arcseconds * 10 ** arcseconds_decimal_places))
+        int_fract_arcseconds = \
+            int(round(fract_arcseconds * 10 ** arcseconds_decimal_places))
     else:
-        arcseconds, fract_arcseconds, int_fract_arcseconds = round(remaining_arcseconds), 0, 0
+        arcseconds, fract_arcseconds, int_fract_arcseconds = \
+            round(remaining_arcseconds), 0, 0
     int_arcseconds = int(arcseconds)
     if arcseconds_decimal_places > 0:
         if int_fract_arcseconds >= 10 ** arcseconds_decimal_places:
@@ -596,11 +602,12 @@ def degrees_as_hex(angle_degrees, arcseconds_decimal_places=2):
     if int_degrees >= 360:
         int_degrees -= 360
     if arcseconds_decimal_places > 0:
-        format_string = '{0}{1:02d}:{2:02d}:{3:02d}.{4:0' + str(int(arcseconds_decimal_places)) + 'd}'
+        format_string = '{0}{1:02d}:{2:02d}:{3:02d}.{4:0' + \
+                        str(int(arcseconds_decimal_places)) + 'd}'
     else:
         format_string = '{0}{1:02d}:{2:02d}:{3:02d}'
-    hex_string = format_string.format(sign, int(int_degrees), int(int_arcminutes), int_arcseconds,
-                                      int_fract_arcseconds)
+    hex_string = format_string.format(sign, int(int_degrees), int(int_arcminutes),
+                                      int_arcseconds, int_fract_arcseconds)
     return hex_string
 
 
@@ -613,8 +620,7 @@ def parse_hex(hex_string):
     ----------
     hex_string : str
         String representation of angle, sexagesimal (colon- or space-delimited) or
-        decimal, e.g., ("12:34:56.7777" or "12 34 56.7777"),
-               or degrees ("234.55")
+        decimal, e.g., ("12:34:56.7777" or "12 34 56.7777"), or degrees ("234.55")
 
     Returns
     -------
@@ -628,69 +634,75 @@ def parse_hex(hex_string):
     return space_list
 
 
-def concatenate_skycoords(skycoord_list):
+def concatenate_skycoords(skycoord_input):
     """Compiles an astropy |SkyCoord| or list of |SkyCoord|, array-based or not in any
     combination, and returns one array-based |SkyCoord| object containing
     all coordinates. Order is retained.
 
     Parameters
     ----------
-    skycoord_list : |SkyCoord| or list of |SkyCoord|
-        The input astropy |SkyCoord| coordinates. Each list entry must be a |SkyCoord|
-        instance, but each entry may be scalar or array-based.
+    skycoord_input : |SkyCoord|, or list of |SkyCoord|
+        The input astropy |SkyCoord| coordinates.
+        If a list, each list entry must be a |SkyCoord| instance,
+        but each such entry may be scalar- or array-based.
 
     Returns
     -------
     skycoord_result : |SkyCoord|, array-based
         One array-based |SkyCoord| instance with all input coordinates.
+        Original order is retained.
     """
     # Combine all skycoords found into a single astropy SkyCoord object sc:
-    if isinstance(skycoord_list, SkyCoord):
-        if skycoord_list.shape == ():  # if a single scalar SkyCoord was passed in.
-            return SkyCoord(ra=[skycoord_list.ra], dec=[skycoord_list.dec])
+    if isinstance(skycoord_input, SkyCoord):
+        if skycoord_input.shape == ():  # if a single scalar SkyCoord was passed in.
+            return SkyCoord(ra=[skycoord_input.ra], dec=[skycoord_input.dec])
         else:
-            return skycoord_list
+            return skycoord_input
 
-    if isinstance(skycoord_list, list):
-        if len(skycoord_list) <= 0:
-            raise ValueError('Empty SkyCoord object is not allowed.')
+    if isinstance(skycoord_input, list):
+        if len(skycoord_input) <= 0:
+            raise ValueError('Empty input list is not allowed.')
         # Combine via RA and Dec since SkyCoord has no concatenate capability (odd):
         ra_list, dec_list = [], []
-        for sc in skycoord_list:
-            if sc.shape == ():  # if scalar is SkyCoord.
+        for sc in skycoord_input:
+            if sc.shape == ():  # if SkyCoord instance is scalar.
                 ra_list.append(sc.ra)
                 dec_list.append(sc.dec)
             else:
                 ra_list.extend(sc.ra)
                 dec_list.extend(sc.dec)
         return SkyCoord(ra=ra_list, dec=dec_list)
+    raise TypeError('Parameter \'skycoord_input\' must be a '
+                    'SkyCoord object or a list of them.')
 
-    raise TypeError('parameter \'skycoord_list\' must be a SkyCoord object or a list of them.')
 
-
-def combine_ra_dec_bounds(skycoord_list, extension_percent=3):
-    """Computes and returns sky coordinates of smallest RA, Dec bounding box covering
-    all input sky coordinates.
+def combine_ra_dec_bounds(skycoord_input, extension_percent=3):
+    """Computes and returns sky coordinates of the smallest RA, Dec bounding box
+    that can cover all input sky coordinates.
 
     Parameters
     ----------
-    skycoord_list : |SkyCoord| or list of |SkyCoord|
-        Sky coordinates around which to find bounding box.
+    skycoord_input : |SkyCoord| or list of |SkyCoord|
+        Sky coordinates (at least one) around which to find bounding box.
+
         These are usually the coordinates of all corners of one or more images.
+
 
     extension_percent: float, non-negative, optional
         Percent of bounding box dimensions by which to extend the bounding box,
-        at user's discretion. Default is 3, representing extension by 3% in each
-        direction.
+        at user's discretion. Default is 3.
 
     Returns
     -------
-    bounding_box : tuple of 4 float
+    bounding_box : tuple of 4 float, or None
         RA and Dec of bounding box edges, each in degrees, as
         (ra_min, ra_max, dec_min, dec_max).
         RA zero-crossing is handled gracefully.
+        None, if no sky coordinates in skycoord_list.
     """
-    sc = concatenate_skycoords(skycoord_list)
+    sc = concatenate_skycoords(skycoord_input)
+    if len(sc) == 0:
+        return None
 
     ra_wrap_angle = (circmean(sc.ra) + 180.0 * u.deg) % (360.0 * u.deg)
     ra_list = list(sc.ra.wrap_at(ra_wrap_angle))
@@ -726,7 +738,7 @@ def make_directory_if_not_exists(directory_path):
     -------
     path_preexists : bool
         True if directory already existed at `directory_path` (and no action taken),
-        else False.
+        else False (and directory created).
     """
     path_preexists = (os.path.exists(directory_path) and os.path.isdir(directory_path))
     if not path_preexists:
@@ -741,14 +753,14 @@ def count_files_immediate(dir_fullpath):
     Parameters
     ----------
     dir_fullpath : str
-        Full path directory.
+        Full path to directory.
 
     Returns
     -------
     n_files : int
-        Count of files.
+        Count of files in directory `dir_fullpath`.
     """
-    n_files = sum(1 for element in os.scandir(dir_fullpath) if element.is_file())  # fast.
+    n_files = sum(1 for element in os.scandir(dir_fullpath) if element.is_file())
     return n_files
 
 

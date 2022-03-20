@@ -1,6 +1,6 @@
-__author__ = "Eric Dose, Albuquerque"
-
 """ test_util.py """
+
+__author__ = "Eric Dose, Albuquerque"
 
 # Python core:
 import os
@@ -12,7 +12,7 @@ from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 
 # Test target:
-from astropak import util
+from astropack import util
 
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -188,6 +188,14 @@ def test_degrees_as_hex():
     assert util.degrees_as_hex(359.9999, 0) == "+00:00:00"
 
 
+def test_parse_hex():
+    assert util.parse_hex('00:00:00') == util.parse_hex('00 00 00') == ['00', '00', '00']
+    assert util.parse_hex('-50:30') == util.parse_hex('-50 30') == ['-50', '30']
+    assert util.parse_hex('34') == ['34']
+    assert util.parse_hex('12:34:56.89') == util.parse_hex('12:34:56.89') == ['12', '34', '56.89']
+    assert util.parse_hex('12:34:56.89 # comment') == ['12', '34', '56.89 # comment']
+
+
 def test_concatenate_skycoords():
     sc_scalar = SkyCoord(10.625, 41.25, frame='icrs', unit='deg')
     sc_1 = SkyCoord([11.625], [42.25], frame='icrs', unit='deg')
@@ -246,13 +254,10 @@ def test_combine_ra_dec_bounds():
     bounds = util.combine_ra_dec_bounds(sc_dec, extension_percent=2)
     assert bounds == pytest.approx((233.96, 236.04, 88.98002, 90.0))
 
+    # Case: empty input:
+    sc_empty = SkyCoord([], [], frame='icrs', unit='deg')
+    assert util.combine_ra_dec_bounds(sc_empty) is None
 
-def test_parse_hex():
-    assert util.parse_hex('00:00:00') == util.parse_hex('00 00 00') == ['00', '00', '00']
-    assert util.parse_hex('-50:30') == util.parse_hex('-50 30') == ['-50', '30']
-    assert util.parse_hex('34') == ['34']
-    assert util.parse_hex('12:34:56.89') == util.parse_hex('12:34:56.89') == ['12', '34', '56.89']
-    assert util.parse_hex('12:34:56.89 # comment') == ['12', '34', '56.89 # comment']
 
 
 __________OTHER_FUNCTIONS__________________________________________________________ = 0
@@ -281,6 +286,26 @@ def test_make_directory_if_not_exists():
     except OSError:
         pass
     assert (os.path.exists(fullpath) and os.path.isdir(fullpath)) == False
+
+
+def test_count_files_immediate():
+    # Case: many files:
+    n_files = util.count_files_immediate('D:/Astro/Catalogs/ATLAS-refcat2/mag-0-16/')
+    assert n_files == 64800
+
+    # Case: no files:
+    fullpath = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, '$$dummy_directory$')
+    # First, ensure directory does not exist at fullpath:
+    try:
+        os.rmdir(fullpath)
+    except OSError:
+        pass
+    util.make_directory_if_not_exists(fullpath)
+    assert util.count_files_immediate(fullpath) == 0
+    try:
+        os.rmdir(fullpath)
+    except OSError:
+        pass
 
 
 def test_pressure_from_elevation():

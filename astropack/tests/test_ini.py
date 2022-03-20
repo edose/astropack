@@ -24,17 +24,17 @@ def test_parse_multiline():
     # Normal case:
     lines = """First CCC 0.18
     Second XZXC haha"""
-    d = ini.parse_multiline(lines, min_words_per_line=3, max_words_per_line=3)
+    d = ini._parse_multiline(lines, min_words_per_line=3, max_words_per_line=3)
     assert len(d) == 2
     assert d['First'] == ('CCC', '0.18')
-    d = ini.parse_multiline(lines, min_words_per_line=2, max_words_per_line=5)
+    d = ini._parse_multiline(lines, min_words_per_line=2, max_words_per_line=5)
     assert len(d) == 2
     assert d['Second'] == ('XZXC', 'haha')
     # Error: invalid number of words (substrings) per line:
     with pytest.raises(ini.MultilineParseError) as e:
-        d = ini.parse_multiline(lines, min_words_per_line=1, max_words_per_line=2)
+        d = ini._parse_multiline(lines, min_words_per_line=1, max_words_per_line=2)
     with pytest.raises(ini.MultilineParseError) as e:
-        d = ini.parse_multiline(lines, min_words_per_line=4, max_words_per_line=100)
+        d = ini._parse_multiline(lines, min_words_per_line=4, max_words_per_line=100)
 
 
 def test_dict_to_floats():

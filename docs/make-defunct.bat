@@ -35,14 +35,10 @@ if "%1" == "help" (
 )
 
 if "%1" == "clean" (
-    del /q api
-    del /q %BUILDDIR%/doctrees/api
-    del /q %BUILDDIR%/html/api
-rem the following were removed EVD 2022-03-20 as damaging:
-rem	for /d %%i in (%BUILDDIR%\*) do rmdir /q /s %%i
-rem	del /q /s %BUILDDIR%\*
-rem	del /q /s api
-rem	del /q /s generated
+	for /d %%i in (%BUILDDIR%\*) do rmdir /q /s %%i
+	del /q /s %BUILDDIR%\*
+	del /q /s api
+	del /q /s generated
 	goto end
 )
 

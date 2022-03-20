@@ -8,6 +8,25 @@
 .. ------------------------------------------------------------------
 .. RST SUBSITUTIONS
 
+                                astropack classes
+
+.. |Astronight| replace:: :class:`~.almanac.Astronight`
+.. |AtlasRefcat2| replace:: :class:`~.catalogs.AtlasRefcat2`
+.. |XY| replace:: :class:`~.geometry.XY`
+.. |DXY| replace:: :class:`~.geometry.DXY`
+.. |Rectangle_in_2D| replace:: :class:`~.geometry.Rectangle_in_2D`
+.. |Circle_in_2D| replace:: :class:`~.geometry.Circle_in_2D`
+.. |FITS| replace:: :class:`~.image.FITS`
+.. |PointSourceAp| replace:: :class:`~.image.PointSourceAp`
+.. |MovingSourceAp| replace:: :class:`~.image.MovingSourceAp`
+.. |Site| replace:: :class:`~.ini.Site`
+.. |Instrument| replace:: :class:`~.ini.Instrument`
+.. |HumanObserver| replace:: :class:`~.ini.HumanObserver`
+.. |MixedModelFit| replace:: :class:`~.stats.MixedModelFit`
+.. |LinearFit| replace:: :class:`~.stats.LinearFit`
+.. |Timespan| replace:: :class:`~.util.Timespan`
+
+
 ..              skyfield (deviant Sphinx format, unfortunately)
 .. |skyfield.GP| replace:: https://rhodesmill.org/skyfield/api-topos.html#skyfield.toposlib.GeographicPosition
 .. |skyfield.ME| replace:: https://rhodesmill.org/skyfield/api-ephemeris.html#skyfield.jpllib.SpiceKernel

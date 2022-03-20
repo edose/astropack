@@ -164,7 +164,7 @@ class Site:
             raise SiteParseError('text = >' + i.get('Climate',
                                                     'Midnight Humidities') + '<')
 
-        extinction_dict = parse_multiline(i.get('Climate', 'Extinctions'), 3)
+        extinction_dict = _parse_multiline(i.get('Climate', 'Extinctions'), 3)
         self.extinction = _dict_to_floats(extinction_dict)
         self.dome_present = string_to_boolean(i.get('Dome', 'Present'))
         if self.dome_present:
@@ -203,11 +203,11 @@ class Site:
         return quantity_for_date
 
     def midnight_temperature_for_date(self, date):
-        """ Return interpolated nominal midnight temperature for site and date,
+        """Return interpolated nominal midnight temperature for site and date,
         based on summer and winter values.
 
         Parameters
-        -----------
+        ----------
         date : datetime
             Date, including year, for which midnight temperature estimate is needed.
             UTC will be assumed if no timezone info is given.
@@ -229,7 +229,7 @@ class Site:
         based on summer and winter values.
 
         Parameters
-        -----------
+        ----------
         date : datetime
             Date, including year, for which midnight humidity estimate is needed.
             UTC will be assumed if no timezone info is given.
@@ -250,7 +250,7 @@ class Site:
         """ Return interpolated extinction for date, based on summer and winter values.
 
         Parameters
-        -----------
+        ----------
         date : datetime
             Date, including year, for which atmospheric extinction estimate is wanted.
             UTC will be assumed if no timezone info is given.
@@ -437,8 +437,8 @@ class Instrument:
         self.pinpoint_pixel_scale_multipler = float(i.get('Plate Solution',
                                                           'Pinpoint Pixel Scale Multiplier'))
         self.filters_available = tuple(i.get('Filters', 'Available').replace(',', ' ').split())
-        self.v14_time_to_sn100 = _dict_to_floats(parse_multiline(i.get('Filters', 'V14 Time To SN 100'),
-                                                                 2, 2))
+        self.v14_time_to_sn100 = _dict_to_floats(_parse_multiline(i.get('Filters', 'V14 Time To SN 100'),
+                                                                  2, 2))
         self.transforms = self._get_transforms(i.get('Filters', 'Transforms'))
         self.min_fwhm_pixels = float(i.get('Scale', 'Min FWHM Pixels'))
         self.max_fwhm_pixels = float(i.get('Scale', 'Max FWHM Pixels'))
@@ -456,7 +456,7 @@ class Instrument:
         """
         min_values_per_transform = 5
         max_values_per_transform = 6
-        # transforms_dict = parse_multiline(multiline_string, min_words_per_line=5, max_words_per_line=6)
+        # transforms_dict = _parse_multiline(multiline_string, min_words_per_line=5, max_words_per_line=6)
         strings = multiline_string.splitlines()
         transforms_dict = {}
         for s in strings:
@@ -548,7 +548,6 @@ def get_ini_data(fullpath):
         .ini file at `fullpath'.
     """
 
-    """ """
     if not (os.path.exists(fullpath) and os.path.isfile(fullpath)):
         raise FileNotFoundError('fullpath >' + fullpath + '<')
     filename = os.path.basename(fullpath)
@@ -557,18 +556,21 @@ def get_ini_data(fullpath):
     return fullpath, filename, ini_data
 
 
-def parse_multiline(multiline_string, min_words_per_line=None, max_words_per_line=None):
+def _parse_multiline(multiline_string, min_words_per_line=None, max_words_per_line=None):
     """Parse one multiline ini value to a new dict, where each line's
-    first substring (item) is made the key and a tuple of remaining substrings
+    first substring (item) is made the key, and a tuple of remaining substrings
     (items) is made the value.
+
     Parameters
     ----------
     multiline_string : str
         The multiline string, extracted as an item from an ini file, typically by
-        .get_ini_data(fullpath). The multiline string to be parsed. [string]
+        ``get_ini_data(fullpath)``. The multiline string to be parsed. [string]
+
     min_words_per_line : int
         The minimum number of items (white-space delimited substrings) per line
         that will be parsed per line, or None to allow one or more items per line.
+
     max_words_per_line : int
         The maximum number of items (white-space delimited substrings) per line
         that will be parsed per line, or None to allow any number of items per line.
@@ -620,20 +622,21 @@ def _dict_to_floats(d):
 
 
 def string_to_boolean(bool_string, default_value=None):
-    """Attempt to extract Boolean meaning from string s, return default_value if failed.
+    """Attempt to extract Boolean meaning from string, return default_value if failed.
 
     Parameters
     ----------
     bool_string : str
         A string representing a boolean value. Interpretable values are:
         'true', 'yes, 'y', 'false', 'no', 'n', all case-insensitive.
+
     default_value : any object
         Value to be returned if `bool_string` is not interpreted as boolean.
 
     Returns
     -------
-    bool_value : bool or None
-        Boolean value as interpreted from `bool_string', or None.
+    bool_value : bool, or None
+        Boolean value as interpreted from ``bool_string``, or None.
     """
     sl = bool_string.lower().strip()
     if sl in ['true', 'yes', 'y']:

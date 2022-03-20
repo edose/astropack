@@ -28,7 +28,7 @@ __________ATLAS_REFCAT2_NEW_____________________________________________________
 
 from .util import count_files_immediate
 
-ATLAS_REFCAT2_DIRECTORY = 'D:/Astro/Catalogs/ATLAS-refcat2/mag-0-16/'
+# ATLAS_REFCAT2_DIRECTORY = 'D:/Astro/Catalogs/ATLAS-refcat2/mag-0-16/'
 ATLAS_REFCAT2_EPOCH_UTC = (datetime(2015, 1, 1) +
                            (datetime(2016, 1, 1) - datetime(2015, 1, 1)) / 2.0) \
     .replace(tzinfo=timezone.utc)  # refcat2 proper-motion catalog_epoch is 2015.5

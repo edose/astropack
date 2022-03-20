@@ -243,7 +243,7 @@ def test_find_target_up_down():
 def test_find_no_sun():
     # ***** OK 2022-02-09.
     an = make_new_astronight()
-    fn = almanac.find_no_sun(an.obs, an.master_eph, an.timescale, an.local_middark_utc)
+    fn = almanac.calc_timespan_no_sun(an.obs, an.master_eph, an.timescale, an.local_middark_utc)
     assert isinstance(fn, Timespan)
     # print(str(fn))
     assert (fn.start - Time('2022-02-09 00:41:13')).sec == pytest.approx(0, abs=2)
