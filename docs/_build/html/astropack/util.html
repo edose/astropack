@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>astropack.util &#8212; astropack v0.1</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/backpack-star2-xxx.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../index.html">astropak</a>
+	 &#187;
+      </li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="astropack-util">
+<h1>astropack.util<a class="headerlink" href="#astropack-util" title="Permalink to this headline">¶</a></h1>
+<p>Utility/support classes and functions. Not specific to observing targets or style.</p>
+</section>
+<section id="reference-api">
+<h1>Reference/API<a class="headerlink" href="#reference-api" title="Permalink to this headline">¶</a></h1>
+<section id="module-astropack.util">
+<span id="astropack-util-module"></span><h2>astropack.util Module<a class="headerlink" href="#module-astropack.util" title="Permalink to this headline">¶</a></h2>
+<p>Module astropak.util
+Utility/support classes and functions. Not specific to observing targets or style.</p>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.hhmm_from_datetime_utc.html#astropack.util.hhmm_from_datetime_utc" title="astropack.util.hhmm_from_datetime_utc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hhmm_from_datetime_utc</span></code></a>(datetime_utc)</p></td>
+<td><p>Return UTC time-of-day string of form 'hhmm' for UTC datetime.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.ra_as_degrees.html#astropack.util.ra_as_degrees" title="astropack.util.ra_as_degrees"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ra_as_degrees</span></code></a>(ra_string)</p></td>
+<td><p>Takes string representing Right Ascension as either sexigesimal hours or decimal degrees, returns value in degrees.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.hex_as_degrees.html#astropack.util.hex_as_degrees" title="astropack.util.hex_as_degrees"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hex_as_degrees</span></code></a>(degrees_string)</p></td>
+<td><p>Takes string representing an angle as sexigesimal or as decimal degrees, returns value in degrees.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.dec_as_degrees.html#astropack.util.dec_as_degrees" title="astropack.util.dec_as_degrees"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dec_as_degrees</span></code></a>(dec_string)</p></td>
+<td><p>Takes Declination as string (hex or degrees), returns degrees as float.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.ra_as_hours.html#astropack.util.ra_as_hours" title="astropack.util.ra_as_hours"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ra_as_hours</span></code></a>(ra_degrees[, seconds_decimal_places])</p></td>
+<td><p>Takes Right Ascension in degrees, returns string representing RA in hours.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.dec_as_hex.html#astropack.util.dec_as_hex" title="astropack.util.dec_as_hex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dec_as_hex</span></code></a>(dec_degrees[, ...])</p></td>
+<td><p>Takes degrees declination, returns sexigesimal string representation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.degrees_as_hex.html#astropack.util.degrees_as_hex" title="astropack.util.degrees_as_hex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">degrees_as_hex</span></code></a>(angle_degrees[, ...])</p></td>
+<td><p>Takes angle in degrees, returns sexigesimal string representation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.parse_hex.html#astropack.util.parse_hex" title="astropack.util.parse_hex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_hex</span></code></a>(hex_string)</p></td>
+<td><p>Takes sexigesimal string or decimal string representing an angle, returns a list of 3 str representing int or float values.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.concatenate_skycoords.html#astropack.util.concatenate_skycoords" title="astropack.util.concatenate_skycoords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concatenate_skycoords</span></code></a>(skycoord_input)</p></td>
+<td><p>Compiles an astropy <a class="reference external" href="https://docs.astropy.org/en/latest/api/astropy.coordinates.SkyCoord.html#astropy.coordinates.SkyCoord" title="(in Astropy v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SkyCoord</span></code></a> or list of <a class="reference external" href="https://docs.astropy.org/en/latest/api/astropy.coordinates.SkyCoord.html#astropy.coordinates.SkyCoord" title="(in Astropy v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SkyCoord</span></code></a>, array-based or not in any combination, and returns one array-based <a class="reference external" href="https://docs.astropy.org/en/latest/api/astropy.coordinates.SkyCoord.html#astropy.coordinates.SkyCoord" title="(in Astropy v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SkyCoord</span></code></a> object containing all coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.combine_ra_dec_bounds.html#astropack.util.combine_ra_dec_bounds" title="astropack.util.combine_ra_dec_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">combine_ra_dec_bounds</span></code></a>(skycoord_input[, ...])</p></td>
+<td><p>Computes and returns sky coordinates of the smallest RA, Dec bounding box that can cover all input sky coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.make_directory_if_not_exists.html#astropack.util.make_directory_if_not_exists" title="astropack.util.make_directory_if_not_exists"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_directory_if_not_exists</span></code></a>(directory_path)</p></td>
+<td><p>Makes new directory on the file system only if no directory already exists at <code class="xref py py-obj docutils literal notranslate"><span class="pre">directory_path</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.count_files_immediate.html#astropack.util.count_files_immediate" title="astropack.util.count_files_immediate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_files_immediate</span></code></a>(dir_fullpath)</p></td>
+<td><p>Rapidly counts number of files in the specified directory, but not in child directories (non-recursive count).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.pressure_from_elevation.html#astropack.util.pressure_from_elevation" title="astropack.util.pressure_from_elevation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pressure_from_elevation</span></code></a>(elevation)</p></td>
+<td><p>Return standard atmospheric pressure in mbar (= hectoPascals) from given elevation in meters.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.Timespan.html#astropack.util.Timespan" title="astropack.util.Timespan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Timespan</span></code></a>(start_time, end_time)</p></td>
+<td><p>Represents a span of time and provides for operations on and between Timespans.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">astropack.util</a></li>
+<li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
+<li><a class="reference internal" href="#module-astropack.util">astropack.util Module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/astropack/util.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2022  Eric Dose, Albuquerque, New Mexico.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
+    Last built 2022-03-20. <br/>
+  </p>
+</footer>
+  </body>
+</html>
