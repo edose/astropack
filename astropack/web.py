@@ -1,10 +1,12 @@
 """ Module astropack.web:
     Web and internet utilities.
+
     Includes useful parsing utilities for certain astronomy data websites, notably:
-        MPES, the Minor Planet Center's "minor planet ephemeris service".
-    Removed facilities to download from minorplanet.info (e.g., OneAsteroidInfo pages),
-        as for some reason known only to themselves, they now block all legitimate
-        download attempts by all known packages. Bad show.
+    MPES, the Minor Planet Center's "minor planet ephemeris service".
+
+    We have removed all downloads from minorplanet.info (e.g., OneAsteroidInfo pages),
+    as for some reason known only to themselves, they now block all legitimate
+    download attempts by all known packages.
 """
 
 __author__ = "Eric Dose, Albuquerque"
@@ -34,14 +36,13 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
     Parameters
     ----------
     mp_id : int for numbered Minor Planet, or str
-        Identifier for the minor planet.
-        Allowable formats:
-            (3202)     numbered MP
-            14442      numbered MP
-            1997 XF11  unnumbered MP
-            Badenia    MP name
+        Identifier for the minor planet. Allowable formats include:
+          * ``(3202)`` for a numbered MP
+          * ``14442`` for a numbered MP, omitting parentheses
+          * ``1997 XF11`` for an unnumbered MP
+          * ``Badenia`` MP name.
 
-    utc_start : py datetime, |Time|, or str that |Time| can parse
+    utc_start : |py.datetime|, |Time|, or a str that |Time| can parse
         Date and time to start. Will be truncated to most recent hour (i.e.,
         minutes and seconds are set to zero).
 

@@ -13,5 +13,10 @@ dt:target, span.highlighted {
 
 div.topbar a.brand {
     background-image: url("backpack-star.png"), none;
-    background-size: 25px 32px;
+    background-size: 24px 34px;
+}
+
+#logotext3 {
+    color:#ff0;
+	font-weight:500;
 }

@@ -1,4 +1,6 @@
-__author__ = "Eric Dose :: New Mexico Mira Project, Albuquerque"
+"""test_stats.py"""
+
+__author__ = "Eric Dose, Albuquerque"
 
 # Python core packages:
 from math import sqrt
@@ -9,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 # Test target:
-from astropak import stats
+from astropack import stats
 
 
 def test_class_mixed_model_fit():

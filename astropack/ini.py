@@ -63,18 +63,18 @@ Slew Rate = 2.85
 
 
 class SiteParseError(Exception):
-    """Raised if a line in Site .ini file cannot be meaningfuly parsed."""
+    """Raised when a line in Site .ini file cannot be meaningfuly parsed."""
     pass
 
 
 class SiteValueError(Exception):
-    """Raised if a line in Site .ini has been read,
+    """Raised when a line in Site .ini has been read,
     but the extracted value is clearly wrong."""
     pass
 
 
 class Site:
-    """ Holds and makes available one telescope/observer site's information.
+    """Holds and makes available one telescope/observer site's information.
     Loads info from one .ini file.
 
     Parameters
@@ -87,7 +87,7 @@ class Site:
     fullpath : str
         Value of input parameter ``fullpath``.
     name : str
-        Long name of site, e.g., 'New Mexico Skies (Dome)'
+        Long name of site, e.g., 'New Mexico Skies (Dome)'.
     mpc_code : str
         Minor Planet Center (IAU) location code for this site, e.g., 'H12'.
     longitude : float
@@ -135,7 +135,7 @@ class Site:
     dome_slew_rate : float
         The dome's rotation rate when slewing, in degrees per second.
 
-        Value is frequently near 3 for dome's of diameter 3-5 meters.
+        Value is frequently near 3 for domes of diameter 3-5 meters.
     """
 
     def __init__(self, fullpath):
@@ -193,7 +193,7 @@ class Site:
                                  'month-day date of year.')
 
     def _get_date_phase(self, date):
-        """For ``date`` [py datetime], return annual date phase."""
+        """For ``date`` as |py.datetime|, return annual date phase."""
         coldest_datetime = datetime(year=date.year,
                                     month=self.coldest_date[0],
                                     day=self.coldest_date[1]).\
@@ -216,7 +216,7 @@ class Site:
 
         Parameters
         ----------
-        date : datetime
+        date : |py.datetime|
             Date, including year, for which midnight temperature estimate is needed.
             UTC will be assumed if no timezone info is given.
 
@@ -233,12 +233,12 @@ class Site:
         return temp_for_date
 
     def midnight_humidity_for_date(self, date):
-        """ Return interpolated nominal midnight humidity for date,
+        """Return interpolated nominal midnight humidity for date,
         based on summer and winter values.
 
         Parameters
         ----------
-        date : datetime
+        date : |py.datetime|
             Date, including year, for which midnight humidity estimate is needed.
             UTC will be assumed if no timezone info is given.
 
@@ -255,11 +255,11 @@ class Site:
         return humidity_for_date
 
     def extinction_for_date(self, date, filter):
-        """ Return interpolated extinction for date, based on summer and winter values.
+        """Return interpolated extinction for date, based on summer and winter values.
 
         Parameters
         ----------
-        date : datetime
+        date : |py.datetime|
             Date, including year, for which atmospheric extinction estimate is wanted.
             UTC will be assumed if no timezone info is given.
 
@@ -333,7 +333,7 @@ Max Exposure No Guiding = 119
 
 
 class TransformParseError(Exception):
-    """Raised when transform line cannot be properly parsed."""
+    """Raised when a transform line cannot be properly parsed."""
     pass
 
 
@@ -472,10 +472,18 @@ class Instrument:
     @staticmethod
     def _get_transforms(multiline_string):
         """ Parse transform dictionary from the Transform multiline string.
-        :param multiline_string: transform string from Instrument .ini file
-        :return: transform dictionary. Dictionary keys are tuples in form
-        (filter, passband, color passband 1, color passband 2), and dictionary
-        values are a tuple of float(s) giving transform value.
+
+        Parameters
+        ----------
+        multiline_string : str
+            Transform string, from Instrument .ini file
+
+        Returns
+        -------
+        transform_dict : dict
+            Transform dictionary, in which each key is a tuple in form
+            (filter, passband, color passband 1, color passband 2), and each corresponding
+            value is a tuple of float(s) giving the transform value.
         """
         min_values_per_transform = 5
         max_values_per_transform = 6
@@ -549,8 +557,8 @@ class MultilineParseError(Exception):
 
 
 def get_ini_data(fullpath):
-    """Read .ini file into ConfigParser object. Used at beginning of all
-    astropak .ini file readers.
+    """Read .ini file into ConfigParser object. Called by all
+    astropack .ini file readers.
 
     Parameters
     ----------
@@ -562,13 +570,13 @@ def get_ini_data(fullpath):
     fullpath, filename, ini_data : tuple of str, str, dict
         Where:
 
-        **fullpath** is the full path to site's .ini file,
-        from input parameter ``fullpath``.
+            **fullpath** is the full path to site's .ini file,
+            from input parameter ``fullpath``.
 
-        **filename** is the base name of ``fullpath``.
+            **filename** is the base filename of ``fullpath``.
 
-        **ini_data** is a dict containing raw, unparsed data read from the
-        .ini file at ``fullpath`'.
+            **ini_data** is a dict containing raw, unparsed data read from the
+            .ini file at ``fullpath``.
     """
 
     if not (os.path.exists(fullpath) and os.path.isfile(fullpath)):

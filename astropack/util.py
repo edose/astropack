@@ -1,4 +1,4 @@
-""" Module astropak.util
+""" Module astropack.util
     Utility/support classes and functions. Not specific to observing targets or style.
 """
 
@@ -44,10 +44,10 @@ class Timespan:
 
         Parameters
         ----------
-        start_time : datetime or |Time|
+        start_time : |py.datetime| or |Time|
             Start time of new |Timespan|.
 
-        end_time :  datetime or |Time|
+        end_time :  |py.datetime| or |Time|
             End time of new |Timespan|.
 
         Attributes
@@ -123,7 +123,7 @@ class Timespan:
 
         Parameters
         ----------
-        delay : float, or timedelta, or |TimeDelta|
+        delay : float, or |py.timedelta|, or |TimeDelta|
             A duration by which to delay the start and end of new Timespan, relative
             to the present instance. If float, delay is in seconds.
 
@@ -146,7 +146,7 @@ class Timespan:
 
         Parameters
         ----------
-        expansion : float, or timedelta, or |TimeDelta|
+        expansion : float, or |py.timedelta|, or |TimeDelta|
             The extent to which to extend both the start and the end away from the
             midpoint, relative to this timespan.
             If float, expansion is in seconds.
@@ -253,7 +253,7 @@ class Timespan:
 
         Parameters
         ----------
-        other : datetime, or |Time|, or |Timespan|
+        other : |py.datetime|, or |Time|, or |Timespan|
             The time or timespan to be tested as wholly contained within the present
             timespan.
 
@@ -275,7 +275,7 @@ class Timespan:
 
         Parameters
         ----------
-        time : datetime, or |Time|
+        time : |py.datetime|, or |Time|
             Time at which to split this timespan.
 
         Returns
@@ -321,11 +321,11 @@ class Timespan:
 
         Parameters
         ----------
-        ref_time : datetime or |Time|
+        ref_time : |py.datetime| or |Time|
             Time of any occurence of the periodic event.
             Need not be contained within present timespan.
 
-        period : timedelta or |TimeDelta|
+        period : |py.timedelta| or |TimeDelta|
             Length of time between periodic events.
 
         max_events : positive int, or None, optional
@@ -372,7 +372,7 @@ def hhmm_from_datetime_utc(datetime_utc):
 
     Parameters
     ----------
-    datetime_utc : datetime
+    datetime_utc : |py.datetime|
         UTC date and time.
 
     Returns

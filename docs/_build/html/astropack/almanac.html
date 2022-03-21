@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>astropack.util &#8212; astropack v0.1</title>
+    <title>Observation Planning (astropack.almanac) &#8212; astropack v0.1beta</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
@@ -18,14 +18,16 @@
     <script src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/sidebar.js"></script>
     <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <link rel="shortcut icon" href="../_static/backpack-star2-xxx.ico"/>
+    <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ha_dec_from_az_alt" href="../api/astropack.almanac.ha_dec_from_az_alt.html" />
+    <link rel="prev" title="Astropack Documentation" href="index.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
   </head><body>
 <div class="topbar">
-  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
   <ul>
     
     <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
@@ -47,12 +49,23 @@
 <div class="related">
     <h3>Navigation</h3>
     <ul>
+      <li class="right">
+	<a href="../api/astropack.almanac.ha_dec_from_az_alt.html" title="ha_dec_from_az_alt">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="index.html" title="Astropack Documentation">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
       <li>
-	<a href="../index.html">astropak</a>
+	<a href="index.html">astropack v0.1beta</a>
 	 &#187;
       </li>
       
-       
+      <li>Observation Planning (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.almanac</span></code>)</li> 
     </ul>
 </div>
   
@@ -62,18 +75,21 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="astropack-util">
-<h1>astropack.util<a class="headerlink" href="#astropack-util" title="Permalink to this headline">¶</a></h1>
-<p>Astronight class + other almanac code.</p>
+  <section id="observation-planning-astropack-almanac">
+<h1>Observation Planning (<a class="reference internal" href="#module-astropack.almanac" title="astropack.almanac"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.almanac</span></code></a>)</h1>
+<p>Astronight class + other almanac code. (rst file)</p>
+<section id="getting-started">
+<h2>Getting Started</h2>
+<p>Examples, etc.</p>
 </section>
 <section id="reference-api">
-<h1>Reference/API<a class="headerlink" href="#reference-api" title="Permalink to this headline">¶</a></h1>
+<h2>Reference/API</h2>
 <section id="module-astropack.almanac">
-<span id="astropack-almanac-module"></span><h2>astropack.almanac Module<a class="headerlink" href="#module-astropack.almanac" title="Permalink to this headline">¶</a></h2>
+<span id="astropack-almanac-module"></span><h3>astropack.almanac Module</h3>
 <p>Module astropack.almanac:
-Astronight class + other almanac code.</p>
+Astronight class + other almanac code. (py file)</p>
 <section id="functions">
-<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<h4>Functions</h4>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -84,7 +100,7 @@ Astronight class + other almanac code.</p>
 <td><p>Return hour angle and declination for a given azimuth and altitude, at a site's known latitude.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.make_skyfield_observatory_from_site.html#astropack.almanac.make_skyfield_observatory_from_site" title="astropack.almanac.make_skyfield_observatory_from_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_skyfield_observatory_from_site</span></code></a>(site)</p></td>
-<td><p>Return Skyfield observer (earth location) object from astropack <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> instance.</p></td>
+<td><p>Return Skyfield observer (earth location) object made from astropack <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> instance.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.calc_timespan_no_sun.html#astropack.almanac.calc_timespan_no_sun" title="astropack.almanac.calc_timespan_no_sun"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_timespan_no_sun</span></code></a>(obs, master_eph, ...)</p></td>
 <td><p>Return <a class="reference internal" href="../api/astropack.util.Timespan.html#astropack.util.Timespan" title="astropack.util.Timespan"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timespan</span></code></a> representing sunset to sunrise and containing <code class="docutils literal notranslate"><span class="pre">approx_midnight</span></code>.</p></td>
@@ -111,7 +127,7 @@ Astronight class + other almanac code.</p>
 </table>
 </section>
 <section id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<h4>Classes</h4>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -119,16 +135,17 @@ Astronight class + other almanac code.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.SunAlwaysUpError.html#astropack.almanac.SunAlwaysUpError" title="astropack.almanac.SunAlwaysUpError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SunAlwaysUpError</span></code></a></p></td>
-<td><p>Raised if new <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> has no sun-down time for observing.</p></td>
+<td><p>Raised when new <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> has no sun-down time for observing.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.NoDarkTimeError.html#astropack.almanac.NoDarkTimeError" title="astropack.almanac.NoDarkTimeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NoDarkTimeError</span></code></a></p></td>
-<td><p>Raised if new <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> has no dark time for observing.</p></td>
+<td><p>Raised when new <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> has no dark time for observing.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Astronight</span></code></a>(site, an_date[, sun_altitude_dark])</p></td>
 <td><p><strong>Astropack</strong>'s main engine of astronomical planning.</p></td>
 </tr>
 </tbody>
 </table>
+</section>
 </section>
 </section>
 </section>
@@ -141,11 +158,14 @@ Astronight class + other almanac code.</p>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
-<li><a class="reference internal" href="#">astropack.util</a></li>
+<li><a class="reference internal" href="#">Observation Planning (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.almanac</span></code>)</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.almanac">astropack.almanac Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 <li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -163,9 +183,9 @@ Astronight class + other almanac code.</p>
        rel="nofollow">Page Source</a> &nbsp;
     <a href="#">Back to Top</a></p>
   <p>
-    &copy; Copyright 2022  Eric Dose, Albuquerque, New Mexico.<br/>
+    &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-20. <br/>
+    Last built 2022-03-21. <br/>
   </p>
 </footer>
   </body>

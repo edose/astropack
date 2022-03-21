@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Web Retrieval for Minor Planets/Asteroids (astropack.web) &#8212; astropack v0.1beta</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="get_mp_ephem" href="../api/astropack.web.get_mp_ephem.html" />
+    <link rel="prev" title="Timespan" href="../api/astropack.util.Timespan.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="../api/astropack.web.get_mp_ephem.html" title="get_mp_ephem">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="../api/astropack.util.Timespan.html" title="Timespan">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">astropack v0.1beta</a>
+	 &#187;
+      </li>
+      
+      <li>Web Retrieval for Minor Planets/Asteroids (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.web</span></code>)</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="web-retrieval-for-minor-planets-asteroids-astropack-web">
+<h1>Web Retrieval for Minor Planets/Asteroids (<a class="reference internal" href="#module-astropack.web" title="astropack.web"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.web</span></code></a>)</h1>
+<p>Retrieval of minor planet data from the Minor Planet Center,
+each function returning results as a very convenient pandas <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+<section id="getting-started">
+<h2>Getting Started</h2>
+<p>Examples, etc.</p>
+</section>
+<section id="reference-api">
+<h2>Reference/API</h2>
+<section id="module-astropack.web">
+<span id="astropack-web-module"></span><h3>astropack.web Module</h3>
+<p>Module astropack.web:
+Web and internet utilities.</p>
+<p>Includes useful parsing utilities for certain astronomy data websites, notably:
+MPES, the Minor Planet Center’s “minor planet ephemeris service”.</p>
+<p>We have removed all downloads from minorplanet.info (e.g., OneAsteroidInfo pages),
+as for some reason known only to themselves, they now block all legitimate
+download attempts by all known packages.</p>
+<section id="functions">
+<h4>Functions</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.web.get_mp_ephem.html#astropack.web.get_mp_ephem" title="astropack.web.get_mp_ephem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mp_ephem</span></code></a>(mp_id, utc_start, step_hours, ...)</p></td>
+<td><p>Return MPES ephemeris information from one MPES web page (i.e., for one asteroid/minor planet).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.web.get_mp_info.html#astropack.web.get_mp_info" title="astropack.web.get_mp_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mp_info</span></code></a>([mp_number, mp_name])</p></td>
+<td><p>Given either a Minor Planet number or name, return a python dictionary of relevant data retrieved from the Minor Planet Center database.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Web Retrieval for Minor Planets/Asteroids (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.web</span></code>)</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
+<li><a class="reference internal" href="#module-astropack.web">astropack.web Module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/astropack/web.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
+    Last built 2022-03-21. <br/>
+  </p>
+</footer>
+  </body>
+</html>

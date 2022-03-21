@@ -1,4 +1,6 @@
-__author__ = "Eric Dose :: New Mexico Mira Project, Albuquerque"
+"""test_image.py"""
+
+__author__ = "Eric Dose, Albuquerque"
 
 # Python core packages:
 import os
@@ -12,7 +14,7 @@ from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 
 # Test target:
-from astropak import image
+from astropack import image
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "test")

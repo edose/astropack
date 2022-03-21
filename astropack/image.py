@@ -1,4 +1,4 @@
-""" Module astropak.image.
+""" Module astropack.image.
     Image, FITS, aperture handling.
     Adapted from author's photrix package, image module.
 """
@@ -37,7 +37,8 @@ __all__ = ['MaskError',
 
 
 class MaskError(Exception):
-    """Raised on any mask error, usually when masks differ in shape. """
+    """Raised when encountering any mask error,
+    most often when masks differ in shape from image cutout or from each other. """
     pass
 
 
@@ -100,10 +101,10 @@ class FITS:
     temperature : float
         CCD temperature, in degrees C, as read from FITS header.
 
-    utc_start : py datetime
+    utc_start : |py.datetime|
         Image exposure start time, UTC, as read from FITS header.
 
-    utc_mid : py datetime
+    utc_mid : |py.datetime|
         Image exposure mid-time, UTC, as calculated from ``utc_start`` and ``exposure``.
 
     filter : str
@@ -253,7 +254,7 @@ class FITS:
     def xy_to_skycoords(self, xy):
         """ Convert the image's (x,y) coordinates to (RA, Dec) sky coordinates.
 
-        Wrapper for :fun:`astropy.wcs.pixel_to_world()`, using ``wcs_corrected``.
+        Wrapper for :meth:`astropy.WCS.wcs.pixel_to_world()`, using ``wcs_corrected``.
 
         Parameters
         ----------
@@ -279,7 +280,7 @@ class FITS:
     def skycoords_to_xy(self, skycoords):
         """Convert (RA, Dec) sky coordinates to image (x,y) coordinates.
 
-        Wrapper for :fun:`astropy.wcs.world_to_pixel()`, using ``wcs_corrected``.
+        Wrapper for :meth:`astropy.wcs.WCS.world_to_pixel()`, using ``wcs_corrected``.
 
         Parameters
         ----------
@@ -651,7 +652,7 @@ class Ap:
 
         Returns
         -------
-        next_ap : `~.image.Ap` subclass
+        next_ap : subclass of `~.image.Ap`
             A new `~.image.Ap` subclass instance with center closer to light
             source's centroid.
         """
@@ -998,7 +999,10 @@ def make_pill_mask(mask_shape_xy, xya, xyb, radius):
 
 
 def calc_background_value(data, mask=None, dilate_size=3):
-    """
+    """Calculate the best estimate of background value.
+
+    Iterative sigma-clipped median is the best known algorithm. Author's testing
+    with synthetic 16-bit image data frequently gives accuracy to 1 ADU.
 
     Parameters
     ----------

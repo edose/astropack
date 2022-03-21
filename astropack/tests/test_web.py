@@ -1,6 +1,4 @@
-"""
-
-"""
+"""test_web.py"""
 
 __author__ = "Eric Dose, Albuquerque"
 
@@ -16,10 +14,10 @@ from astropy.time import Time
 from astroquery.exceptions import InvalidQueryError
 
 # Author's other modules:
-from astropak.ini import Site
+from astropack.ini import Site
 
 # Test target:
-import astropak.web as web
+import astropack.web as web
 
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -1,4 +1,6 @@
-__author__ = "Eric Dose :: New Mexico Mira Project, Albuquerque"
+"""test_catalogs.py"""
+
+__author__ = "Eric Dose, Albuquerque"
 
 # Python core packages:
 import os
@@ -10,7 +12,7 @@ import pandas as pd
 from astropy.time import Time
 
 # Test target:
-from astropak import catalogs
+from astropack import catalogs
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "test")

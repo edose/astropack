@@ -1,14 +1,13 @@
 .. These are ReST substitutions and links that can be used throughout the docs
 .. (and docstrings) because they are added to ``docs/conf.py::rst_epilog``.
-.. Some of the links are in curly braces for ``.format`` substitutions.
+.. Some links are in curly braces for ``.format`` substitutions.
 
-.. Modified 2022-03-15 for package astropack.
-.. use as |Astronight| wherever required.
+.. Modified 2022-03-21 for package astropack.
 
 .. ------------------------------------------------------------------
 .. RST SUBSITUTIONS
 
-                                astropack classes
+                             astropack's own classes
 
 .. |Astronight| replace:: :class:`~.almanac.Astronight`
 .. |AtlasRefcat2| replace:: :class:`~.catalogs.AtlasRefcat2`
@@ -33,6 +32,10 @@
 .. |skyfield.TS| replace:: https://rhodesmill.org/skyfield/api-time.html#skyfield.timelib.Timescale
 .. |skyfield.Star| replace:: https://rhodesmill.org/skyfield/api-stars.html#skyfield.starlib.Star
 
+..           datetime (to remedy python's messed-up naming layout)
+.. |py.datetime| replace:: :py:class:`~datetime.datetime`
+.. |py.timedelta| replace:: :py:class:`~datetime.timedelta`
+
 ..                                 NumPy
 .. |ndarray| replace:: :class:`numpy.ndarray`
 
@@ -41,7 +44,7 @@
 .. |DataFrame| replace:: :class:`pandas.DataFrame`
 
 ..                                Astropy
-.. Coordinates
+.. Coordinates and WCS
 .. |EarthLocation| replace:: :class:`~astropy.coordinates.EarthLocation`
 .. |Angle| replace:: `~astropy.coordinates.Angle`
 .. |Latitude| replace:: `~astropy.coordinates.Latitude`
@@ -49,6 +52,7 @@
 .. |BaseFrame| replace:: `~astropy.coordinates.BaseCoordinateFrame`
 .. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
 .. |SpectralCoord| replace:: `~astropy.coordinates.SpectralCoord`
+.. |WCS| replace:: `~astropy.wcs.WCS`
 
 .. Table
 .. |Column| replace:: :class:`~astropy.table.Column`
@@ -58,11 +62,9 @@
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |QTable| replace:: :class:`~astropy.table.QTable`
 
-.. Time
+.. Time and Timeseries
 .. |Time| replace:: :class:`~astropy.time.Time`
 .. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
-
-.. Timeseries
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
 .. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 

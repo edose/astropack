@@ -1,3 +1,5 @@
+"""test_geometry.py"""
+
 __author__ = "Eric Dose, Albuquerque"
 
 from math import pi, sqrt
@@ -6,7 +8,7 @@ import pytest
 import numpy as np
 
 # Test target:
-import astropak.geometry as geom
+import astropack.geometry as geom
 
 
 class Test_Class_XY:

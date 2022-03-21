@@ -1,4 +1,4 @@
-""" Module astropak.catalogs:
+""" Module astropack.catalogs:
     Catalog parsing and presentation. One class per catalog.
     As of March 2022, only ATLAS refcat2 catalog is handled.
 """
@@ -62,7 +62,7 @@ class AtlasRefcat2:
         Minimum and maximum Declination of range from which to select catalog stars.
         Tuple is (ra_min, dec_max), in degrees.
 
-    target_epoch : datetime or |time|
+    target_epoch : |py.datetime| or |Time|
         Date for which catalog RA and Dec should be updated for proper motion.
 
         Typically, this will be the date when images were taken (for which

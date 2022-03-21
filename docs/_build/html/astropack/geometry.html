@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Point and Vectors classes for Photometry (astropack.geometry) &#8212; astropack v0.1beta</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="distance_to_line" href="../api/astropack.geometry.distance_to_line.html" />
+    <link rel="prev" title="AtlasRefcat2" href="../api/astropack.catalogs.AtlasRefcat2.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="../api/astropack.geometry.distance_to_line.html" title="distance_to_line">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="../api/astropack.catalogs.AtlasRefcat2.html" title="AtlasRefcat2">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">astropack v0.1beta</a>
+	 &#187;
+      </li>
+      
+      <li>Point and Vectors classes for Photometry (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.geometry</span></code>)</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="point-and-vectors-classes-for-photometry-astropack-geometry">
+<h1>Point and Vectors classes for Photometry (<a class="reference internal" href="#module-astropack.geometry" title="astropack.geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.geometry</span></code></a>)</h1>
+<p>Classes <a class="reference internal" href="../api/astropack.geometry.XY.html#astropack.geometry.XY" title="astropack.geometry.XY"><code class="xref py py-class docutils literal notranslate"><span class="pre">XY</span></code></a> (point) and <a class="reference internal" href="../api/astropack.geometry.DXY.html#astropack.geometry.DXY" title="astropack.geometry.DXY"><code class="xref py py-class docutils literal notranslate"><span class="pre">DXY</span></code></a> (vector) for managing locations in a 2-dimensional plane
+as for photometric apertures in an image.</p>
+<p>Classes <a class="reference internal" href="../api/astropack.geometry.Rectangle_in_2D.html#astropack.geometry.Rectangle_in_2D" title="astropack.geometry.Rectangle_in_2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rectangle_in_2D</span></code></a> and <a class="reference internal" href="../api/astropack.geometry.Circle_in_2D.html#astropack.geometry.Circle_in_2D" title="astropack.geometry.Circle_in_2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Circle_in_2D</span></code></a> for defining regions in a 2-dimensional plane
+as for constructing aperture masks for background-corrected aperture photometry.</p>
+<section id="getting-started">
+<h2>Getting Started</h2>
+<p>Examples, etc.</p>
+</section>
+<section id="reference-api">
+<h2>Reference/API</h2>
+<section id="module-astropack.geometry">
+<span id="astropack-geometry-module"></span><h3>astropack.geometry Module</h3>
+<p>The astropack.geometry package provides classes and functions to create and
+manipulate elementary geometric objects, especially useful for building
+apertures and aperture masks.</p>
+<section id="functions">
+<h4>Functions</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.geometry.distance_to_line.html#astropack.geometry.distance_to_line" title="astropack.geometry.distance_to_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distance_to_line</span></code></a>(xy_pt, xy_1, xy_2[, dist_12])</p></td>
+<td><p>Shortest distance from a point to a line defined by two non-coincident points.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.geometry.make_golden_spiral.html#astropack.geometry.make_golden_spiral" title="astropack.geometry.make_golden_spiral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_golden_spiral</span></code></a>(n_points)</p></td>
+<td><p>Return points evenly spaced on a sphere.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h4>Classes</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.geometry.XY.html#astropack.geometry.XY" title="astropack.geometry.XY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">XY</span></code></a>(x, y)</p></td>
+<td><p>Represents a Cartesian point (x,y) in a plane.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.geometry.DXY.html#astropack.geometry.DXY" title="astropack.geometry.DXY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DXY</span></code></a>(dx, dy)</p></td>
+<td><p>Represents a vector (dx, dy) in a plane.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.geometry.Rectangle_in_2D.html#astropack.geometry.Rectangle_in_2D" title="astropack.geometry.Rectangle_in_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rectangle_in_2D</span></code></a>(xy_a, xy_b, xy_c)</p></td>
+<td><p>Represents a rectangle of any orientation within a 2-D Cartesian plane.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.geometry.Circle_in_2D.html#astropack.geometry.Circle_in_2D" title="astropack.geometry.Circle_in_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Circle_in_2D</span></code></a>(xy_origin, radius)</p></td>
+<td><p>Represents a circle in a 2-D Cartesian plane.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Point and Vectors classes for Photometry (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.geometry</span></code>)</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
+<li><a class="reference internal" href="#module-astropack.geometry">astropack.geometry Module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/astropack/geometry.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
+    Last built 2022-03-21. <br/>
+  </p>
+</footer>
+  </body>
+</html>

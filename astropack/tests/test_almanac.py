@@ -15,11 +15,11 @@ from astropy.coordinates import SkyCoord
 from skyfield.api import load, Star
 
 # Author's packages:
-from astropak import ini
-from astropak.util import Timespan
+from astropack import ini
+from astropack.util import Timespan
 
 # Test target:
-from astropak import almanac
+from astropack import almanac
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FOR_TEST_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, 'test', '$data_for_test')
@@ -302,7 +302,7 @@ def test_astronight_constructor():
     assert an.moon_skycoord.isscalar == True
     assert an.moon_skycoord.ra.degree == pytest.approx(55.0, abs=2.0)  # degrees
     assert (an.moon_transit - Time('2022-02-09 01:18:25')).sec == pytest.approx(0, abs=2)
-    assert str(type(an.moon_up_timespans[0])) == '<class \'astropak.util.Timespan\'>'
+    assert str(type(an.moon_up_timespans[0])) == '<class \'astropack.util.Timespan\'>'
     assert an.moon_up_timespans[0].seconds == pytest.approx(25456, abs=2)
     assert an.timespan_dark_no_moon.seconds == pytest.approx(17102, abs=2)
     # Case: missing sun_altitude_dark:

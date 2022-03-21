@@ -1,14 +1,47 @@
-***********************
-astropack Documentation
-***********************
+.. the "raw" directive below is used to hide the title in favor of
+.. just the logo's being visible
+.. raw:: html
 
-This is the documentation for astropack.
+    <style media="screen" type="text/css">
+      h1 { display:none; }
+    </style>
 
-Reference/API
-=============
+########################
+Astropack Documentation
+########################
 
-.. automodapi:: astropack.almanac
-   :no-inheritance-diagram:
+.. raw:: html
 
-.. automodapi:: astropack.ini
-   :no-inheritance-diagram:
+   <img src="../_static/backpack-star-logo.png" width="500" style="margin-bottom:30px;"/>
+
+This is the intro paragraph before TOC.
+
+.. Important:: I suppose we should put something clever here.
+    Maybe about |py.datetime| or |py.timedelta|, what?
+
+******************
+User Documentation
+******************
+
+.. toctree::
+   :maxdepth: 1
+
+   almanac
+   catalogs
+   geometry
+   image
+   ini
+   reference
+   stats
+   util
+   web
+
+And this is after the TOC.
+
+***************
+Index
+***************
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

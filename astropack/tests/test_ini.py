@@ -1,6 +1,6 @@
-__author__ = "Eric Dose, Albuquerque"
+"""test_ini.py"""
 
-""" test_ini.py """
+__author__ = "Eric Dose, Albuquerque"
 
 # Python core:
 import os
@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import pytest
 
 # Test target:
-from astropak import ini
+from astropack import ini
 
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,9 +32,9 @@ def test_parse_multiline():
     assert d['Second'] == ('XZXC', 'haha')
     # Error: invalid number of words (substrings) per line:
     with pytest.raises(ini.MultilineParseError) as e:
-        d = ini._parse_multiline(lines, min_words_per_line=1, max_words_per_line=2)
+        _ = ini._parse_multiline(lines, min_words_per_line=1, max_words_per_line=2)
     with pytest.raises(ini.MultilineParseError) as e:
-        d = ini._parse_multiline(lines, min_words_per_line=4, max_words_per_line=100)
+        _ = ini._parse_multiline(lines, min_words_per_line=4, max_words_per_line=100)
 
 
 def test_dict_to_floats():
@@ -47,7 +47,7 @@ def test_dict_to_floats():
     # Error: value doesn't represent float:
     d = {'DSS': '0.18', 'HA': 'XXX'}
     with pytest.raises(ValueError) as e:
-        f = ini._dict_to_floats(d)
+        _ = ini._dict_to_floats(d)
 
 
 def test_string_to_boolean():

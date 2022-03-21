@@ -1,5 +1,4 @@
-"""
-The astropack.geometry package provides classes and functions to create and
+"""The astropack.geometry package provides classes and functions to create and
 manipulate elementary geometric objects, especially useful for building
 apertures and aperture masks.
 """
@@ -25,7 +24,7 @@ __all__ = ['XY',
 __________CLASSES_____________________________________________________________ = 0
 
 
-class XY(namedtuple('XY', ['x', 'y'])):
+class XY:
     """Represents a Cartesian point (x,y) in a plane.
 
     Parameters
@@ -42,15 +41,25 @@ class XY(namedtuple('XY', ['x', 'y'])):
     y : float
         Y point location.
     """
-    __slots__ = ()
+    #    __slots__ = ()
 
-    @staticmethod
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+    @classmethod
     def from_tuple(tup):
-        """Alternate constructor taking a tuple (x, y) of 2 float values as input."""
+        """Alternate constructor from (x,y) tuple.
+
+        Parameters
+        ----------
+        tup : tuple of 2 float
+            Tuple (x,y) from which to make a |XY| instance.
+
+        """
         if isinstance(tup, tuple):
             if len(tup) == 2:
                 return XY(tup[0], tup[1])
-        raise TypeError('XY.from_tuple() requires a 2-tuple as input.')
+        raise TypeError('XY.from_tuple() requires a 2-tuple of float as input.')
 
     def __add__(self, dxy):
         """Add a displacement to this point.
@@ -58,7 +67,7 @@ class XY(namedtuple('XY', ['x', 'y'])):
         Parameters
         ----------
         dxy : |DXY|
-            Distance by which to displace this XY object to yield new XY object.
+            Distance by which to displace this point to yield new |XY| instance.
         """
         if isinstance(dxy, DXY):
             return XY(self.x + dxy.dx, self.y + dxy.dy)
@@ -78,10 +87,10 @@ class XY(namedtuple('XY', ['x', 'y'])):
         Returns
         -------
         new_xy : |XY| or |DXY|
-            If `other` is |DXY|, a new |XY| (point) which is
-            displaced from this point by `other`.
-            If `other` is |XY|, a new |DXY| (vector) which
-            is the displacement `other` to this point.
+            If ``other`` is |DXY|, a new |XY| (point) which is
+            displaced from this point by ``other``.
+            If ``other`` is |XY|, a new |DXY| (vector) which
+            is the displacement ``other`` to this point.
         """
         if isinstance(other, XY):
             return DXY(self.x - other.x, self.y - other.y)
@@ -100,14 +109,14 @@ class XY(namedtuple('XY', ['x', 'y'])):
         Returns
         -------
         new_vector : |DXY|
-            Vector from this point to`other`.
+            Vector from this point to ``other``.
         """
         if isinstance(other, XY):
             return other - self
         raise TypeError('XY.vector_to() requires type XY as operand.')
 
 
-class DXY(namedtuple('DXY', ['dx', 'dy'])):
+class DXY:
     """Represents a vector (dx, dy) in a plane. A two-dimensional displacement.
 
     Parameters
@@ -125,7 +134,10 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
         Vector magnitude in Y direction.
     """
 
-    __slots__ = ()
+#     __slots__ = ()
+
+    def __init__(self, dx, dy):
+        self.dx, self.dy = dx, dy
 
     def __add__(self, other):
         """Adds two vectors to make a sum vector,
@@ -222,7 +234,7 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
             if other != 0:
                 return DXY(self.dx / other, self.dy / other)
             raise ZeroDivisionError
-        raise TypeError('DXY.__div__() requires float scalar as operand.')
+        raise TypeError('DXY.__div__() requires scalar float as operand.')
 
     def angle_with(self, other):
         """Returns angle with other |DXY| vector, in radians, within range [0, 2 * pi].
@@ -231,6 +243,7 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
         ----------
         other : |DXY|
             Another vector.
+
         Returns
         -------
         angle : float
@@ -277,7 +290,7 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
 
         Returns
         -------
-        l1 : float
+        l : float
             This vector's length.
         """
         return sqrt(self.length2)
@@ -285,7 +298,7 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
     @property
     def direction(self):
         """Return angle of this vector relative to positive x-axis
-            (e.g., +y yields +pi/2), in radians. Returns zero if vector is zero-length.
+        (e.g., +y yields +pi/2), in radians. Returns zero if vector is zero-length.
 
         Returns
         -------
@@ -546,8 +559,8 @@ def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
 
     dist_12 : float or None, optional
         Square of distance between ``xy_1`` and ``xy_2`` if already computed
-        and available. None (the commonest case, and default) indicates that
-        this function needs to compute ``dist_12``. Default is None
+        and available. Otherwise, return None (the commonest case), which indicates
+        that this function needs to compute ``dist_12``. Default is None
 
     Returns
     -------
@@ -570,7 +583,7 @@ def make_golden_spiral(n_points):
     """Return points evenly spaced on a sphere.
 
 .. note:: This function may be removed in favor of recommending astropy's
-          function :fun:`astropy.coordinates.golden_spiral_grid`
+          function :meth:`astropy.coordinates.golden_spiral_grid`
 
     Parameters
     ----------

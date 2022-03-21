@@ -25,7 +25,7 @@ from .reference import DEGREES_PER_RADIAN
 
 THIS_PACKAGE_ROOT_DIRECTORY = \
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INI_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, 'test', '$data_for_test')
+# INI_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, 'test', '$data_for_test')
 
 HORIZON_USNO = -0.833  # USNO sun/moon effective horizon (radius & refraction), degrees.
 HOURS_TO_ASSURE_HALF_NIGHT = 14
@@ -44,7 +44,7 @@ __all__ = ['SunAlwaysUpError', 'NoDarkTimeError',
 
 
 class SunAlwaysUpError(Exception):
-    """Raised if new |Astronight| has no sun-down time for observing.
+    """Raised when new |Astronight| has no sun-down time for observing.
 
     User is responsible for catching this, if observing site's latitude allows for
     24 consecutive hours of sun-up daylight (only in earth's polar latitudes of about
@@ -54,7 +54,7 @@ class SunAlwaysUpError(Exception):
 
 
 class NoDarkTimeError(Exception):
-    """Raised if new |Astronight| has no dark time for observing.
+    """Raised when new |Astronight| has no dark time for observing.
 
     User is responsible for catching this, if observing site's latitude allows for
     24 consecutive hours of daylight or twilight (typically only at earth's polar
@@ -98,7 +98,7 @@ class Astronight:
     site : |Site|
         Observer's location info, from input parameter ``site``.
     site_name : str
-        Name of the observer's location, from input parameter ``site``
+        Name of the observer's location, from input parameter ``site``.
     an_date_string : str
         String representation of the astronight date, of form 'yyyymmdd'
     sun_altitude_dark : float
@@ -136,10 +136,10 @@ class Astronight:
     Raises
     ------
     SunAlwaysUpError
-        Raised if astronight at this site has no sun-down time for observing.
+        Raised when |Astronight| at this site has no sun-down time for observing.
 
     NoDarkTimeError
-        Raised if astronight at this site has no dark time for observing.
+        Raised when |Astronight| at this site has no dark time for observing.
 
     Examples
     --------
@@ -155,8 +155,8 @@ class Astronight:
     The Astronight object then supplies relevant data about the local night.
 
       >>> mp = an.moon_illumination
-      >>> dark = an.timespan_dark               # returns astropak.util.Timespan object
-      >>> very_dark = an.timespan_dark_no_moon  # "
+      >>> dark = an.timespan_dark
+      >>> very_dark = an.timespan_dark_no_moon
 
     The Astronight object can also supply target-observation data, typically taking a
     sky location and returning a |Time| or |Timespan| object.
@@ -297,7 +297,7 @@ class Astronight:
         Raises
         ------
         ValueError
-            Raised if ``min_moon_dist`` is unspecified.
+            Raised when ``min_moon_dist`` is unspecified.
         """
         if min_moon_dist is None:
             raise ValueError('Astropy.timespan_observable requires value '
@@ -317,7 +317,7 @@ class Astronight:
                     for time_up in timespan_target_up]
 
     def __repr__(self):
-        return 'astropak.almanac.Astronight(site=[' + self.site.name + ']'\
+        return 'astropack.almanac.Astronight(site=[' + self.site.name + ']'\
                ', an_date=' + self.an_date_string + \
                ', sun_altitude_dark=' + str(self.sun_altitude_dark) + ')'
 

@@ -35,10 +35,13 @@ if "%1" == "help" (
 )
 
 if "%1" == "clean" (
+rem as tamed by EVD 2022-03-20:
     del /q api
-    del /q %BUILDDIR%/doctrees/api
-    del /q %BUILDDIR%/html/api
-rem the following were removed EVD 2022-03-20 as damaging:
+    del /q %BUILDDIR%\doctrees\api
+    del /q %BUILDDIR%\html\api
+    del /q %BUILDDIR%\html\astropack
+
+rem the following were removed EVD 2022-03-20 as damaging (esp. from deleting /_static):
 rem	for /d %%i in (%BUILDDIR%\*) do rmdir /q /s %%i
 rem	del /q /s %BUILDDIR%\*
 rem	del /q /s api

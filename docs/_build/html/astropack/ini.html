@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Site, Instrument and Observer .ini files (astropack.ini) &#8212; astropack v0.1beta</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="get_ini_data" href="../api/astropack.ini.get_ini_data.html" />
+    <link rel="prev" title="MovingSourceAp" href="../api/astropack.image.MovingSourceAp.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="../api/astropack.ini.get_ini_data.html" title="get_ini_data">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="../api/astropack.image.MovingSourceAp.html" title="MovingSourceAp">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">astropack v0.1beta</a>
+	 &#187;
+      </li>
+      
+      <li>Site, Instrument and Observer .ini files (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.ini</span></code>)</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="site-instrument-and-observer-ini-files-astropack-ini">
+<h1>Site, Instrument and Observer .ini files (<a class="reference internal" href="#module-astropack.ini" title="astropack.ini"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.ini</span></code></a>)</h1>
+<p>classes +  code. (rst file)</p>
+<section id="introduction">
+<h2>Introduction</h2>
+<section id="example-site-ini-file">
+<h3>Example <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> .ini file</h3>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Site</span><span class="p">]</span>
+<span class="n">Name</span> <span class="o">=</span> <span class="n">New</span> <span class="n">Mexico</span> <span class="n">Skies</span> <span class="p">(</span><span class="n">Dome</span><span class="p">)</span>
+<span class="n">MPC</span> <span class="n">Code</span> <span class="o">=</span> <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+
+<span class="p">[</span><span class="n">Location</span><span class="p">]</span>
+<span class="c1"># Longitude, Latitude: decimal degrees; Elevation: meters.</span>
+<span class="n">Longitude</span> <span class="o">=</span> <span class="o">-</span><span class="mf">105.53</span>
+<span class="n">Latitude</span> <span class="o">=</span> <span class="o">+</span><span class="mf">32.90</span>
+<span class="n">Elevation</span> <span class="o">=</span> <span class="mi">2200</span>
+<span class="c1"># For correct timezone in standard (not daylight savings/summer) time.</span>
+<span class="c1"># Needed only to determine this site&#39;s side of International Date Line.</span>
+<span class="n">UTC</span> <span class="n">Offset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">7</span>
+<span class="c1"># User discretion, for sufficiently dark to observe.</span>
+<span class="n">Sun</span> <span class="n">Altitude</span> <span class="n">Dark</span> <span class="o">=</span> <span class="o">-</span><span class="mi">9</span>
+
+<span class="p">[</span><span class="n">Climate</span><span class="p">]</span>
+<span class="c1"># Coldest date of each year in mm-dd.</span>
+<span class="n">Coldest</span> <span class="n">Date</span> <span class="o">=</span> <span class="mi">01</span><span class="o">-</span><span class="mi">25</span>
+<span class="c1"># Nominal midnight temperatures (deg C): summer winter</span>
+<span class="n">Midnight</span> <span class="n">Temperatures</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">-</span><span class="mi">3</span>
+<span class="c1"># Nominal midnight percent humidity: summer winter</span>
+<span class="n">Midnight</span> <span class="n">Humidities</span> <span class="o">=</span> <span class="mi">40</span> <span class="mi">60</span>
+<span class="c1"># Each line: filter summer_extinction winter_extinction</span>
+<span class="c1"># Approximate values, but that&#39;s ok.</span>
+<span class="n">Extinctions</span> <span class="o">=</span> <span class="n">Clear</span> <span class="mf">0.18</span> <span class="mf">0.14</span><span class="p">,</span>
+              <span class="n">V</span>     <span class="mf">0.20</span> <span class="mf">0.15</span><span class="p">,</span>
+              <span class="n">R</span>     <span class="mf">0.16</span> <span class="mf">0.12</span><span class="p">,</span>
+              <span class="n">I</span>     <span class="mf">0.11</span> <span class="mf">0.08</span>
+
+<span class="p">[</span><span class="n">Dome</span><span class="p">]</span>
+<span class="n">Present</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="c1"># Dome slew rate in (degrees azimuth)/second.</span>
+<span class="n">Slew</span> <span class="n">Rate</span> <span class="o">=</span> <span class="mf">2.85</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="reference-api">
+<h2>Reference/API</h2>
+<section id="module-astropack.ini">
+<span id="astropack-ini-module"></span><h3>astropack.ini Module</h3>
+<p>Module astropack.ini
+Several classes (e.g., Site, Instrument) that read from .ini file, and
+serve them on request.</p>
+<section id="functions">
+<h4>Functions</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.ini.get_ini_data.html#astropack.ini.get_ini_data" title="astropack.ini.get_ini_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ini_data</span></code></a>(fullpath)</p></td>
+<td><p>Read .ini file into ConfigParser object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.ini.string_to_boolean.html#astropack.ini.string_to_boolean" title="astropack.ini.string_to_boolean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">string_to_boolean</span></code></a>(bool_string[, default_value])</p></td>
+<td><p>Attempt to extract Boolean meaning from string, return default_value if failed.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h4>Classes</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.ini.SiteParseError.html#astropack.ini.SiteParseError" title="astropack.ini.SiteParseError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SiteParseError</span></code></a></p></td>
+<td><p>Raised when a line in Site .ini file cannot be meaningfuly parsed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.ini.SiteValueError.html#astropack.ini.SiteValueError" title="astropack.ini.SiteValueError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SiteValueError</span></code></a></p></td>
+<td><p>Raised when a line in Site .ini has been read, but the extracted value is clearly wrong.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Site</span></code></a>(fullpath)</p></td>
+<td><p>Holds and makes available one telescope/observer site's information.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.ini.TransformParseError.html#astropack.ini.TransformParseError" title="astropack.ini.TransformParseError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformParseError</span></code></a></p></td>
+<td><p>Raised when a transform line cannot be properly parsed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.ini.Instrument.html#astropack.ini.Instrument" title="astropack.ini.Instrument"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Instrument</span></code></a>(fullpath)</p></td>
+<td><p>Holds and makes available one telescope instrument's information.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.ini.HumanObserver.html#astropack.ini.HumanObserver" title="astropack.ini.HumanObserver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HumanObserver</span></code></a>(fullpath)</p></td>
+<td><p>Holds one human observer's information.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.ini.MultilineParseError.html#astropack.ini.MultilineParseError" title="astropack.ini.MultilineParseError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultilineParseError</span></code></a></p></td>
+<td><p>Raised when multi-line .ini field cannot be properly parsed.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Site, Instrument and Observer .ini files (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.ini</span></code>)</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li><a class="reference internal" href="#example-site-ini-file">Example <code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code> .ini file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
+<li><a class="reference internal" href="#module-astropack.ini">astropack.ini Module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/astropack/ini.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
+    Last built 2022-03-21. <br/>
+  </p>
+</footer>
+  </body>
+</html>

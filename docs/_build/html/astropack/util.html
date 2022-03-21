@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>astropack.util &#8212; astropack v0.1</title>
+    <title>Timespan class &amp; other utilities (astropack.util) &#8212; astropack v0.1beta</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
@@ -18,14 +18,16 @@
     <script src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/sidebar.js"></script>
     <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <link rel="shortcut icon" href="../_static/backpack-star2-xxx.ico"/>
+    <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="hhmm_from_datetime_utc" href="../api/astropack.util.hhmm_from_datetime_utc.html" />
+    <link rel="prev" title="LinearFit" href="../api/astropack.stats.LinearFit.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
   </head><body>
 <div class="topbar">
-  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
   <ul>
     
     <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
@@ -47,12 +49,23 @@
 <div class="related">
     <h3>Navigation</h3>
     <ul>
+      <li class="right">
+	<a href="../api/astropack.util.hhmm_from_datetime_utc.html" title="hhmm_from_datetime_utc">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="../api/astropack.stats.LinearFit.html" title="LinearFit">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
       <li>
-	<a href="../index.html">astropak</a>
+	<a href="index.html">astropack v0.1beta</a>
 	 &#187;
       </li>
       
-       
+      <li>Timespan class &amp; other utilities (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.util</span></code>)</li> 
     </ul>
 </div>
   
@@ -62,18 +75,25 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="astropack-util">
-<h1>astropack.util<a class="headerlink" href="#astropack-util" title="Permalink to this headline">¶</a></h1>
-<p>Utility/support classes and functions. Not specific to observing targets or style.</p>
+  <section id="timespan-class-other-utilities-astropack-util">
+<h1>Timespan class &amp; other utilities (<a class="reference internal" href="#module-astropack.util" title="astropack.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.util</span></code></a>)</h1>
+<section id="introduction">
+<h2>Introduction</h2>
+<p>Utility/support classes and functions.
+Not specific to observing targets or style. (rst file)</p>
+</section>
+<section id="getting-started">
+<h2>Getting Started</h2>
+<p>Examples, etc.</p>
 </section>
 <section id="reference-api">
-<h1>Reference/API<a class="headerlink" href="#reference-api" title="Permalink to this headline">¶</a></h1>
+<h2>Reference/API</h2>
 <section id="module-astropack.util">
-<span id="astropack-util-module"></span><h2>astropack.util Module<a class="headerlink" href="#module-astropack.util" title="Permalink to this headline">¶</a></h2>
-<p>Module astropak.util
+<span id="astropack-util-module"></span><h3>astropack.util Module</h3>
+<p>Module astropack.util
 Utility/support classes and functions. Not specific to observing targets or style.</p>
 <section id="functions">
-<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<h4>Functions</h4>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -81,7 +101,7 @@ Utility/support classes and functions. Not specific to observing targets or styl
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.hhmm_from_datetime_utc.html#astropack.util.hhmm_from_datetime_utc" title="astropack.util.hhmm_from_datetime_utc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hhmm_from_datetime_utc</span></code></a>(datetime_utc)</p></td>
-<td><p>Return UTC time-of-day string of form 'hhmm' for UTC datetime.</p></td>
+<td><p>Return UTC time-of-day string of form 'hhmm' for a UTC datetime.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.ra_as_degrees.html#astropack.util.ra_as_degrees" title="astropack.util.ra_as_degrees"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ra_as_degrees</span></code></a>(ra_string)</p></td>
 <td><p>Takes string representing Right Ascension as either sexigesimal hours or decimal degrees, returns value in degrees.</p></td>
@@ -96,7 +116,7 @@ Utility/support classes and functions. Not specific to observing targets or styl
 <td><p>Takes Right Ascension in degrees, returns string representing RA in hours.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.dec_as_hex.html#astropack.util.dec_as_hex" title="astropack.util.dec_as_hex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dec_as_hex</span></code></a>(dec_degrees[, ...])</p></td>
-<td><p>Takes degrees declination, returns sexigesimal string representation.</p></td>
+<td><p>Takes degrees Declination, returns sexigesimal string representation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.degrees_as_hex.html#astropack.util.degrees_as_hex" title="astropack.util.degrees_as_hex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">degrees_as_hex</span></code></a>(angle_degrees[, ...])</p></td>
 <td><p>Takes angle in degrees, returns sexigesimal string representation.</p></td>
@@ -111,7 +131,7 @@ Utility/support classes and functions. Not specific to observing targets or styl
 <td><p>Computes and returns sky coordinates of the smallest RA, Dec bounding box that can cover all input sky coordinates.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.util.make_directory_if_not_exists.html#astropack.util.make_directory_if_not_exists" title="astropack.util.make_directory_if_not_exists"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_directory_if_not_exists</span></code></a>(directory_path)</p></td>
-<td><p>Makes new directory on the file system only if no directory already exists at <code class="xref py py-obj docutils literal notranslate"><span class="pre">directory_path</span></code>.</p></td>
+<td><p>Makes new directory on the file system only if no directory already exists at <code class="docutils literal notranslate"><span class="pre">directory_path</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.util.count_files_immediate.html#astropack.util.count_files_immediate" title="astropack.util.count_files_immediate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_files_immediate</span></code></a>(dir_fullpath)</p></td>
 <td><p>Rapidly counts number of files in the specified directory, but not in child directories (non-recursive count).</p></td>
@@ -123,7 +143,7 @@ Utility/support classes and functions. Not specific to observing targets or styl
 </table>
 </section>
 <section id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<h4>Classes</h4>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -138,6 +158,7 @@ Utility/support classes and functions. Not specific to observing targets or styl
 </section>
 </section>
 </section>
+</section>
 
 
             <div class="clearer"></div>
@@ -147,11 +168,15 @@ Utility/support classes and functions. Not specific to observing targets or styl
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
-<li><a class="reference internal" href="#">astropack.util</a></li>
+<li><a class="reference internal" href="#">Timespan class &amp; other utilities (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.util</span></code>)</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.util">astropack.util Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 <li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -169,9 +194,9 @@ Utility/support classes and functions. Not specific to observing targets or styl
        rel="nofollow">Page Source</a> &nbsp;
     <a href="#">Back to Top</a></p>
   <p>
-    &copy; Copyright 2022  Eric Dose, Albuquerque, New Mexico.<br/>
+    &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-20. <br/>
+    Last built 2022-03-21. <br/>
   </p>
 </footer>
   </body>

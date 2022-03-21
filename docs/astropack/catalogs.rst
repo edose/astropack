@@ -1,8 +1,8 @@
 ###########################################
-Observation Planning (`astropack.almanac`)
+Catalog retrieval (`astropack.catalogs`)
 ###########################################
 
-Astronight class + other almanac code. (rst file)
+ATLAS refcat2 catalog handling, via class |AtlasRefcat2|.
 
 ***************
 Getting Started
@@ -14,5 +14,5 @@ Examples, etc.
 Reference/API
 ***************
 
-.. automodapi:: astropack.almanac
+.. automodapi:: astropack.catalogs
    :no-inheritance-diagram:

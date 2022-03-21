@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Mixed-Model Regression (astropack.stats) &#8212; astropack v0.1beta</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="weighted_mean" href="../api/astropack.stats.weighted_mean.html" />
+    <link rel="prev" title="Astronomical Reference Data (astropack.reference)" href="reference.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="../api/astropack.stats.weighted_mean.html" title="weighted_mean">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="reference.html" title="Astronomical Reference Data (astropack.reference)">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">astropack v0.1beta</a>
+	 &#187;
+      </li>
+      
+      <li>Mixed-Model Regression (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.stats</span></code>)</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="mixed-model-regression-astropack-stats">
+<h1>Mixed-Model Regression (<a class="reference internal" href="#module-astropack.stats" title="astropack.stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.stats</span></code></a>)</h1>
+<p>Class <a class="reference internal" href="../api/astropack.stats.MixedModelFit.html#astropack.stats.MixedModelFit" title="astropack.stats.MixedModelFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedModelFit</span></code></a> as a comprehensive but accessible wrapper for statsmodels’
+mixed-model regression class, with its impenetrable documentation.
+I’ve interpreted it to a language spoken on earth it so you don’t have to.</p>
+<section id="getting-started">
+<h2>Getting Started</h2>
+<p>Examples, etc.</p>
+</section>
+<section id="reference-api">
+<h2>Reference/API</h2>
+<section id="module-astropack.stats">
+<span id="astropack-stats-module"></span><h3>astropack.stats Module</h3>
+<p>Module ‘astropack.stats’.
+Numerous statistics and regression classes and functions.
+Fork of (extract of) photrix.util, begun 2020-10-23.
+Intentions: (1) a separate, importable module for use by all EVD astro python projects.</p>
+<blockquote>
+<div><ol class="arabic simple" start="2">
+<li><p>freely forkable &amp; useful to the astro python global community.</p></li>
+</ol>
+</div></blockquote>
+<p>See test file test/test_stats.py for usage.</p>
+<section id="functions">
+<h4>Functions</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.stats.weighted_mean.html#astropack.stats.weighted_mean" title="astropack.stats.weighted_mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">weighted_mean</span></code></a>(values, weights)</p></td>
+<td><p>Returns weighted mean, weighted standard deviation of values, and weighted standard deviation of the mean.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h4>Classes</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.stats.MixedModelFit.html#astropack.stats.MixedModelFit" title="astropack.stats.MixedModelFit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MixedModelFit</span></code></a>(data[, dep_var, fixed_vars, ...])</p></td>
+<td><p>Represents one mixed-model (statsmodel) fit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.stats.LinearFit.html#astropack.stats.LinearFit" title="astropack.stats.LinearFit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearFit</span></code></a>(data[, dep_var, indep_vars])</p></td>
+<td><p>Represents one multivariate linear (statsmodel) fit.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Mixed-Model Regression (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.stats</span></code>)</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
+<li><a class="reference internal" href="#module-astropack.stats">astropack.stats Module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/astropack/stats.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
+    Last built 2022-03-21. <br/>
+  </p>
+</footer>
+  </body>
+</html>

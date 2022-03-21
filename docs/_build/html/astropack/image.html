@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>FITS reading, Aperture Photometry (astropack.image) &#8212; astropack v0.1beta</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/astropack.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="make_circular_mask" href="../api/astropack.image.make_circular_mask.html" />
+    <link rel="prev" title="Circle_in_2D" href="../api/astropack.geometry.Circle_in_2D.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">astropack</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="../api/astropack.image.make_circular_mask.html" title="make_circular_mask">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="../api/astropack.geometry.Circle_in_2D.html" title="Circle_in_2D">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">astropack v0.1beta</a>
+	 &#187;
+      </li>
+      
+      <li>FITS reading, Aperture Photometry (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.image</span></code>)</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="fits-reading-aperture-photometry-astropack-image">
+<h1>FITS reading, Aperture Photometry (<a class="reference internal" href="#module-astropack.image" title="astropack.image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.image</span></code></a>)</h1>
+<p>Class <a class="reference internal" href="../api/astropack.image.FITS.html#astropack.image.FITS" title="astropack.image.FITS"><code class="xref py py-class docutils literal notranslate"><span class="pre">FITS</span></code></a> for reading and then serving image-array and FITS-header data.</p>
+<p>Class <a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a> for high-accuracy, low-bias aperture photometry of sky-stationary
+point light sources, esp. target stars and comparison stars.</p>
+<p>Classes <a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a> for high-accuracy, low-bias aperture photometry of
+moving light sources, especially minor planets/asteroids. Constructs and applies
+a ‘pill-shaped’ aperture and background-annulus set that automatically include
+the effects of target motion.</p>
+<section id="getting-started">
+<h2>Getting Started</h2>
+<p>Examples, etc.</p>
+</section>
+<section id="reference-api">
+<h2>Reference/API</h2>
+<section id="module-astropack.image">
+<span id="astropack-image-module"></span><h3>astropack.image Module</h3>
+<p>Module astropack.image.
+Image, FITS, aperture handling.
+Adapted from author’s photrix package, image module.</p>
+<section id="functions">
+<h4>Functions</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.image.make_circular_mask.html#astropack.image.make_circular_mask" title="astropack.image.make_circular_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_circular_mask</span></code></a>(mask_size, xy_origin, radius)</p></td>
+<td><p>Construct a traditional circular mask array for small, stationary object, esp.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.image.make_pill_mask.html#astropack.image.make_pill_mask" title="astropack.image.make_pill_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_pill_mask</span></code></a>(mask_shape_xy, xya, xyb, radius)</p></td>
+<td><p>Construct a mask array for light source in motion (e.g., minor planet)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.image.calc_background_value.html#astropack.image.calc_background_value" title="astropack.image.calc_background_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_background_value</span></code></a>(data[, mask, dilate_size])</p></td>
+<td><p>Calculate the best estimate of background value.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h4>Classes</h4>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.image.MaskError.html#astropack.image.MaskError" title="astropack.image.MaskError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaskError</span></code></a></p></td>
+<td><p>Raised when encountering any mask error, most often when masks differ in shape from image cutout or from each other.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.image.FITS.html#astropack.image.FITS" title="astropack.image.FITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FITS</span></code></a>(fullpath[, pinpoint_pixel_scale_multiplier])</p></td>
+<td><p>Loads and makes available data from one FITS file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a>(image_xy, xy_center, ...[, ...])</p></td>
+<td><p>Standard photometric aperture for stationary point source of light, esp.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a>(image_xy, xy_start, xy_end, ...)</p></td>
+<td><p>Elongated 'pill-shaped' photometric aperture for moving point source of light, esp.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">FITS reading, Aperture Photometry (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.image</span></code>)</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
+<li><a class="reference internal" href="#module-astropack.image">astropack.image Module</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/astropack/image.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
+    Last built 2022-03-21. <br/>
+  </p>
+</footer>
+  </body>
+</html>

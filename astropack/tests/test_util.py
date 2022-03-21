@@ -259,7 +259,6 @@ def test_combine_ra_dec_bounds():
     assert util.combine_ra_dec_bounds(sc_empty) is None
 
 
-
 __________OTHER_FUNCTIONS__________________________________________________________ = 0
 
 

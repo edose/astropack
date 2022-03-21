@@ -33,7 +33,8 @@ import datetime
 try:
     from sphinx_astropy.conf.v1 import *  # noqa
 except ImportError:
-    print('ERROR: the documentation requires the sphinx-astropy package to be installed')
+    print('ERROR: the documentation requires the sphinx-astropy '
+          'package to be installed')
     sys.exit(1)
 
 # Get configuration information from setup.cfg
@@ -67,7 +68,7 @@ intersphinx_mapping['photutils'] = ('https://photutils.readthedocs.io/en/stable/
 # intersphinx_mapping['skyfield'] = ('https://rhodesmill.org/skyfield/documentation/', None)  # noqa: F405
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.2'
+# needs_sphinx = '1.2'
 
 # To perform a Sphinx version check that needs to be more specific than
 # major.minor, call `check_sphinx_version("X.Y.Z")` here.
@@ -134,8 +135,9 @@ today_fmt = '%Y-%m-%d'
 # # The full version, including alpha/beta/rc tags.
 # release = package.__version__
 
-version = '0.1'
+version = '0.1' + 'beta'
 release = version
+root_doc = 'astropack/index'
 
 # -- Options for HTML output --------------------------------------------------
 
@@ -153,7 +155,7 @@ release = version
 
 # Add any paths that contain custom themes here, relative to this directory.
 # To use a different custom theme, add the directory containing the theme.
-#html_theme_path = []
+# html_theme_path = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes. To override the custom theme, set this to the
@@ -167,7 +169,7 @@ html_theme_options = {
 # html_static_path = ['_static']
 html_style = 'astropack.css'
 
-html_short_title = 'astropak'
+# html_short_title = 'astropack'
 html_search_language = 'en'
 
 # List of patterns, relative to source directory, that match files and
@@ -194,20 +196,20 @@ with open("common_links.txt", "r") as cl:
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
 
-html_permalinks = True
+html_permalinks = False  # EVD 2022-03-21, was True.
 source_suffix = '.rst'
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+# html_sidebars = {}
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = ''
+# html_logo = ''
 
-# The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
-# pixels large.
-html_favicon = 'backpack-star2-xxx.ico'
+# The name of an image file (in conf.py's own directory) to use as favicon of the
+# docs. This file should be a Windows icon file (.ico) of size 16x16
+# or preferably 32x32 pixels.
+html_favicon = 'backpack-star-favicon3.ico'
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
