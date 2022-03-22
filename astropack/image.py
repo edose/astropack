@@ -918,7 +918,7 @@ def make_circular_mask(mask_size, xy_origin, radius):
     mask_size : int
         Edge size of new mask array, which will be square.
 
-    xy_origin : tuple of 2 float
+    xy_origin : tuple of 2 float, or |XY|
         Pixel (x, y) coordinates of circle's origin, relative to mask's (0, 0) origin.
 
     radius : float
@@ -930,7 +930,8 @@ def make_circular_mask(mask_size, xy_origin, radius):
         Circular mask array in which True denotes 'masked out' and not
         used in calculations.
     """
-    xy_origin = XY.from_tuple(xy_origin)  # ensure is XY object.
+    if isinstance(xy_origin, tuple):
+        xy_origin = XY.from_tuple(xy_origin)  # ensure is XY object.
     circle = Circle_in_2D(xy_origin=xy_origin, radius=radius)
     is_inside = circle.contains_points_unitgrid(0, mask_size - 1, 0, mask_size - 1,
                                                 include_edges=True)
@@ -948,10 +949,10 @@ def make_pill_mask(mask_shape_xy, xya, xyb, radius):
     mask_shape_xy : tuple of 2 float
         Pixel size (x,y) of mask array to generate.
 
-    xya : tuple of 2 float
+    xya : tuple of 2 float, or |XY|
         Pixel (xa, ya) coordinates of light source centroid at beginning of motion.
 
-    xyb : tuple of 2 float
+    xyb : tuple of 2 float, or |XY|
         Pixel (xa, ya) coordinates of light source centroid at end of motion.
 
     radius : float
@@ -963,8 +964,10 @@ def make_pill_mask(mask_shape_xy, xya, xyb, radius):
         'Pill-shaped' mask array in which True denotes 'masked out'
         and not used in calculations.
     """
-    xya = XY.from_tuple(xya)  # ensure is XY object.
-    xyb = XY.from_tuple(xyb)  # "
+    if isinstance(xya, tuple):
+        xya = XY.from_tuple(xya)  # ensure is XY object.
+    if isinstance(xyb, tuple):
+        xyb = XY.from_tuple(xyb)  # ensure is XY object.
     if xya == xyb:
         return make_circular_mask(max(mask_shape_xy), xya, radius)
 

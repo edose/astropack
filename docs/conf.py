@@ -230,6 +230,10 @@ numpydoc_show_class_members = False
 
 autosummary_generate = True
 
+# autodoc_member_order = 'alphabetical'  # doesn't work with automodapi.
+
+# autodoc_default_options = {'member-order': 'alphabetical'}  # not with automodapi.
+
 # print()
 # for e in extensions:
 #     print(str(e))

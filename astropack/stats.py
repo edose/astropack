@@ -1,9 +1,5 @@
 """ Module 'astropack.stats'.
     Numerous statistics and regression classes and functions.
-    Fork of (extract of) photrix.util, begun 2020-10-23.
-    Intentions: (1) a separate, importable module for use by all EVD astro python projects.
-                (2) freely forkable & useful to the astro python global community.
-    See test file test/test_stats.py for usage.
 """
 
 __author__ = "Eric Dose :: New Mexico Mira Project, Albuquerque"
