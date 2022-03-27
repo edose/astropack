@@ -27,8 +27,8 @@ FITS_EXTENSIONS = ['fts', 'fit', 'fits']  # allowed filename extensions
 ISO_8601_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 
-__all__ = ['MaskError',
-           'FITS',
+__all__ = ['FITS',
+           'MaskError',
            'PointSourceAp',
            'MovingSourceAp',
            'make_circular_mask',
@@ -258,8 +258,9 @@ class FITS:
 
         Parameters
         ----------
-        xy : tuple of 2 float, or a list of such tuple
+        xy : |XY|, or tuple of 2 float, or a list of either
             Image (x,y) coordinates, or a list of such coordinates.
+            If list, all elements must be of same type (all |XY|, or all tuple).
 
         Returns
         -------
@@ -268,10 +269,19 @@ class FITS:
             using ``wcs_corrected``. |SkyCoord| is scalar type if ``xy`` is one tuple,
             or array type if ``xy`` is a list.
         """
-        if isinstance(xy, tuple):
+        if isinstance(xy, XY):
+            x, y = xy.x, xy.y
+        elif isinstance(xy, tuple):
             x, y = xy
         elif isinstance(xy, list):
-            x, y = tuple(zip(*xy))
+            if isinstance(xy[0], XY):
+                xy_tuple_list = [(xy_element.x, xy_element.y) for xy_element in xy]
+            elif isinstance(xy[0], tuple):
+                xy_tuple_list = xy
+            else:
+                raise ValueError('FITS.xy_to_skycoords() requires a tuple'
+                                 ' (x,y) or a list of such tuples.')
+            x, y = tuple(zip(*xy_tuple_list))
         else:
             raise ValueError('FITS.xy_to_skycoords() requires a tuple'
                              ' (x,y) or a list of such tuples.')
@@ -369,12 +379,12 @@ class Ap:
         Image array, with (x,y) indexing.
         Most conveniently arranged via |FITS| instance and passing its ``image_xy``.
 
-     xy_center : tuple of 2 float
+     xy_center : |XY| instance
         Pixel position (x,y) of light source within parent image.
         This should be the best prior estimate of the light source's centroid
         at mid-exposure.
 
-     xy_offset : tuple of 2 float
+     dxy_offset : |DXY| instance
         lowest (x,y) index of cutout (upper-left corner of image), that is,
         the offset of cutout origin from parent image's origin.
 
@@ -407,11 +417,11 @@ class Ap:
     image_xy : |ndarray| of float
         Full image array with (x,y) indices, from input parameter ``image_xy``.
 
-    xy_center : tuple of 2 float
+    xy_center : |XY| instance
         Pixel position (x,y) of light source within parent image, from input parameter
         ``xy_center``.
 
-    xy_offset : tuple of 2 float
+    dxy_offset : |DXY| instance
         lowest (x,y) index of cutout (upper-left corner of image), from input
         parameter ``xy_offset``.
 
@@ -504,14 +514,14 @@ class Ap:
         Elongation of the background-corrected flux in ``cutout``.
     """
 
-    def __init__(self, image_xy, xy_center, xy_offset, foreground_mask,
+    def __init__(self, image_xy, xy_center, dxy_offset, foreground_mask,
                  background_mask=None, source_id='', obs_id=''):
         # Save inputs:
         self.image_xy = image_xy
         # Starting (x,y), relative to image (0,0):
-        self.xy_center = XY.from_tuple(xy_center)
-        # Cutout offset (x,y), relative to image (0,0).
-        self.xy_offset = XY.from_tuple(xy_offset)
+        self.xy_center = xy_center
+        # Cutout offset (dx,dy), relative to image (0,0).
+        self.dxy_offset = dxy_offset
         self.input_foreground_mask = foreground_mask
         self.input_background_mask = background_mask
         self.source_id = str(source_id)
@@ -541,10 +551,10 @@ class Ap:
                             str(type(self.input_background_mask)) + ' is not valid.')
 
         # Determine x and y boundaries of cutout containing foreground and background:
-        self.x_low = self.xy_offset.x
-        self.y_low = self.xy_offset.y
-        self.x_high = self.xy_offset.x + self.input_foreground_mask.shape[0] - 1
-        self.y_high = self.xy_offset.y + self.input_foreground_mask.shape[1] - 1
+        self.x_low = self.dxy_offset.dx
+        self.y_low = self.dxy_offset.dy
+        self.x_high = self.dxy_offset.dx + self.input_foreground_mask.shape[0] - 1
+        self.y_high = self.dxy_offset.dy + self.input_foreground_mask.shape[1] - 1
         if not self._cutout_is_wholly_inside_image():
             self.is_valid = False
             return
@@ -582,8 +592,8 @@ class Ap:
                                      background=np.full_like(cutout_net_ma.data,
                                      fill_value=self.background_level))
         # NB: self.stats yields numpy (y,x) order.
-        self.xy_centroid = (self.stats.ycentroid + self.xy_offset.x,
-                            self.stats.xcentroid + self.xy_offset.y)
+        self.xy_centroid = (self.stats.ycentroid + self.dxy_offset.dx,
+                            self.stats.xcentroid + self.dxy_offset.dy)
 
         # Sigma and FWHM represent spreading *other than* motion
         # (i.e., real optical dispersion).
@@ -652,7 +662,7 @@ class Ap:
 
         Returns
         -------
-        next_ap : subclass of `~.image.Ap`
+        next_ap : |MovingSourceAp|
             A new `~.image.Ap` subclass instance with center closer to light
             source's centroid.
         """
@@ -685,7 +695,7 @@ class PointSourceAp(Ap):
         Image array, with (x,y) indexing.
         Most conveniently arranged via |FITS| instance and passing its ``image_xy``.
 
-     xy_center : tuple of 2 float
+     xy_center : |XY|, or tuple of 2 float
         Pixel position (x,y) of light source within parent image.
         This should be the best prior estimate of the light source's centroid
         at mid-exposure.
@@ -735,7 +745,8 @@ class PointSourceAp(Ap):
 
     def __init__(self, image_xy, xy_center, foreground_radius, gap, background_width,
                  source_id='', obs_id=''):
-        xy_center = XY.from_tuple(xy_center)  # ensure is XY object.
+        if isinstance(xy_center, tuple):
+            xy_center = XY(xy_center[0], xy_center[1])  # ensure is XY object.
         self.foreground_radius = foreground_radius
         self.gap = gap
         self.background_width = background_width
@@ -792,11 +803,11 @@ class MovingSourceAp(Ap):
     image_xy : 2-dimensional |ndarray| of float
         Full image array with (x,y) indices, from input parameter ``image_xy``.
 
-    xy_start : tuple of 2 float
+    xy_start :|XY|, or tuple of 2 float
         Pixel position (x,y) of light source within parent image, at the beginning
         time of exposure.
 
-    xy_end : tuple of 2 float
+    xy_end : |XY|, or tuple of 2 float
         Pixel position (x,y) of light source within parent image, at the end
         time of exposure.
 
@@ -823,11 +834,11 @@ class MovingSourceAp(Ap):
     Attributes
     ----------
 
-    xy_start : float
+    xy_start : |XY|
         Pixel position (x,y) of light source within parent image, at the beginning
         time of exposure, from input parameter ``xy_start``.
 
-    xy_end : float
+    xy_end : |XY|
         Pixel position (x,y) of light source within parent image, at the end
         time of exposure, from input parameter ``xy_end``.
 
@@ -841,8 +852,10 @@ class MovingSourceAp(Ap):
     def __init__(self, image_xy, xy_start, xy_end,
                  foreground_radius, gap, background_width,
                  source_id='', obs_id=''):
-        self.xy_start = XY.from_tuple(xy_start)
-        self.xy_end = XY.from_tuple(xy_end)
+        if isinstance(xy_start, tuple):
+            self.xy_start = XY.from_tuple(xy_start)
+        if isinstance(xy_end, tuple):
+            self.xy_end = XY.from_tuple(xy_end)
         self.foreground_radius = foreground_radius
         self.gap = gap
         self.background_width = background_width
@@ -890,7 +903,7 @@ class MovingSourceAp(Ap):
         as required.
         Masks will be recreated by the constructor, using new xy_center.
         """
-        if not isinstance(new_xy_center, XY):
+        if isinstance(new_xy_center, tuple):
             new_xy_center = XY.from_tuple(new_xy_center)
         current_xy_center = self.xy_start + (self.xy_end - self.xy_start) / 2
         dxy_shift = new_xy_center - current_xy_center
@@ -918,7 +931,7 @@ def make_circular_mask(mask_size, xy_origin, radius):
     mask_size : int
         Edge size of new mask array, which will be square.
 
-    xy_origin : tuple of 2 float, or |XY|
+    xy_origin : |XY|, tuple of 2 float
         Pixel (x, y) coordinates of circle's origin, relative to mask's (0, 0) origin.
 
     radius : float
@@ -949,10 +962,10 @@ def make_pill_mask(mask_shape_xy, xya, xyb, radius):
     mask_shape_xy : tuple of 2 float
         Pixel size (x,y) of mask array to generate.
 
-    xya : tuple of 2 float, or |XY|
+    xya : |XY|, or tuple of 2 float
         Pixel (xa, ya) coordinates of light source centroid at beginning of motion.
 
-    xyb : tuple of 2 float, or |XY|
+    xyb : |XY|, tuple of 2 float
         Pixel (xa, ya) coordinates of light source centroid at end of motion.
 
     radius : float

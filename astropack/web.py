@@ -35,10 +35,10 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
 
     Parameters
     ----------
-    mp_id : int for numbered Minor Planet, or str
+    mp_id : str, or int
         Identifier for the minor planet. Allowable formats include:
           * ``(3202)`` for a numbered MP
-          * ``14442`` for a numbered MP, omitting parentheses
+          * ``14442`` for a numbered MP, no parentheses (may be :class:`python:int`)
           * ``1997 XF11`` for an unnumbered MP
           * ``Badenia`` MP name.
 
@@ -78,50 +78,66 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
         location = None
     else:
         location = site.mpc_code
-    table = MPC.get_ephemeris(target=target, location=location, start=start, step=step, number=number,
-                              unc_links=False)
+    table = MPC.get_ephemeris(target=target, location=location, start=start,
+                              step=step, number=number, unc_links=False)
     df = table.to_pandas()
-    columns_to_keep = [c for c in df.columns if not c.startswith(('Uncertainty ', 'Unc. '))]
+    columns_to_keep = [c for c in df.columns
+                       if not c.startswith(('Uncertainty ', 'Unc. '))]
     df_mp = df.loc[:, columns_to_keep]
     return df_mp
 
 
 def get_mp_info(mp_number=None, mp_name=None):
-    """Given either a Minor Planet number or name,
-    return a python dictionary of relevant data retrieved from the Minor Planet
+    """Given either a Minor Planet number or name (not both),
+    return a python dictionary of principal data as retrieved from the Minor Planet
     Center database.
 
     Parameters
     ----------
-    mp_number : int
-        Number of target minor planet.
+    mp_number : int, or str representing an int
+        Number of target minor planet, e.g., 233 or '233'
     mp_name : str
         Name of target minor planet, e.g., 'Badenia'. This may *not* be a designation,
         as the MPC database does not currently (March 2022) accept them.
 
     Returns
     -------
-    info_dict : dict
+    info_dict : dict, or None if no ``mp_number`` or ``mp_name`` given
         Dictionary of selected MP data, including orbital period, G, and H.
+
+        Current (version 0.1beta) dict keys are:
+            * name: MP name
+            * number: MP number
+            * designation: MPC designation
+            * period: orbital period, in years
+            * H: reduced magnitude, V band
+            * G: phase slope, V band
     """
-    result = None  # keep IDE happy.
+    query_result = None # keep IDE happy.
     if mp_number is not None:
-        if not isinstance(mp_number, int):
-            raise TypeError('Parameter \'mp_number\' must be an integer.')
-        result = MPC.query_object(target_type='asteroid', number=mp_number)
+        if isinstance(mp_number, int):
+            query_result = MPC.query_object(target_type='asteroid', number=mp_number)
+        elif isinstance(mp_number, str):
+            try:
+                _ = int(mp_number)
+            except ValueError:
+                raise TypeError('Parameter \'mp_number\' must be None, an integer,'
+                                ' or a string representing an integer.')
+        query_result = MPC.query_object(target_type='asteroid', number=str(mp_number))
     elif mp_name is not None:
-        if not isinstance(mp_name, str):
+        if isinstance(mp_name, str):
+            query_result = MPC.query_object(target_type='asteroid', name=mp_name)
+        else:
             raise TypeError('Parameter \'mp_name\' must be a string.')
-        result = MPC.query_object(target_type='asteroid', name=mp_name)
     else:
         raise ValueError('No MP number, name, or designation given.')
-
-    if result is None:
+    if query_result is None:
         return None
-    if isinstance(result, list):
-        if len(result) == 0:
+
+    if isinstance(query_result, list):
+        if len(query_result) == 0:
             return None
-    d = result[0]
+    d = query_result[0]
     kept_keys = ['name', 'number', 'designation', 'period']
     new_keys = {'absolute_magnitude': 'H', 'phase_slope': 'G'}
     info_dict = {k: d[k] for k in kept_keys}

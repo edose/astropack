@@ -21,7 +21,7 @@
     <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ha_dec_from_az_alt" href="../api/astropack.almanac.ha_dec_from_az_alt.html" />
+    <link rel="next" title="calc_timespan_no_sun" href="../api/astropack.almanac.calc_timespan_no_sun.html" />
     <link rel="prev" title="Astropack Documentation" href="index.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
@@ -50,7 +50,7 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="../api/astropack.almanac.ha_dec_from_az_alt.html" title="ha_dec_from_az_alt">
+	<a href="../api/astropack.almanac.calc_timespan_no_sun.html" title="calc_timespan_no_sun">
 	  next &raquo;
 	</a>
       </li>
@@ -96,32 +96,38 @@ Astronight class + other almanac code. (py file)</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.ha_dec_from_az_alt.html#astropack.almanac.ha_dec_from_az_alt" title="astropack.almanac.ha_dec_from_az_alt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ha_dec_from_az_alt</span></code></a>(latitude, az_alt)</p></td>
-<td><p>Return hour angle and declination for a given azimuth and altitude, at a site's known latitude.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.make_skyfield_observatory_from_site.html#astropack.almanac.make_skyfield_observatory_from_site" title="astropack.almanac.make_skyfield_observatory_from_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_skyfield_observatory_from_site</span></code></a>(site)</p></td>
-<td><p>Return Skyfield observer (earth location) object made from astropack <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> instance.</p></td>
-</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.calc_timespan_no_sun.html#astropack.almanac.calc_timespan_no_sun" title="astropack.almanac.calc_timespan_no_sun"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_timespan_no_sun</span></code></a>(obs, master_eph, ...)</p></td>
 <td><p>Return <a class="reference internal" href="../api/astropack.util.Timespan.html#astropack.util.Timespan" title="astropack.util.Timespan"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timespan</span></code></a> representing sunset to sunrise and containing <code class="docutils literal notranslate"><span class="pre">approx_midnight</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.find_target_up_down.html#astropack.almanac.find_target_up_down" title="astropack.almanac.find_target_up_down"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_target_up_down</span></code></a>(obs, master_eph, ...[, ...])</p></td>
 <td><p>Returns <a class="reference internal" href="../api/astropack.util.Timespan.html#astropack.util.Timespan" title="astropack.util.Timespan"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timespan</span></code></a> for which target is either up or down (above or below given horizon), within a given timespan.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.moon_ra_dec.html#astropack.almanac.moon_ra_dec" title="astropack.almanac.moon_ra_dec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moon_ra_dec</span></code></a>(obs, master_eph, timescale, time)</p></td>
-<td><p>Returns moon's sky coordinates at given earth location and time.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.moon_transit_time.html#astropack.almanac.moon_transit_time" title="astropack.almanac.moon_transit_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moon_transit_time</span></code></a>(obs, master_eph, ...)</p></td>
-<td><p>Return moon's transit time closest to given time.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.target_transit_time.html#astropack.almanac.target_transit_time" title="astropack.almanac.target_transit_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">target_transit_time</span></code></a>(obs, master_eph, ...)</p></td>
-<td><p>Return fixed target's transit time closest to a given time.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.ha_dec_from_az_alt.html#astropack.almanac.ha_dec_from_az_alt" title="astropack.almanac.ha_dec_from_az_alt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ha_dec_from_az_alt</span></code></a>(latitude, az_alt)</p></td>
+<td><p>Return hour angle and declination for a given azimuth and altitude, at a site's given latitude.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.local_sidereal_time.html#astropack.almanac.local_sidereal_time" title="astropack.almanac.local_sidereal_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">local_sidereal_time</span></code></a>(longitude, timescale, time)</p></td>
 <td><p>Return local sidereal time, in hours, for a given time and earth longitude.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.moon_illumination_pct.html#astropack.almanac.moon_illumination_pct" title="astropack.almanac.moon_illumination_pct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moon_illumination_pct</span></code></a>(master_eph, timescale, ...)</p></td>
 <td><p>Return moon illumination extent, as percentage, at a given time.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.moon_ra_dec.html#astropack.almanac.moon_ra_dec" title="astropack.almanac.moon_ra_dec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moon_ra_dec</span></code></a>(obs, master_eph, timescale, time)</p></td>
+<td><p>Returns moon's sky coordinates at given earth location and time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.moon_transit_time.html#astropack.almanac.moon_transit_time" title="astropack.almanac.moon_transit_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moon_transit_time</span></code></a>(obs, master_eph, ...)</p></td>
+<td><p>Return moon's transit time closest to given time.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.target_transit_time.html#astropack.almanac.target_transit_time" title="astropack.almanac.target_transit_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">target_transit_time</span></code></a>(obs, master_eph, ...)</p></td>
+<td><p>Return fixed target's transit time closest to a given time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.astropy_time_to_skyfield.html#astropack.almanac.astropy_time_to_skyfield" title="astropack.almanac.astropy_time_to_skyfield"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy_time_to_skyfield</span></code></a>(timescale, time)</p></td>
+<td><p>Convert astropy time in UTC to skyfield time.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.skyfield_time_to_astropy.html#astropack.almanac.skyfield_time_to_astropy" title="astropack.almanac.skyfield_time_to_astropy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">skyfield_time_to_astropy</span></code></a>(skyfield_time)</p></td>
+<td><p>Convert skyfield time to astropy time in UTC timescale and ISO format.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.make_skyfield_observatory_from_site.html#astropack.almanac.make_skyfield_observatory_from_site" title="astropack.almanac.make_skyfield_observatory_from_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_skyfield_observatory_from_site</span></code></a>(site)</p></td>
+<td><p>Return Skyfield observer (earth location) object made from astropack <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> instance.</p></td>
 </tr>
 </tbody>
 </table>
@@ -134,14 +140,14 @@ Astronight class + other almanac code. (py file)</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.SunAlwaysUpError.html#astropack.almanac.SunAlwaysUpError" title="astropack.almanac.SunAlwaysUpError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SunAlwaysUpError</span></code></a></p></td>
-<td><p>Raised when new <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> has no sun-down time for observing.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Astronight</span></code></a>(site, an_date[, sun_altitude_dark])</p></td>
+<td><p><strong>Astropack</strong>'s main engine of astronomical planning.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.almanac.NoDarkTimeError.html#astropack.almanac.NoDarkTimeError" title="astropack.almanac.NoDarkTimeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NoDarkTimeError</span></code></a></p></td>
 <td><p>Raised when new <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> has no dark time for observing.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Astronight</span></code></a>(site, an_date[, sun_altitude_dark])</p></td>
-<td><p><strong>Astropack</strong>'s main engine of astronomical planning.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.SunAlwaysUpError.html#astropack.almanac.SunAlwaysUpError" title="astropack.almanac.SunAlwaysUpError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SunAlwaysUpError</span></code></a></p></td>
+<td><p>Raised when new <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> has no sun-down time for observing.</p></td>
 </tr>
 </tbody>
 </table>
@@ -185,7 +191,7 @@ Astronight class + other almanac code. (py file)</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-21. <br/>
+    Last built 2022-03-26. <br/>
   </p>
 </footer>
   </body>

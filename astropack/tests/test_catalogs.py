@@ -14,7 +14,8 @@ from astropy.time import Time
 # Test target:
 from astropack import catalogs
 
-THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname
+                                              (os.path.abspath(__file__)))
 TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "test")
 
 ATLAS_CATALOG_TOP_DIRECTORY = 'D:/Astro/Catalogs/ATLAS-refcat2'
@@ -38,8 +39,8 @@ def test__make_dec_index_list():
     assert fn((11.5, 13.9)) == [11, 12, 13]
     assert fn((11.5, 13.9), include_max_bound=True) == [11, 12, 13, 14]
     assert fn((-14, -12)) == [-14, -13, -12]
-    assert fn ((-0.1, 0.7)) == [-1, 0]
-    assert fn ((-0.1, 0.7), include_max_bound=True) == [-1, 0, 1]
+    assert fn((-0.1, 0.7)) == [-1, 0]
+    assert fn((-0.1, 0.7), include_max_bound=True) == [-1, 0, 1]
 
 
 __________TEST_CLASS_ATLASREFCAT2_____________________________________________ = 0
@@ -47,10 +48,12 @@ _____constructor_support_methods_____ = 0
 
 
 def test_class_atlasrefcat2__locate_subdirs():
-    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt')
+    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY,
+                                                      'index.txt')
     assert isinstance(df_subcat, pd.DataFrame)
     assert list(df_subcat['gri_max']) == [16, 17, 18]
-    assert list(df_subcat['Path'])[0] == os.path.join(ATLAS_CATALOG_TOP_DIRECTORY, 'mag-0-16')
+    assert list(df_subcat['Path'])[0] == os.path.join(ATLAS_CATALOG_TOP_DIRECTORY,
+                                                      'mag-0-16')
     assert list(df_subcat['Nfiles']) == [64800, 64799, 64800]
 
 
@@ -59,21 +62,25 @@ def test_class_atlasrefcat2__read_one_subdir_one_file():
     subdir_path = os.path.join(ATLAS_CATALOG_TOP_DIRECTORY, 'mag-0-16')
     ra_index, dec_index = 240, 13
     # Read all stars:
-    df = catalogs.AtlasRefcat2._read_one_subdir_one_file(gri_max, subdir_path, ra_index, dec_index)
+    df = catalogs.AtlasRefcat2._read_one_subdir_one_file(gri_max, subdir_path,
+                                                         ra_index, dec_index)
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 716
     assert df.loc[2, 'RA_deg'] == pytest.approx(240.00214, abs=0.00002)
     # Read limited number of stars:
-    df = catalogs.AtlasRefcat2._read_one_subdir_one_file(gri_max, subdir_path, ra_index, dec_index,
+    df = catalogs.AtlasRefcat2._read_one_subdir_one_file(gri_max, subdir_path,
+                                                         ra_index, dec_index,
                                                          max_stars=22)
     assert len(df) == 22
     assert df.loc[2, 'RA_deg'] == pytest.approx(240.00214, abs=0.00002)
 
 
 def test_class_atlasrefcat2__get_stars_by_index():
-    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt')
+    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY,
+                                                      'index.txt')
     # Case: normal, away from RA=0:
-    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(23.75, 24.125),
+    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                   ra_deg_range=(23.75, 24.125),
                                                    dec_deg_range=(-23.125, -22.625))
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 3121
@@ -83,7 +90,8 @@ def test_class_atlasrefcat2__get_stars_by_index():
     assert not all((dec >= -23.125) and (dec <= -22.625) for dec in df['Dec_deg'])
 
     # Case: normal, crossing RA=0:
-    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(359.5, 0.125),
+    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                   ra_deg_range=(359.5, 0.125),
                                                    dec_deg_range=(-0.375, 0.25))
     assert len(df) == 4349
     assert all((ra >= 359) or (ra <= 1) for ra in df['RA_deg'])
@@ -92,7 +100,8 @@ def test_class_atlasrefcat2__get_stars_by_index():
     assert not all((dec >= -0.375) and (dec <= 0.25) for dec in df['Dec_deg'])
 
     # Case: entirely within one square degree:
-    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(120.125, 120.75),
+    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                   ra_deg_range=(120.125, 120.75),
                                                    dec_deg_range=(0.25, 0.5))
     assert len(df) == 2079 + 1665 + 2353
     assert all((ra >= 120) and (ra <= 121) for ra in df['RA_deg'])
@@ -102,29 +111,36 @@ def test_class_atlasrefcat2__get_stars_by_index():
 
 
 def test_class_atlasrefcat2__trim_to_ra_dec_range():
-    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt')
+    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY,
+                                                      'index.txt')
     # Case: normal, away from RA=0:
-    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(23.75, 24.125),
+    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                       ra_deg_range=(23.75, 24.125),
                                                        dec_deg_range=(-23.125, -22.625))
-    df = catalogs.AtlasRefcat2._trim_to_ra_dec_range(df_all, ra_deg_range=(23.75, 24.125),
+    df = catalogs.AtlasRefcat2._trim_to_ra_dec_range(df_all,
+                                                     ra_deg_range=(23.75, 24.125),
                                                      dec_deg_range=(-23.125, -22.625))
     assert len(df) == 156
     assert all((ra >= 23.75) and (ra <= 24.125) for ra in df['RA_deg'])
     assert all((dec >= -23.125) and (dec <= -22.625) for dec in df['Dec_deg'])
 
     # Case: normal, crossing RA=0:
-    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(359.5, 0.125),
+    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                       ra_deg_range=(359.5, 0.125),
                                                        dec_deg_range=(-0.375, 0.25))
-    df = catalogs.AtlasRefcat2._trim_to_ra_dec_range(df_all, ra_deg_range=(359.5, 0.125),
+    df = catalogs.AtlasRefcat2._trim_to_ra_dec_range(df_all,
+                                                     ra_deg_range=(359.5, 0.125),
                                                      dec_deg_range=(-0.375, 0.25))
     assert len(df) == 441
     assert all((ra >= 359.5) or (ra <= 0.125) for ra in df['RA_deg'])
     assert all((dec >= -0.375) and (dec <= 0.25) for dec in df['Dec_deg'])
 
     # Case: entirely within one square degree:
-    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(120.125, 120.75),
+    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                       ra_deg_range=(120.125, 120.75),
                                                        dec_deg_range=(0.25, 0.5))
-    df = catalogs.AtlasRefcat2._trim_to_ra_dec_range(df_all, ra_deg_range=(120.125, 120.75),
+    df = catalogs.AtlasRefcat2._trim_to_ra_dec_range(df_all,
+                                                     ra_deg_range=(120.125, 120.75),
                                                      dec_deg_range=(0.25, 0.5))
     assert len(df) == 908
     assert all((ra >= 120.125) and (ra <= 120.75) for ra in df['RA_deg'])
@@ -132,8 +148,10 @@ def test_class_atlasrefcat2__trim_to_ra_dec_range():
 
 
 def test_class_atlasrefcat2__remove_overlapping():
-    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt')
-    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(23.75, 24.125),
+    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY,
+                                                      'index.txt')
+    df_all = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                       ra_deg_range=(23.75, 24.125),
                                                        dec_deg_range=(-23.125, -22.625))
     n_overlaps_all = sum(1 for rp1 in df_all['RP1'] if (rp1 is not None and rp1 < 10))
     assert len(df_all) == 3121
@@ -145,17 +163,21 @@ def test_class_atlasrefcat2__remove_overlapping():
 
 
 def test_class_atlasrefcat2__update_epoch():
-    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt')
-    df_raw = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(120.125, 120.75),
-                                                   dec_deg_range=(0.25, 0.5))
+    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY,
+                                                      'index.txt')
+    df_raw = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                       ra_deg_range=(120.125, 120.75),
+                                                       dec_deg_range=(0.25, 0.5))
     df_raw_copy = df_raw.copy()
     df_updated = catalogs.AtlasRefcat2._update_epoch(df_raw_copy, TARGET_EPOCH)
     delta_years = (TARGET_EPOCH.jd - Time(catalogs.ATLAS_REFCAT2_EPOCH_UTC).jd) / \
-                   catalogs.DAYS_PER_YEAR_NOMINAL
-    assert all(ra_updated == pytest.approx(ra_raw + (ra_motion / 3600.0) * delta_years, abs=0.000001)
+                  catalogs.DAYS_PER_YEAR_NOMINAL
+    assert all(ra_updated == pytest.approx(ra_raw + (ra_motion / 3600.0) *
+                                           delta_years, abs=0.000001)
                for (ra_raw, ra_updated, ra_motion)
                in zip(df_raw['RA_deg'], df_updated['RA_deg'], df_raw['PM_ra']))
-    assert all(dec_updated == pytest.approx(dec_raw + (dec_motion / 3600.0) * delta_years, abs=0.000001)
+    assert all(dec_updated == pytest.approx(dec_raw + (dec_motion / 3600.0) *
+                                            delta_years, abs=0.000001)
                for (dec_raw, dec_updated, dec_motion)
                in zip(df_raw['Dec_deg'], df_updated['Dec_deg'], df_raw['PM_dec']))
 
@@ -173,8 +195,10 @@ def test_class_atlasrefcat2__add_new_columns():
 
 
 def test_class_atlasrefcat2__sort_by():
-    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt')
-    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat, ra_deg_range=(120.125, 120.75),
+    df_subcat = catalogs.AtlasRefcat2._locate_subdirs(ATLAS_CATALOG_TOP_DIRECTORY,
+                                                      'index.txt')
+    df = catalogs.AtlasRefcat2._get_stars_by_index(df_subcat,
+                                                   ra_deg_range=(120.125, 120.75),
                                                    dec_deg_range=(0.25, 0.5))
 
     # Test for 'ra':
@@ -183,7 +207,7 @@ def test_class_atlasrefcat2__sort_by():
     shuffle(ra_list)
     df_ra['RA_deg'] = ra_list
     assert not all(df_ra['RA_deg'].diff().iloc[1:] >= 0)  # i.e., not sorted.
-    df_ra_sorted = catalogs.AtlasRefcat2._sort_by(df_ra, 'RA')  # nb: upper case will be converted to lower.
+    df_ra_sorted = catalogs.AtlasRefcat2._sort_by(df_ra, 'RA')
     assert all(df_ra_sorted['RA_deg'].diff().iloc[1:] >= 0)  # i.e., sorted in RA.
     assert all(df_ra_sorted.loc[i, 'CatalogID'] == df_ra.loc[i, 'CatalogID']
                for i in range(len(df_ra)))  # other columns ordered, too.
@@ -194,9 +218,9 @@ def test_class_atlasrefcat2__sort_by():
     dec_list = list(df_dec['Dec_deg'].copy())
     shuffle(dec_list)
     df_dec['Dec_deg'] = dec_list
-    assert not all(df_dec['Dec_deg'].diff().iloc[1:] >= 0)  # i.e., df_dec is not sorted in Dec.
+    assert not all(df_dec['Dec_deg'].diff().iloc[1:] >= 0)
     df_dec_sorted = catalogs.AtlasRefcat2._sort_by(df_dec, 'dec')
-    assert all(df_dec_sorted['Dec_deg'].diff().iloc[1:] >= 0)  # i.e., df_dec_sorted is sorted in Dec.
+    assert all(df_dec_sorted['Dec_deg'].diff().iloc[1:] >= 0)
     assert all(df_dec_sorted.loc[i, 'CatalogID'] == df_dec.loc[i, 'CatalogID']
                for i in range(len(df_dec)))  # other columns ordered, too.
     del dec_list, df_dec, df_dec_sorted
@@ -221,7 +245,8 @@ _____constructor_____ = 0
 def test_class_atlasrefcat2_constructor():
     # Case: normal, multi-sq-degree range away from RA-zero:
     cat = catalogs.AtlasRefcat2(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt',
-                                ra_deg_range=(120.125, 120.75), dec_deg_range=(0.25, 0.5),
+                                ra_deg_range=(120.125, 120.75),
+                                dec_deg_range=(0.25, 0.5),
                                 target_epoch=TARGET_EPOCH)
     assert len(cat.df_selected) == len(cat.df_all) == 723
     assert all((ra >= 120.125) and (ra <= 120.75) for ra in cat.df_selected['RA_deg'])
@@ -230,7 +255,8 @@ def test_class_atlasrefcat2_constructor():
 
     # Case: range crossing RA=zero:
     cat = catalogs.AtlasRefcat2(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt',
-                                ra_deg_range=(358.5, 0.25), dec_deg_range=(-0.5, +0.125),
+                                ra_deg_range=(358.5, 0.25),
+                                dec_deg_range=(-0.5, +0.125),
                                 target_epoch=TARGET_EPOCH, sort_by='dec')
     assert len(cat.df_selected) == len(cat.df_all) == 1154
     assert all((ra >= 358.5) or (ra <= 0.25) for ra in cat.df_selected['RA_deg'])
@@ -244,7 +270,7 @@ def test_class_atlasrefcat2_constructor():
     assert len(cat.df_selected) == len(cat.df_all) == 16
     assert all((ra >= 240.2) and (ra <= 240.3) for ra in cat.df_selected['RA_deg'])
     assert all((dec >= 13.1) and (dec <= 13.2) for dec in cat.df_selected['Dec_deg'])
-    assert all(cat.df_selected['r'].diff().iloc[1:] >= 0)  # i.e., sorted in r magnitude.
+    assert all(cat.df_selected['r'].diff().iloc[1:] >= 0)  # i.e., sorted in r mag.
 
 
 _____select_on_methods_____ = 0
@@ -351,6 +377,7 @@ __________HELPER_FUNCTIONS_____________________________________________ = 0
 def make_atlasrefcat2_test_object():
     """Get an ATLAS test object for use in testing. RA spans zero."""
     cat = catalogs.AtlasRefcat2(ATLAS_CATALOG_TOP_DIRECTORY, 'index.txt',
-                                ra_deg_range=(358.5, 0.75), dec_deg_range=(13.875, 14.25),
+                                ra_deg_range=(358.5, 0.75),
+                                dec_deg_range=(13.875, 14.25),
                                 target_epoch=TARGET_EPOCH, sort_by='r')
     return cat

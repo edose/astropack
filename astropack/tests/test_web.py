@@ -21,7 +21,7 @@ import astropack.web as web
 
 
 THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "test")
+TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "tests")
 
 
 def test_get_mp_ephem():
@@ -38,8 +38,9 @@ def test_get_mp_ephem():
     assert isinstance(df, pd.DataFrame)
     assert list(df.loc[:, 'Altitude'].values) == [-12, 13, 38, 59, 64, 45]
     assert list(df.columns) == ['Date', 'RA', 'Dec', 'Delta', 'r', 'Elongation',
-                                'Phase', 'V', 'Proper motion', 'Direction', 'Azimuth', 'Altitude',
-                                'Sun altitude', 'Moon phase', 'Moon distance', 'Moon altitude']
+                                'Phase', 'V', 'Proper motion', 'Direction',
+                                'Azimuth', 'Altitude', 'Sun altitude',
+                                'Moon phase', 'Moon distance', 'Moon altitude']
 
     # Case: MP id is string representing integer:
     mp_id = '123'
@@ -71,7 +72,8 @@ def test_get_mp_ephem():
 
     # Case: utc_start is py datetime with non-UTC timezone:
     mp_id = 333
-    utc_start = datetime(2022, 3, 12, 12, 45, 0).replace(tzinfo=timezone(offset=timedelta(hours=3)))
+    utc_start = datetime(2022, 3, 12, 12, 45, 0).\
+        replace(tzinfo=timezone(offset=timedelta(hours=3)))
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
                           num_entries=n_entries, site=site)
     assert str(df['Date'].iloc[0]) == '2022-03-12 12:00:00'

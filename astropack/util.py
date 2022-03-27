@@ -40,7 +40,11 @@ _____CLASSES________________________________________________ = 0
 
 
 class Timespan:
-    """ Represents a span of time and provides for operations on and between Timespans.
+    """ Represents a span of time and provides for operations on and between timespans.
+
+    |Timespan| instances are expected to be immutable. Attributes are computed at time
+    of construction and will not be recomputed if ``start_time`` or ``end_time`` are
+    changed by user. For that, use the various methods, or make a ``.copy()``.
 
         Parameters
         ----------
@@ -61,10 +65,10 @@ class Timespan:
         duration : |TimeDelta|
             Time duration, from start time to end time.
 
-        seconds : float
+        seconds : non-negative float
             Time duration, from start time to end time, in seconds.
 
-        days : float
+        days : non-negative float
             Time duration, from start time to end time, in days.
 
         midpoint : |Time|
@@ -275,7 +279,7 @@ class Timespan:
 
         Parameters
         ----------
-        time : |py.datetime|, or |Time|
+        time : |py.datetime| or |Time|
             Time at which to split this timespan.
 
         Returns
@@ -283,7 +287,7 @@ class Timespan:
         timespans : list of 2 |Timespan|, or |Timespan|
             Two contiguous timespans split at ``time``.
             If ``time`` is not contained within this timespan, return a copy
-            this timespan.
+            this |Timespan| instance.
         """
         if not isinstance(time, (Time, datetime)):
             raise TypeError('Timespan.split_at() requires Time '
@@ -295,8 +299,8 @@ class Timespan:
 
     @staticmethod
     def longer(ts1, ts2):
-        """Returns the |Timespan| with longer duration (larger ``.seconds``).
-        If of equal duration, return ``ts1``.
+        """Returns the |Timespan| with longer duration (larger ``.seconds``), or
+        of equal duration, return ``ts1``.
 
         Parameters
         ----------
@@ -370,6 +374,18 @@ __________TIME_and_DATE_FUNCTIONS_____________________________________________ =
 def hhmm_from_datetime_utc(datetime_utc):
     """Return UTC time-of-day string of form 'hhmm' for a UTC datetime.
 
+    If datetime falls on the half-minute, rounding is performed to the nearest even
+    minute, per 'banker's rounding'.
+
+    >>> from astropack.util import hhmm_from_datetime_utc
+    >>> from datetime import datetime, timezone
+    >>> date = datetime(2016, 1, 31, 0, 0, 30, 0).replace(tzinfo=timezone.utc)
+    >>> print(hhmm_from_datetime_utc(date))
+    0000
+    >>> date = datetime(2016, 1, 31, 0, 1, 30, 0).replace(tzinfo=timezone.utc)
+    >>> print(hhmm_from_datetime_utc(date))
+    0002
+
     Parameters
     ----------
     datetime_utc : |py.datetime|
@@ -406,6 +422,11 @@ def ra_as_degrees(ra_string):
     -------
     ra_degrees : float, or None
         Right Ascension in degrees in range [0, 360], or None if value is < 0 or > 360.
+
+    No rounding errors on degrees, as is seen with Astropy.Angle:
+
+
+
     """
     ra_list = parse_hex(ra_string)
     if len(ra_list) == 1:
@@ -469,7 +490,7 @@ def dec_as_degrees(dec_string):
     Returns
     -------
     dec_degrees : float, or None
-        Declination in degrees, or None if outside range [-90, 90].
+        Declination in degrees, or None if ``dec_string`` is outside range [-90, 90].
     """
     dec_degrees = hex_as_degrees(dec_string)
     if (dec_degrees < -90) | (dec_degrees > +90):
@@ -492,8 +513,8 @@ def ra_as_hours(ra_degrees, seconds_decimal_places=2):
     Returns
     -------
     ra_string : str or None
-        Right Ascension in hours, in sexigesimal format.
-        If outside range [0, 360], return None.
+        Right Ascension in hours, in sexigesimal format, as '23:59:57.60'.
+        If ``ra_degrees`` is outside range [0, 360], return None.
     """
     if (ra_degrees < 0) | (ra_degrees > 360):
         return None
@@ -540,15 +561,15 @@ def dec_as_hex(dec_degrees, arcseconds_decimal_places=0):
     dec_degrees : float
         Declination in degrees, within range [-90, 90].
 
-    arcseconds_decimal_places : non-negative int
+    arcseconds_decimal_places : non-negative int, optional
         In the arcseconds place, the number of decimal places after the decimal point.
         If zero, decimal point is removed. Default is zero.
 
     Returns
     -------
     dec_string : str, or None
-        String representing declination in sexigesimal format.
-        If outside range [-90, 90], return None.
+        String representing declination in sexigesimal format, as '-13:59:57.60'.
+        If ``dec_degrees`` is outside range [-90, 90], return None.
     """
     if (dec_degrees < -90) | (dec_degrees > +90):
         return None
@@ -564,7 +585,7 @@ def degrees_as_hex(angle_degrees, arcseconds_decimal_places=2):
     angle_degrees : float
         Angle in degrees.
 
-    arcseconds_decimal_places : int, optional
+    arcseconds_decimal_places : non-negative int, optional
         Number of decimal places after the decimal point in the arcseconds field.
         If zero, the decimal point is removed. Default is 2.
 
@@ -613,7 +634,7 @@ def degrees_as_hex(angle_degrees, arcseconds_decimal_places=2):
 
 
 def parse_hex(hex_string):
-    """Takes sexigesimal string or decimal string representing an angle,
+    """Takes sexigesimal string representing an angle,
     returns a list of 3 str representing int or float values.
     Helper function not normally called diretly by user code.
 
@@ -621,24 +642,29 @@ def parse_hex(hex_string):
     ----------
     hex_string : str
         String representation of angle, sexagesimal (colon- or space-delimited) or
-        decimal, e.g., ("12:34:56.7777" or "12 34 56.7777"), or degrees ("234.55")
+        decimal, e.g., ("12:34:56.7777" or "12 34 56.7777").
 
     Returns
     -------
-    strings : list of 3 str
+    string_list : list of 3 str
         List of three strings parsed from ``hex_string``.
     """
     colon_list = hex_string.split(':')
     space_list = hex_string.split()  # multiple spaces act as one delimiter
     if len(colon_list) >= len(space_list):
-        return [x.strip() for x in colon_list]
-    return space_list
+        string_list = [x.strip() for x in colon_list]
+    else:
+        string_list = space_list
+    if len(string_list) == 1:
+        return string_list
+    string_list = (string_list + ['0', '0'])[:3]  # pad with zeroes, clip to 3 elements.
+    return string_list
 
 
 def concatenate_skycoords(skycoord_input):
-    """Compiles an astropy |SkyCoord| or list of |SkyCoord|, array-based or not in any
-    combination, and returns one array-based |SkyCoord| object containing
-    all coordinates. Order is retained.
+    """Compiles an astropy |SkyCoord| or list of |SkyCoord|, array-based or scalar
+    in any combination, and returns one array-based |SkyCoord| object containing
+    all input coordinates. Order of input skycoords is retained.
 
     Parameters
     ----------
@@ -686,9 +712,9 @@ def combine_ra_dec_bounds(skycoord_input, extension_percent=3):
     skycoord_input : |SkyCoord| or list of |SkyCoord|
         Sky coordinates (at least one) around which to find bounding box.
 
-        These are usually the coordinates of all corners of one or more images.
+        These are usually the coordinates of all four corners of one or more images.
 
-    extension_percent: float, non-negative, optional
+    extension_percent : non-negative float, optional
         Percent of bounding box dimensions by which to extend the bounding box,
         at user's discretion. Default is 3.
 
@@ -737,8 +763,8 @@ def make_directory_if_not_exists(directory_path):
     Returns
     -------
     path_preexists : bool
-        True if directory already existed at ``directory_path`` (and no action taken),
-        else False (and directory is created).
+        True if a directory already existed at ``directory_path`` in which case no
+        action is taken; else False and directory is created.
     """
     path_preexists = (os.path.exists(directory_path) and os.path.isdir(directory_path))
     if not path_preexists:
@@ -769,7 +795,8 @@ __________GENERAL_UTILITY_FUNCTIONS__________________________________________ = 
 
 def pressure_from_elevation(elevation):
     """Return standard atmospheric pressure in mbar (= hectoPascals) from
-    given elevation in meters. Based on a formula from the U.S. NOAA.
+    given elevation in meters. Derived from a formula from the U.S. NOAA at
+    https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
 
     Parameters
     ----------

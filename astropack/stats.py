@@ -37,7 +37,7 @@ class MixedModelFit:
     dep_var : str
         Name of column in ``data`` that serves as dependent 'Y' variable.
 
-    fixed_vars : str, or list of str
+    fixed_vars : list of str, or str (if only one fixed variable, rare)
         One or more names of columns in ``data`` that serve as
         independent 'X' variable(s).
 
@@ -109,7 +109,7 @@ class MixedModelFit:
                             'must both be strings.')
         fixed_vars_valid = False  # default if not validated
         if isinstance(fixed_vars, str):
-            fixed_vars = list(fixed_vars)
+            fixed_vars = [fixed_vars]
             fixed_vars_valid = True
         if isinstance(fixed_vars, list):
             if len(fixed_vars) >= 1:
@@ -220,7 +220,7 @@ class LinearFit:
     dep_var : str
         Name of column in ``data`` that serves as dependent 'Y' variable.
 
-    indep_vars : str, or list of str
+    indep_vars : list of str, or str (if only one independent variable--rare)
         One or more names of columns in ``data`` that serve as
         independent 'X' variable(s).
 
@@ -268,7 +268,7 @@ class LinearFit:
             return
         indep_vars_valid = False  # default if not validated
         if isinstance(indep_vars, str):
-            indep_vars = list(indep_vars)
+            indep_vars = [indep_vars]
             indep_vars_valid = True
         if isinstance(indep_vars, list):
             if len(indep_vars) >= 1:
@@ -341,6 +341,10 @@ def weighted_mean(values, weights):
 
     weights : list of float, or |Series| of float
         Weights, corresponding to `values`, used in making the weighted average.
+
+        If a |Series|, the weights correspond element-wise to ``values``,
+        as though they were lists of values, that is,
+        without reference to the Series *index* of either ``values`` or ``weights``.
 
     Returns
     -------

@@ -15,7 +15,6 @@ from astropack import stats
 
 
 def test_class_mixed_model_fit():
-    """OK 2022-03-11."""
     # Construct test data frame:
     points = 80
     np.random.seed(1234)
@@ -92,7 +91,6 @@ def test_class_mixed_model_fit():
 
 
 def test_class_linear_fit():
-    """OK 2022-03-11."""
     # First, construct test data frame:
     points = 80
     np.random.seed(1234)

@@ -15,7 +15,8 @@ from astropy.coordinates import SkyCoord
 from astropack import util
 
 
-THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+THIS_PACKAGE_ROOT_DIRECTORY = \
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 __________TIME_and_DATE_FUNCTIONS____________________________________________ = 0
@@ -30,9 +31,10 @@ def test_hhmm_from_datetime_utc():
     assert util.hhmm_from_datetime_utc(dt) == '0000'
     dt = datetime(2016, 1, 31, 0, 0, 0, 0).replace(tzinfo=timezone.utc)
     assert util.hhmm_from_datetime_utc(dt) == '0000'
-    dt = datetime(2016, 1, 31, 0, 0, 30, 0).replace(tzinfo=timezone.utc)  # banker's rounding.
+    # Using banker's rounding to nearest minute:
+    dt = datetime(2016, 1, 31, 0, 0, 30, 0).replace(tzinfo=timezone.utc)
     assert util.hhmm_from_datetime_utc(dt) == '0000'
-    dt = datetime(2016, 1, 31, 0, 1, 30, 0).replace(tzinfo=timezone.utc)  # banker's rounding.
+    dt = datetime(2016, 1, 31, 0, 1, 30, 0).replace(tzinfo=timezone.utc)
     assert util.hhmm_from_datetime_utc(dt) == '0002'
     dt = datetime(2016, 1, 31, 0, 0, 30, 1).replace(tzinfo=timezone.utc)
     assert util.hhmm_from_datetime_utc(dt) == '0001'
@@ -42,8 +44,8 @@ __________RA_and_DEC_FUNCTIONS__________________________________________________
 
 
 def test_ra_as_degrees():
-    # Case: pass in RA in degrees (and retain as whole-number degrees):
-    assert util.ra_as_degrees("180") == 180.0  # no floating pt error (as caused by astropy.Angle).
+    # Case: pass in RA in degrees:
+    assert util.ra_as_degrees("180") == 180.0
     assert util.ra_as_degrees("0") == 0.0
     assert util.ra_as_degrees("360") == 360.0
     assert util.ra_as_degrees("-0.1") is None
@@ -60,7 +62,8 @@ def test_ra_as_degrees():
 
     # Cases: unusual syntax:
     assert util.ra_as_degrees("11:16:30 # comment") == util.ra_as_degrees("11:16:30")
-    assert util.ra_as_degrees("11:16:30.5 # comment") == util.ra_as_degrees("11:16:30.5")
+    assert util.ra_as_degrees("11:16:30.5 # comment") == \
+           util.ra_as_degrees("11:16:30.5")
     assert util.ra_as_degrees("11:16:30:444:whatever") == util.ra_as_degrees("11:16:30")
 
 
@@ -71,6 +74,7 @@ def test_hex_as_degrees():
     assert util.hex_as_degrees("0") == 0.0
     assert util.hex_as_degrees("-0") == 0.0
     assert util.hex_as_degrees("90") == 90
+    assert util.hex_as_degrees("+90") == 90
     assert util.hex_as_degrees("-90") == -90
     assert util.hex_as_degrees("90.125") == 90.125
     assert util.hex_as_degrees("-90.125") == -90.125
@@ -79,21 +83,26 @@ def test_hex_as_degrees():
     assert util.hex_as_degrees("88:45") == util.hex_as_degrees("88 45") == 88.75
     assert util.hex_as_degrees("-88:45") == util.hex_as_degrees("-88 45") == -88.75
     assert util.hex_as_degrees("12:34:30") == util.hex_as_degrees("12 34 30") == 12.575
-    assert util.hex_as_degrees("-12:34:30") == util.hex_as_degrees("-12 34 30") == -12.575
+    assert util.hex_as_degrees("-12:34:30") == \
+           util.hex_as_degrees("-12 34 30") == -12.575
     assert util.hex_as_degrees("91:34:30") == util.hex_as_degrees("91 34 30") == 91.575
-    assert util.hex_as_degrees("-91:34:30") == util.hex_as_degrees("-91 34 30") == -91.575
+    assert util.hex_as_degrees("-91:34:30") == \
+           util.hex_as_degrees("-91 34 30") == -91.575
     assert util.hex_as_degrees("91:45") == util.hex_as_degrees("91 45") == 91.75
     assert util.hex_as_degrees("-91:45") == util.hex_as_degrees("-91 45") == -91.75
 
     # Cases: unusual syntax:
-    assert util.hex_as_degrees("12:34:30 # comment") == util.hex_as_degrees("12:34:30")
-    assert util.hex_as_degrees("12:34:30.5 # comment") == util.hex_as_degrees("12:34:30.5")
-    assert util.hex_as_degrees("12:34:30:444:whatever") == util.hex_as_degrees("12:34:30")
+    assert util.hex_as_degrees("12:34:30 # comment") == \
+           util.hex_as_degrees("12:34:30")
+    assert util.hex_as_degrees("12:34:30.5 # comment") == \
+           util.hex_as_degrees("12:34:30.5")
+    assert util.hex_as_degrees("12:34:30:444:whatever") == \
+           util.hex_as_degrees("12:34:30")
 
 
 def test_dec_as_degrees():
     # Case: pass in string(float):
-    assert util.dec_as_degrees("12") == 12.0
+    assert util.dec_as_degrees("+12") == 12.0
     assert util.dec_as_degrees("-12") == -12.0
     assert util.dec_as_degrees("0") == 0.0
     assert util.dec_as_degrees("-0") == 0.0
@@ -106,7 +115,8 @@ def test_dec_as_degrees():
     assert util.dec_as_degrees("88:45") == util.dec_as_degrees("88 45") == 88.75
     assert util.dec_as_degrees("-88:45") == util.dec_as_degrees("-88 45") == -88.75
     assert util.dec_as_degrees("12:34:30") == util.dec_as_degrees("12 34 30") == 12.575
-    assert util.dec_as_degrees("-12:34:30") == util.dec_as_degrees("-12 34 30") == -12.575
+    assert util.dec_as_degrees("-12:34:30") == \
+           util.dec_as_degrees("-12 34 30") == -12.575
     assert util.dec_as_degrees("91:34:30") is None
     assert util.dec_as_degrees("91 34 30") is None
     assert util.dec_as_degrees("-91:34:30") is None
@@ -117,9 +127,12 @@ def test_dec_as_degrees():
     assert util.dec_as_degrees("-91 45") is None
 
     # Cases: unusual syntax:
-    assert util.dec_as_degrees("12:34:30 # comment") == util.dec_as_degrees("12:34:30")
-    assert util.dec_as_degrees("12:34:30.5 # comment") == util.dec_as_degrees("12:34:30.5")
-    assert util.dec_as_degrees("12:34:30:444:whatever") == util.dec_as_degrees("12:34:30")
+    assert util.dec_as_degrees("12:34:30 # comment") == \
+           util.dec_as_degrees("12:34:30")
+    assert util.dec_as_degrees("12:34:30.5 # comment") == \
+           util.dec_as_degrees("12:34:30.5")
+    assert util.dec_as_degrees("12:34:30:444:whatever") == \
+           util.dec_as_degrees("12:34:30")
     assert util.dec_as_degrees("112:34:30:444:whatever") is None
     assert util.dec_as_degrees("-92:34:30:444:whatever") is None
 
@@ -189,11 +202,13 @@ def test_degrees_as_hex():
 
 
 def test_parse_hex():
-    assert util.parse_hex('00:00:00') == util.parse_hex('00 00 00') == ['00', '00', '00']
-    assert util.parse_hex('-50:30') == util.parse_hex('-50 30') == ['-50', '30']
+    assert util.parse_hex('00:00:00') == util.parse_hex('00 00 00') == \
+           ['00', '00', '00']
+    assert util.parse_hex('12:34:56.89') == \
+           util.parse_hex('12 34 56.89') == ['12', '34', '56.89']
+    assert util.parse_hex('-50:30') == \
+           util.parse_hex('-50 30') == ['-50', '30', '0']
     assert util.parse_hex('34') == ['34']
-    assert util.parse_hex('12:34:56.89') == util.parse_hex('12:34:56.89') == ['12', '34', '56.89']
-    assert util.parse_hex('12:34:56.89 # comment') == ['12', '34', '56.89 # comment']
 
 
 def test_concatenate_skycoords():
@@ -214,14 +229,18 @@ def test_concatenate_skycoords():
     # Case: list-based SkyCoord objects:
     result = util.concatenate_skycoords([sc_1, sc_3, sc_1])
     assert result.shape == (5, )
-    assert list(result.ra.degree) == list(sc_1.ra.degree) + list(sc_3.ra.degree) + list(sc_1.ra.degree)
-    assert list(result.dec.degree) == list(sc_1.dec.degree) + list(sc_3.dec.degree) + list(sc_1.dec.degree)
+    assert list(result.ra.degree) == list(sc_1.ra.degree) + \
+           list(sc_3.ra.degree) + list(sc_1.ra.degree)
+    assert list(result.dec.degree) == list(sc_1.dec.degree) + \
+           list(sc_3.dec.degree) + list(sc_1.dec.degree)
 
     # Case: mixed scalar and list-based SkyCoord objects:
     result = util.concatenate_skycoords([sc_1, sc_scalar, sc_3])
     assert result.shape == (5, )
-    assert list(result.ra.degree) == list(sc_1.ra.degree) + [sc_scalar.ra.degree] + list(sc_3.ra.degree)
-    assert list(result.dec.degree) == list(sc_1.dec.degree) + [sc_scalar.dec.degree] + list(sc_3.dec.degree)
+    assert list(result.ra.degree) == list(sc_1.ra.degree) + \
+           [sc_scalar.ra.degree] + list(sc_3.ra.degree)
+    assert list(result.dec.degree) == list(sc_1.dec.degree) + \
+           [sc_scalar.dec.degree] + list(sc_3.dec.degree)
 
 
 def test_combine_ra_dec_bounds():
@@ -238,7 +257,8 @@ def test_combine_ra_dec_bounds():
     assert bounds_c == pytest.approx((10.565, 12.685, 41.19, 43.31))
 
     # Cases: RA values that cross 0 (or 360) degrees:
-    sc_cross = SkyCoord([359.75, 0.0, 359.875, 0.025], [41.25, 42, 43, 42.5], frame='icrs', unit='deg')
+    sc_cross = SkyCoord([359.75, 0.0, 359.875, 0.025],
+                        [41.25, 42, 43, 42.5], frame='icrs', unit='deg')
     bounds = util.combine_ra_dec_bounds(sc_cross, extension_percent=0)
     assert bounds == (359.75, 0.025, 41.25, 43.0)
     bounds = util.combine_ra_dec_bounds(sc_cross, extension_percent=4)
@@ -344,9 +364,11 @@ def test_class_timespan():
     with pytest.raises(TypeError):
         _ = util.Timespan(ts1.start, 'this is a bad input')
     with pytest.raises(ValueError):
-        _ = util.Timespan(datetime(2022, 1, 30, 13), datetime(2022, 1, 30, 13, tzinfo=timezone.utc))
+        _ = util.Timespan(datetime(2022, 1, 30, 13),
+                          datetime(2022, 1, 30, 13, tzinfo=timezone.utc))
     with pytest.raises(ValueError):
-        _ = util.Timespan(datetime(2022, 1, 30, 13, tzinfo=timezone.utc), datetime(2022, 1, 30, 13))
+        _ = util.Timespan(datetime(2022, 1, 30, 13, tzinfo=timezone.utc),
+                          datetime(2022, 1, 30, 13))
     with pytest.raises(ValueError):
         _ = util.Timespan(Time([dt1, dt2]), Time([dt1, dt2]))
 
@@ -357,8 +379,9 @@ def test_class_timespan():
     assert util.Timespan(t1+timedelta(hours=1), t2+timedelta(hours=1)) != ts1
     assert util.Timespan(t1, t2) == util.Timespan(t1, t2)
 
-    # Test equivalence of Time and datetime inputs:
+    # Test equivalence and non-identity of Time and datetime inputs:
     assert util.Timespan(dt1, dt2) == util.Timespan(t1, t2)
+    assert util.Timespan(dt1, dt2) is not util.Timespan(t1, t2)
 
     # Test copy():
     ts_copy = ts1.copy()
@@ -372,7 +395,7 @@ def test_class_timespan():
     assert ts1_delay == target_positive
     ts1_delay = ts1.delay_by(timedelta(seconds=120))  # input in positive timedelta.
     assert ts1_delay == target_positive
-    ts1_delay = ts1.delay_by(TimeDelta(120, format='sec'))  # input in positive astropy.TimeDelta.
+    ts1_delay = ts1.delay_by(TimeDelta(120, format='sec'))  # input in pos. TimeDelta.
     assert ts1_delay == target_positive
     # Test .delay_by(), negative delay:
     target_negative = util.Timespan(ts1.start - two_min, ts1.end - two_min)
@@ -381,7 +404,7 @@ def test_class_timespan():
     ts1_delay = ts1.delay_by(timedelta(seconds=-120))  # input in negative timedelta.
     assert abs(ts1_delay.start - target_negative.start) < test_tolerance
     assert abs(ts1_delay.end - target_negative.end) < test_tolerance
-    ts1_delay = ts1.delay_by(TimeDelta(-120, format='sec'))  # input in negative astropy.TimeDelta.
+    ts1_delay = ts1.delay_by(TimeDelta(-120, format='sec'))  # input in neg. TimeDelta.
     assert abs(ts1_delay.start - target_negative.start) < test_tolerance
     assert abs(ts1_delay.end - target_negative.end) < test_tolerance
     # Test .delay_by(), zero delay:
@@ -503,6 +526,17 @@ def test_class_timespan():
     assert not ts_no_overlap.contains(ts1)
     del ts_later, ts_wider, ts_no_overlap
 
+    # Test .split_at():
+    dt1 = datetime(2016, 9, 10, 0, 0, 0, tzinfo=timezone.utc)
+    dt2 = dt1 + timedelta(hours=1.5)
+    dt_split = dt1 + timedelta(hours=1.0)
+    splits = ts1.split_at(dt_split)
+    assert splits == [util.Timespan(dt1, dt_split), util.Timespan(dt_split, dt2)]
+    splits = ts1.split_at(dt1 - timedelta(hours=0.66))
+    assert splits == util.Timespan(dt1, dt2)
+    splits = ts1.split_at(dt1 + timedelta(hours=+22))
+    assert splits == util.Timespan(dt1, dt2)
+
     # Test str():
     s = str(ts1)
     assert s.startswith("Timespan ")
@@ -533,13 +567,14 @@ def test_class_timespan():
     assert util.Timespan.longer(ts_wider, ts1) == ts_wider
     del ts_copy, ts_zero, ts_later, ts_wider
 
-    # Test Timespan.generate_events():
+    # Test Timespan.periodic_events():
     # Edge cases (but not subject to rounding error problems of astropy.time.Time):
     ts = util.Timespan(t1, t1)
     assert ts.periodic_events(t1 + two_min, TimeDelta(1000, format='sec')) == []
     assert ts1.periodic_events(ts1.start, 2 * ts1.duration) == [ts1.start]
     assert ts1.periodic_events(ts1.end, 2 * ts1.duration) == [ts1.end]
-    assert ts1.periodic_events(ts1.start + two_min, 5 * ts1.duration) == [ts1.start + two_min]
+    assert ts1.periodic_events(ts1.start + two_min, 5 * ts1.duration) == \
+           [ts1.start + two_min]
     ref = ts1.start - two_min
     period = 5 * ts1.duration
     assert ts1.periodic_events(ref, period) == []

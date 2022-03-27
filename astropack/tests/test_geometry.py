@@ -23,17 +23,19 @@ class Test_Class_XY:
 
     def test_xy_constructor(self, setup_xy):
         xy1a, xy1b, xy2, dxy = setup_xy
-        assert (xy1a.x, xy1a.y) == (4, 5)
-        assert xy1a == xy1b
-        assert xy1a is not xy1b
+        assert xy1a == geom.XY(4, 5)
 
-    def test_xy_from_tuple(self, setup_xy):
-        xy = geom.XY.from_tuple((33, 44))
-        assert (xy.x, xy.y) == (33, 44)
-        with pytest.raises(TypeError):
-            _ = geom.XY(7)
-            _ = geom.XY([3, 4])
-            _ = geom.XY((4, 5, 6))
+    def test_from_tuple(self):
+        tupa = (44, 56)
+        xya = geom.XY.from_tuple(tupa)
+        assert isinstance(xya, geom.XY)
+        assert xya.x == tupa[0] and xya.y == tupa[1]
+
+    def test_xy_eq_ne_is(self, setup_xy):
+        xy1a, xy1b, xy2, dxy = setup_xy
+        assert xy1a == xy1b
+        assert not xy1a != xy1b
+        assert xy1a is not xy1b
 
     def test_xy_add(self, setup_xy):
         xy1a, xy1b, xy2, dxy = setup_xy
@@ -66,7 +68,7 @@ class Test_Class_XY:
 
     def test_xy_operators_not_implemented(self, setup_xy):
         xy1a, xy1b, xy2, dxy = setup_xy
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(Exception):
             _ = xy1a.__and__(xy2)
             _ = xy1a is True
             _ = xy1a.__or__(xy2)
@@ -88,8 +90,17 @@ class Test_Class_DXY:
     def test_dxy_constructor(self, setup_dxy):
         xy1, xy2, dxy1, dxy2a, dxy2b = setup_dxy
         assert (dxy1.dx, dxy1.dy) == (3, 4)
-        assert (dxy2a.dx, dxy2b.dy) == (55, 66)
+
+    def test_from_tuple(self):
+        tupa = (44, 56)
+        dxya = geom.DXY.from_tuple(tupa)
+        assert isinstance(dxya, geom.DXY)
+        assert dxya.dx == tupa[0] and dxya.dy == tupa[1]
+
+    def test_eq_ne_is(self, setup_dxy):
+        xy1, xy2, dxy1, dxy2a, dxy2b = setup_dxy
         assert dxy2a == dxy2b
+        assert dxy2a != dxy1
         assert dxy2a is not dxy2b
 
     def test_dxy_add(self, setup_dxy):
@@ -158,12 +169,6 @@ class Test_Class_DXY:
         assert geom.DXY(5, 0).direction == 0
         assert geom.DXY(0, 5).direction == pytest.approx(pi / 2, abs=0.000001)
         assert geom.DXY(5, 5).direction == pytest.approx(pi / 4, abs=0.000001)
-
-    def test_dxy_bool(self):
-        assert not geom.DXY(0, 0)
-        assert geom.DXY(0, 5)
-        assert geom.DXY(5, 0)
-        assert geom.DXY(-2, 5)
 
 
 class Test_Class_Rectangle_in_2D:
@@ -297,8 +302,10 @@ class Test_Class_Circle_in_2D:
                   geom.XY(8.9, 6),
                   geom.XY(9.1, 6),
                   geom.XY(100, 100))
-        assert circle.contains_points(points, include_edges=True) == [True, True, True, False, False]
-        assert circle.contains_points(points, include_edges=False) == [True, False, True, False, False]
+        assert circle.contains_points(points, include_edges=True) == \
+               [True, True, True, False, False]
+        assert circle.contains_points(points, include_edges=False) == \
+               [True, False, True, False, False]
 
     def test_contains_points_unitgrid(self):
         circle_origin = geom.XY(6, 5)
@@ -309,7 +316,8 @@ class Test_Class_Circle_in_2D:
         with pytest.raises(ValueError):
             _ = circle.contains_points_unitgrid(11, 8, -3, 12)
             _ = circle.contains_points_unitgrid(-3, 15, 12, 3)
-        result_grid = circle.contains_points_unitgrid(-3, 15, -3, 12, include_edges=True)
+        result_grid = circle.contains_points_unitgrid(-3, 15, -3, 12,
+                                                      include_edges=True)
         assert result_grid.shape == (19, 16)  # (x,y), not numpy's convention
         assert result_grid.dtype == np.bool
         assert result_grid.sum() == 149
@@ -319,7 +327,8 @@ class Test_Class_Circle_in_2D:
         assert result_grid[:, 17:].sum() == 0
         assert result_grid[4, :].sum() == 9
         assert result_grid[:, 9].sum() == 13
-        result_grid2 = circle.contains_points_unitgrid(-3, 15, -3, 12, include_edges=False)
+        result_grid2 = circle.contains_points_unitgrid(-3, 15, -3, 12,
+                                                       include_edges=False)
         assert result_grid2.shape == (19, 16)
         assert result_grid2.dtype == np.bool
         assert result_grid2.sum() == 145
@@ -337,7 +346,14 @@ def test_distance_to_line():
     # Normal case:
     assert geom.distance_to_line((5, 6), pta, ptb) == pytest.approx(2.4)
     assert geom.distance_to_line((21, 18), pta, ptb) == pytest.approx(2.4)
-    assert geom.distance_to_line(((pta.x + ptb.x) / 2.0, (pta.y + ptb.y) / 2.0), pta, ptb) == 0.0
+    assert geom.distance_to_line(((pta.x + ptb.x) / 2.0,
+                                  (pta.y + ptb.y) / 2.0), pta, ptb) == 0.0
+    # Case: dist_12 is passed in:
+    assert geom.distance_to_line((10, 0), (0, 3), (0, 7), dist_12=4) == 10.0
+    # Exception cases:
+    with pytest.raises(TypeError):
+        _ = geom.distance_to_line((2, 3), 5, (2, 3))
+        _ = geom.distance_to_line([2, 3], (4, 5), (2, 3))
 
 
 def test_make_golden_spiral():

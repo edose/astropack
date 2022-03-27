@@ -14,16 +14,13 @@ Astropack Documentation
 
    <img src="../_static/backpack-star-logo2.png" width="500" style="margin-bottom:30px;"/>
 
-**Astropack** is `the author's <https://github.com/edose>`_
-first attempt at a package that is tested
+**Astropack** began as `my (Eric Dose's) <https://github.com/edose>`_
+personal utilities repo in support of my independent variable-star and
+asteroid/minor planet observing programs. Astropack continues to grow.
+
+**Astropack** is also the first package that I've tested
 and documented to an `Astropy <http://www.astropy.org/about.html>`_-like level of detail.
-
-.. Note:: Sheesh. I'm going to dispense with the "the author" references.
-          I'll just write "I". I'm the author, after all. OK.
-
-**Astropack** began as the author's...as my personal utilities repo
-in support of my independent variable-star and asteroid/minor planet observing
-programs. Astropack continues to grow.
+Here's what that means to you, Dear Reader:
 
 .. Important:: 1. What's here is good to go.
    It's tested and documented. Indeed it's tested *against* the documentation.
@@ -34,19 +31,23 @@ programs. Astropack continues to grow.
    Fair enough? (That's pretty much what the license says, anyway.)
 
    3. **Astropack** is a work in progress (April 2022). It's marked as 0.1 beta
-   version, but it's more in what the author calls **Deep Beta**, really more like a Delta version.
-   So long as it's in version zero-point-anything, I may remove items, I may change
-   the API, I may even make breaking changes to the API--I'll try not to, but
-   in any version 0.x, all's fair. But whatever is in the repo, that code works
+   version, but it's more like **Deep Beta**, really more like a Delta or Sigma version.
+   So long as it remains in version zero-point-anything, I may well remove items,
+   or I may change the API, and I may even make breaking changes to the API (I'll try
+   not to, but
+   in any version 0.x, all's fair). But whatever is in the repo, that code will work
    as documented. The test files are also in the repo and they've all passed, always.
 
-You'll see a pattern arising in much of the code, and that pattern is:
-server classes. That is, classes and their objects designed to (1) get data, (2) organize
-it automatically, and serve that data or derivative data on demand.
-You'll see this pattern in Astropack classes |Astronight|, |AtlasRefcat2|, and
-|Site|, for example. A class constructs an object and then delivers a clean,
+A pattern arising in much of the code is what I call
+**server classes**.
+That is: classes and their objects designed to (1) get data, (2) organize
+and extend the data automatically, and (3) serve it on demand.
+Like a particularly talented tecnical assistant.
+You'll see this server pattern, for example, in Astropack classes
+|Astronight|, |AtlasRefcat2|, and |Site|.
+A class constructs an object and then delivers a clean,
 reliable and extremely well-defined bit of data whenever the user (the user's code,
-really) needs to pull it off the shelf. Like an agile and talented clerical assistant.
+really) needs it. That bit of data, and not more.
 
 Maybe an quick example, from class |Astronight| (which represents one observing site
 during on observing night):

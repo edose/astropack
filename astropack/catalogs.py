@@ -1,5 +1,6 @@
 """ Module astropack.catalogs:
     Catalog parsing and presentation. One class per catalog.
+
     As of March 2022, only ATLAS refcat2 catalog is handled.
 """
 
@@ -45,7 +46,7 @@ class AtlasRefcat2:
         Full path of the top directory where the local copy of ATLAS refcat2 catalog
         resides.
 
-    subdir_listing : str
+    index_filename : str
         Name of text file housing a minimal index to the catalog's component
         subdirectories. The user must usually construct this file by hand.
         Default 'subdirs.txt'.
@@ -55,18 +56,18 @@ class AtlasRefcat2:
         Tuple is (ra_min, ra_max), in degrees.
 
         RA zero-crossing is handled gracefully, e.g.,
-        `ra_deg_range` of (359, 2) will include both stars with RA in range [359, 360]
-        and those with RA in range [0, 2].
+        ``ra_deg_range`` of (359, 2) will include stars with RA in range [359, 360]
+        as well as those with RA in range [0, 2].
 
-    dec_deg_range: tuple of 2 float
+    dec_deg_range : tuple of 2 float
         Minimum and maximum Declination of range from which to select catalog stars.
         Tuple is (ra_min, dec_max), in degrees.
 
     target_epoch : |py.datetime| or |Time|
         Date for which catalog RA and Dec should be updated for proper motion.
 
-        Typically, this will be the date when images were taken (for which
-        catalog data are needed).
+        Typically, this will be the date when images were taken (images to which
+        catalog data will be applied).
 
     overlap_distance : float, optional
         Minimum distance from a target light source (star, asteroid) that a nearby
@@ -83,16 +84,16 @@ class AtlasRefcat2:
         from input parameter `target_epoch`.
 
     df_all : |DataFrame|
-        Dataframe of stars from ATLAS refcat2 catalog within RA and Dec ranges.
+        Pandas Dataframe of stars from ATLAS refcat2 catalog within RA and Dec ranges.
         Intended to be a persistent record of the originally extracted data.
 
     df_selected : |DataFrame|
         Independent copy of df_all.
-        Intended to be further selected to a subset of df_all after class instance
-        construction, via user calls to select_on*() methods.
+        Intended to be further selected by user to a desired subset of ``df_all``
+        after class instance construction, via user calls to ``select_on_*()`` methods.
     """
 
-    def __init__(self, atlas_top_directory, subdir_listing='subdirs.txt',
+    def __init__(self, atlas_top_directory, index_filename='subdirs.txt',
                  ra_deg_range=None, dec_deg_range=None, target_epoch=None,
                  overlap_distance=10, sort_by='ra'):
         if not (os.path.exists(atlas_top_directory) and
@@ -112,7 +113,7 @@ class AtlasRefcat2:
                                  '\'ra\', \'dec\', or \'r\'.')
 
         # Load requested stars from catalog and pre-process:
-        self.df_subcat = self._locate_subdirs(atlas_top_directory, subdir_listing)
+        self.df_subcat = self._locate_subdirs(atlas_top_directory, index_filename)
         df = self._get_stars_by_index(self.df_subcat, ra_deg_range, dec_deg_range)
         df = self._trim_to_ra_dec_range(df, ra_deg_range, dec_deg_range)
         df = self._remove_overlapping(df, overlap_distance)
@@ -308,10 +309,12 @@ class AtlasRefcat2:
 
         Parameters
         ----------
-        min_g_mag: float
+        min_g_mag : float, or None
             Minimum Sloan g' magnitude a star (Dataframe row) may have to be retained.
-        max_g_mag
+            If None, criterion is not applied.
+        max_g_mag : float, or None
             Maximum Sloan g' magnitude a star (Dataframe row) may have to be retained.
+            If None, criterion is not applied.
 
         Returns
         -------
@@ -325,10 +328,12 @@ class AtlasRefcat2:
 
         Parameters
         ----------
-        min_r_mag: float
+        min_r_mag : float, or None
             Minimum Sloan r' magnitude a star (Dataframe row) may have to be retained.
-        max_r_mag
+            If None, criterion is not applied.
+        max_r_mag : float, or None
             Maximum Sloan r' magnitude a star (Dataframe row) may have to be retained.
+            If None, criterion is not applied.
 
         Returns
         -------
@@ -342,10 +347,12 @@ class AtlasRefcat2:
 
         Parameters
         ----------
-        min_i_mag: float
+        min_i_mag : float, or None
             Minimum Sloan i' magnitude a star (Dataframe row) may have to be retained.
-        max_i_mag
+            If None, criterion is not applied.
+        max_i_mag : float, or None
             Maximum Sloan i' magnitude a star (Dataframe row) may have to be retained.
+            If None, criterion is not applied.
 
         Returns
         -------
@@ -356,16 +363,18 @@ class AtlasRefcat2:
 
     def select_on_g_uncert(self, min_g_uncert=None, max_g_uncert=None):
         """Select rows (stars) on minimum and/or maximum catalog uncertainty in
-         Sloan g' magnitude.
+        Sloan g' magnitude.
 
         Parameters
         ----------
-        min_g_uncert: float
+        min_g_uncert : float, or None
             Minimum Sloan g' magnitude catalog uncertainty a star (Dataframe row)
             may have to be retained. In millimagnitudes.
-        max_g_uncert
+            If None, criterion is not applied.
+        max_g_uncert : float, or None
             Maximum Sloan g' magnitude catalog uncertainty a star (Dataframe row)
             may have to be retained. In millimagnitudes.
+            If None, criterion is not applied.
 
         Returns
         -------
@@ -376,16 +385,18 @@ class AtlasRefcat2:
 
     def select_on_r_uncert(self, min_r_uncert=None, max_r_uncert=None):
         """Select rows (stars) on minimum and/or maximum catalog uncertainty in
-         Sloan r' magnitude.
+        Sloan r' magnitude.
 
         Parameters
         ----------
-        min_r_uncert: float
+        min_r_uncert : float, or None
             Minimum Sloan r' magnitude catalog uncertainty a star (Dataframe row)
             may have to be retained. In millimagnitudes.
-        max_r_uncert
+            If None, criterion is not applied.
+        max_r_uncert : float, or None
             Maximum Sloan r' magnitude catalog uncertainty a star (Dataframe row)
             may have to be retained. In millimagnitudes.
+            If None, criterion is not applied.
 
         Returns
         -------
@@ -396,16 +407,18 @@ class AtlasRefcat2:
 
     def select_on_i_uncert(self, min_i_uncert=None, max_i_uncert=None):
         """Select rows (stars) on minimum and/or maximum catalog uncertainty in
-         Sloan i' magnitude.
+        Sloan i' magnitude.
 
         Parameters
         ----------
-        min_i_uncert: float
+        min_i_uncert : float, or None
             Minimum Sloan i' magnitude catalog uncertainty a star (Dataframe row)
             may have to be retained. In millimagnitudes.
-        max_i_uncert
+            If None, criterion is not applied.
+        max_i_uncert : float, or None
             Maximum Sloan i' magnitude catalog uncertainty a star (Dataframe row)
             may have to be retained. In millimagnitudes.
+            If None, criterion is not applied.
 
         Returns
         -------
@@ -419,12 +432,12 @@ class AtlasRefcat2:
 
         Parameters
         ----------
-        min_bv_color: float
+        min_bv_color : float, or None
             Minimum catalog Johnson B-V color index a star (Dataframe row) may
-            have to be retained.
-        max_bv_color
+            have to be retained. In magnitudes. If None, criterion is not applied.
+        max_bv_color : float, or None
             Maximum catalog Johnson B-V color index a star (Dataframe row) may
-            have to be retained.
+            have to be retained. In magnitudes. If None, criterion is not applied.
 
         Returns
         -------
@@ -439,12 +452,12 @@ class AtlasRefcat2:
 
         Parameters
         ----------
-        min_ri_color: float
+        min_ri_color : float, or None
             Minimum catalog Sloan r'-i' color index a star (Dataframe row) may
-            have to be retained.
-        max_ri_color
+            have to be retained. In magnitudes. If None, criterion is not applied.
+        max_ri_color : float, or None
             Maximum catalog Sloan r'-i' color index a star (Dataframe row) may
-            have to be retained.
+            have to be retained. In magnitudes. If None, criterion is not applied.
 
         Returns
         -------

@@ -24,8 +24,30 @@ __all__ = ['XY',
 __________CLASSES_____________________________________________________________ = 0
 
 
-class XY:
+class XY(namedtuple('XY', ['x', 'y'])):
     """Represents a Cartesian point (x,y) in a plane.
+
+    |XY| is a subclass of python namedtuple.
+    |XY| instances are capable of a few operations not listed in the methods.
+
+    >>> from astropack.geometry import XY, DXY
+    >>> xya = XY(3,4)
+    >>> xyb = XY(5,7)
+    >>> xya == xyb
+    False
+    >>> xya == xya
+    True
+    >>> xya != xyb
+    True
+
+    >>> str(xyb - xya)  # vector from xya to xyb
+    'DXY: 2, 3'
+    >>> str(xya.vector_to(xyb))  # synonym for '-'.
+    'DXY: 2, 3'
+    >>> str(xya + DXY(5,1))  # displace xy by dxy
+    'XY: 8, 5'
+    >>> str(xya - DXY(5,1))
+    'XY: -2, 3'
 
     Parameters
     ----------
@@ -41,25 +63,40 @@ class XY:
     y : float
         Y point location.
     """
-    #    __slots__ = ()
+    __slots__ = ()
 
-    def __init__(self, x, y):
-        self.x, self.y = x, y
+    # def __init__(self, x, y):
+    #     self.x, self.y = x, y
 
     @classmethod
-    def from_tuple(tup):
-        """Alternate constructor from (x,y) tuple.
+    def from_tuple(cls, xy_tuple):
+        """Alternate constructor, from a tuple of 2 floats.
 
         Parameters
         ----------
-        tup : tuple of 2 float
-            Tuple (x,y) from which to make a |XY| instance.
+        xy_tuple : tuple of 2 float
+            Tuple (x,y) to be converted to new |XY| instance.
 
+        Returns
+        -------
+        new_xy : |XY|
+            new |XY| instance from ``xy_tuple``.
         """
-        if isinstance(tup, tuple):
-            if len(tup) == 2:
-                return XY(tup[0], tup[1])
-        raise TypeError('XY.from_tuple() requires a 2-tuple of float as input.')
+        return XY(xy_tuple[0], xy_tuple[1])
+
+    def __eq__(self, other):
+        """True if this XY instance is numerically equivalent to ``other``,
+        else False."""
+        if not isinstance(other, XY):
+            return False
+        return (self.x == other.x) and (self.y == other.y)
+
+    def __ne__(self, other):
+        """True if this XY instance is numerically unequal to ``other``,
+        else False."""
+        if not isinstance(other, XY):
+            return False
+        return not self == other
 
     def __add__(self, dxy):
         """Add a displacement to this point.
@@ -68,6 +105,11 @@ class XY:
         ----------
         dxy : |DXY|
             Distance by which to displace this point to yield new |XY| instance.
+
+        Returns
+        -------
+        new_xy : |XY|
+            new |XY| (point) which is displaced from this point by ``other``.
         """
         if isinstance(dxy, DXY):
             return XY(self.x + dxy.dx, self.y + dxy.dy)
@@ -115,9 +157,37 @@ class XY:
             return other - self
         raise TypeError('XY.vector_to() requires type XY as operand.')
 
+    def __str__(self):
+        return 'XY: ' + ', '.join([str(self.x), str(self.y)])
 
-class DXY:
+
+class DXY(namedtuple('DXY', ['dx', 'dy'])):
     """Represents a vector (dx, dy) in a plane. A two-dimensional displacement.
+
+    |DXY| is a subclass of python namedtuple.
+    |DXY| instances are capable of a few operations not listed in the methods.
+
+    >>> from astropack.geometry import XY, DXY
+    >>> dxya = DXY(3,4)
+    >>> dxyb = DXY(5,7)
+    >>> dxya == dxyb
+    False
+    >>> dxya == dxya
+    True
+    >>> dxya != dxyb
+    True
+
+    >>> str(dxyb + dxya)
+    'DXY: 8, 11'
+    >>> str(dxyb - dxya)
+    'DXY: 2, 3'
+
+    >>> str(dxya * 5)
+    'DXY: 15, 20'
+    >>> str(5 * dxya)
+    'DXY: 15, 20'
+    >>> str(dxya / 2)
+    'DXY: 1.5, 2.0'
 
     Parameters
     ----------
@@ -134,10 +204,30 @@ class DXY:
         Vector magnitude in Y direction.
     """
 
-#     __slots__ = ()
+    __slots__ = ()
 
-    def __init__(self, dx, dy):
-        self.dx, self.dy = dx, dy
+    @classmethod
+    def from_tuple(cls, dxy_tuple):
+        """Alternate constructor, from a tuple of 2 floats.
+
+        Parameters
+        ----------
+        dxy_tuple : tuple of 2 float
+            Tuple (dx,dy) to be converted to new |DXY| instance.
+
+        Returns
+        -------
+        new_dxy : |DXY|
+            new |DXY| instance from ``dxy_tuple``.
+        """
+        return DXY(dxy_tuple[0], dxy_tuple[1])
+
+    def __eq__(self, other):
+        """True if this DXY instance is numerically equivalent to ``other``,
+        else False."""
+        if not isinstance(other, DXY):
+            return False
+        return self.dx == other.dx and self.dy == other.dy
 
     def __add__(self, other):
         """Adds two vectors to make a sum vector,
@@ -159,10 +249,6 @@ class DXY:
         elif isinstance(other, XY):
             return XY(other.x + self.dx, other.y + self.dy)
         raise TypeError('DXY.__add__() requires type DXY or XY as operand.')
-
-    def __bool__(self):
-        """Returns True if this vector's length > 0, else False."""
-        return self.length2 > 0
 
     def __mul__(self, factor):
         """Multiplies this vector by a scalar factor.
@@ -310,9 +396,15 @@ class DXY:
             return atan2(self.dy, self.dx)
         return 0.0
 
+    def __str__(self):
+        return 'DXY: ' + ', '.join([str(self.dx), str(self.dy)])
+
 
 class Rectangle_in_2D:
-    """Represents a rectangle of any orientation within a 2-D Cartesian plane.
+    """Represents a rectangle of any orientation within a 2-D Cartesian plane,
+    able to test whether (x,y) point(s) are inside the rectangle, and with facility
+    to construct a 2-D mask array in the shape of a rectangle of arbitrary location,
+    shape, size, and orientation.
 
     Parameters
     ----------
@@ -432,12 +524,15 @@ class Rectangle_in_2D:
 
 
 class Circle_in_2D:
-    """Represents a circle in a 2-D Cartesian plane.
+    """Represents a circle in a 2-D Cartesian plane,
+    able to test whether (x,y) point(s) are inside the circle, and with facility
+    to construct a 2-D mask array in the shape of a circle of arbitrary location and
+    size.
 
     Parameters
     ----------
 
-    xy_origin : |DXY|
+    xy_origin : |XY|
         Location of circle's center.
 
     radius : float
@@ -551,10 +646,10 @@ def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
 
     Parameters
     ----------
-    xy_pt : |XY|
+    xy_pt : |XY|, or tuple of 2 float
         The point whose distance to measure.
 
-    xy_1, xy_2 : each |XY|
+    xy_1, xy_2 : each  |XY|, or tuple of 2 float
         Two distinct points lying on the line.
 
     dist_12 : float or None, optional
@@ -568,10 +663,14 @@ def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
         Shortest distance between ``xy_pt`` and the line defined by points
         ``xy_1`` and ``xy_2``.
     """
+    if any([isinstance(xy, (XY, tuple)) is False for xy in [xy_pt, xy_1, xy_2]]):
+        raise TypeError('Parameters \'xy_pt\', \'xy_1\', and \'xy_2\' '
+                        'must each be 2-tuple or XY instance.')
     xpt, ypt = tuple(xy_pt)
     x1, y1 = tuple(xy_1)
     x2, y2 = tuple(xy_2)
-    if xy_1 == xy_2:
+
+    if (x1, y1) == (x2, y2):
         return sqrt((xpt - x1)**2 + (ypt - y1)**2)
     if dist_12 is None:
         dist_12 = sqrt((y2 - y1)**2 + (x2 - x1)**2)
@@ -583,7 +682,9 @@ def make_golden_spiral(n_points):
     """Return points evenly spaced on a sphere.
 
 .. note:: This function may be removed in favor of recommending astropy's
-          function :meth:`astropy.coordinates.golden_spiral_grid`
+          function
+          `golden_spiral_grid() <https://docs.astropy.org/en/stable/
+          api/astropy.coordinates.golden_spiral_grid.html>`_
 
     Parameters
     ----------

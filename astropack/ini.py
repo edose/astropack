@@ -15,10 +15,12 @@ from math import pi, cos
 THIS_PACKAGE_ROOT_DIRECTORY = \
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-__all__ = ['SiteParseError', 'SiteValueError', 'Site',
-           'TransformParseError', 'Instrument',
-           'HumanObserver',
+__all__ = ['Site',
+           'SiteParseError', 'SiteValueError',
+           'Instrument',
            'MultilineParseError',
+           'TransformParseError',
+           'HumanObserver',
            'get_ini_data',
            'string_to_boolean']
 
@@ -86,6 +88,8 @@ class Site:
     ----------
     fullpath : str
         Value of input parameter ``fullpath``.
+    filename : str
+        Base filename from input parameter ``fullpath``.
     name : str
         Long name of site, e.g., 'New Mexico Skies (Dome)'.
     mpc_code : str
@@ -351,6 +355,8 @@ class Instrument:
     ----------
     fullpath : str
         Full path to site's .ini file, from input parameter ``fullpath``.
+    filename : str
+        Base filename from input parameter ``fullpath``.
     mount_model : str
         Name of telescope mount model.
     nominal_slew_time : float
@@ -408,7 +414,7 @@ class Instrument:
         Values will be very nearly, but not exactly one.
     filters_available : list of str
         Names of filters available in the instrument.
-    v14_time_to_sn100 : dict (str: float)
+    v14_time_to_sn100 : dict (str : float)
         Estimate, by filter, of the time required for the instrument to achieve
         signal-to-noise ratio of 100 for a typical star of V magnitude 14.
 
@@ -462,6 +468,8 @@ class Instrument:
         self.v14_time_to_sn100 = \
             _dict_to_floats(_parse_multiline(i.get('Filters',
                                                    'V14 Time To SN 100'), 2, 2))
+        self.v14_time_to_sn100 = {k: (v[0] if isinstance(v, tuple) else v)
+                                  for (k, v) in self.v14_time_to_sn100.items()}
         self.transforms = self._get_transforms(i.get('Filters', 'Transforms'))
         self.min_fwhm_pixels = float(i.get('Scale', 'Min FWHM Pixels'))
         self.max_fwhm_pixels = float(i.get('Scale', 'Max FWHM Pixels'))
@@ -526,6 +534,8 @@ class HumanObserver:
     ----------
     fullpath : str
         Full path to site's .ini file, from input parameter ``fullpath``.
+    filename : str
+        Base filename from input parameter ``fullpath``.
     name : str
         Observer's name.
     alcdef_contact_name : str

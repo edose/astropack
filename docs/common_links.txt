@@ -31,6 +31,7 @@
 .. |skyfield.ME| replace:: https://rhodesmill.org/skyfield/api-ephemeris.html#skyfield.jpllib.SpiceKernel
 .. |skyfield.TS| replace:: https://rhodesmill.org/skyfield/api-time.html#skyfield.timelib.Timescale
 .. |skyfield.Star| replace:: https://rhodesmill.org/skyfield/api-stars.html#skyfield.starlib.Star
+.. |skyfield.Time| replace:: https://rhodesmill.org/skyfield/api-time.html#skyfield.timelib.Time
 
 ..           datetime (to remedy python's messed-up naming layout)
 .. |py.datetime| replace:: :py:class:`~datetime.datetime`
@@ -40,8 +41,8 @@
 .. |ndarray| replace:: :class:`numpy.ndarray`
 
 ..                                 pandas
-.. |Series| replace:: :class:`pandas.Series`
-.. |DataFrame| replace:: :class:`pandas.DataFrame`
+.. |Series| replace:: :class:`~pandas.Series`
+.. |DataFrame| replace:: :class:`~pandas.DataFrame`
 
 ..                                Astropy
 .. Coordinates and WCS

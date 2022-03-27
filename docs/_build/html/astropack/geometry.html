@@ -124,10 +124,10 @@ apertures and aperture masks.</p>
 <td><p>Represents a vector (dx, dy) in a plane.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.geometry.Rectangle_in_2D.html#astropack.geometry.Rectangle_in_2D" title="astropack.geometry.Rectangle_in_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rectangle_in_2D</span></code></a>(xy_a, xy_b, xy_c)</p></td>
-<td><p>Represents a rectangle of any orientation within a 2-D Cartesian plane.</p></td>
+<td><p>Represents a rectangle of any orientation within a 2-D Cartesian plane, able to test whether (x,y) point(s) are inside the rectangle, and with facility to construct a 2-D mask array in the shape of a rectangle of arbitrary location, shape, size, and orientation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.geometry.Circle_in_2D.html#astropack.geometry.Circle_in_2D" title="astropack.geometry.Circle_in_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Circle_in_2D</span></code></a>(xy_origin, radius)</p></td>
-<td><p>Represents a circle in a 2-D Cartesian plane.</p></td>
+<td><p>Represents a circle in a 2-D Cartesian plane, able to test whether (x,y) point(s) are inside the circle, and with facility to construct a 2-D mask array in the shape of a circle of arbitrary location and size.</p></td>
 </tr>
 </tbody>
 </table>
@@ -171,7 +171,7 @@ apertures and aperture masks.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-21. <br/>
+    Last built 2022-03-26. <br/>
   </p>
 </footer>
   </body>
