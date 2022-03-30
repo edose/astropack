@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="weighted_mean" href="../api/astropack.stats.weighted_mean.html" />
-    <link rel="prev" title="Astronomical Reference Data (astropack.reference)" href="reference.html" />
+    <link rel="prev" title="SECONDS_PER_SIDEREAL_DAY" href="../api/astropack.reference.SECONDS_PER_SIDEREAL_DAY.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
   </head><body>
@@ -55,7 +55,7 @@
 	</a>
       </li>
       <li class="right">
-	<a href="reference.html" title="Astronomical Reference Data (astropack.reference)">
+	<a href="../api/astropack.reference.SECONDS_PER_SIDEREAL_DAY.html" title="SECONDS_PER_SIDEREAL_DAY">
 	  &laquo; previous
 	</a>
 	 |
@@ -79,10 +79,80 @@
 <h1>Mixed-Model Regression (<a class="reference internal" href="#module-astropack.stats" title="astropack.stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.stats</span></code></a>)</h1>
 <p>Class <a class="reference internal" href="../api/astropack.stats.MixedModelFit.html#astropack.stats.MixedModelFit" title="astropack.stats.MixedModelFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedModelFit</span></code></a> as a comprehensive but accessible wrapper for statsmodels’
 mixed-model regression class, with its impenetrable documentation.
-I’ve interpreted it to a language spoken on earth it so you don’t have to.</p>
-<section id="getting-started">
-<h2>Getting Started</h2>
-<p>Examples, etc.</p>
+I’ve translated it from Statsmodelese to a language spoken on planet earth.</p>
+<p>Class <a class="reference internal" href="../api/astropack.stats.LinearFit.html#astropack.stats.LinearFit" title="astropack.stats.LinearFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearFit</span></code></a> offers multivariate linear regression.</p>
+<p>Both classes depend on pandas <a href="#id1"><span class="problematic" id="id2">|</span></a>DataFrame|s for input and output tables.</p>
+<section id="getting-started-with-class-mixedmodelfit">
+<h2>Getting Started with Class <a class="reference internal" href="../api/astropack.stats.MixedModelFit.html#astropack.stats.MixedModelFit" title="astropack.stats.MixedModelFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedModelFit</span></code></a></h2>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.stats</span> <span class="kn">import</span> <span class="n">MixedModelFit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># First, set up regression data:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    A, B, and C are independent &#39;X&#39; variables,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    Ran is a category/group &#39;random&#39; variable, and</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    Dep is the independent &#39;Y&#39; variable, with a bit of random error/noise</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="mi">80</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">points</span><span class="p">),</span>
+<span class="go">         &#39;B&#39;: np.random.randn(points),</span>
+<span class="go">         &#39;C&#39;: np.random.randn(points),</span>
+<span class="go">         &#39;Ran&#39;: np.random.randint(0, 3, points),</span>
+<span class="go">         &#39;Dep&#39;: None})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Dep&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">17</span> <span class="o">+</span> <span class="mi">1</span><span class="o">*</span><span class="n">df</span><span class="o">.</span><span class="n">A</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">df</span><span class="o">.</span><span class="n">B</span> <span class="o">+</span> <span class="mi">4</span><span class="o">*</span><span class="n">df</span><span class="o">.</span><span class="n">C</span> <span class="o">+</span> <span class="mi">5</span><span class="o">*</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Ran</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> \
+<span class="go">                1*np.random.randn(len(df))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Ran&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">categories</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Ran&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Run the mixed-model regression:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span> <span class="o">=</span> <span class="n">MixedModelFit</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">dep_var</span><span class="o">=</span><span class="s1">&#39;Dep&#39;</span><span class="p">,</span> <span class="n">fixed_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">group_var</span><span class="o">=</span><span class="s1">&#39;Ran&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Inspect results:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span><span class="o">.</span><span class="n">converged</span><span class="p">,</span> <span class="n">fit</span><span class="o">.</span><span class="n">nobs</span><span class="p">,</span> <span class="n">fit</span><span class="o">.</span><span class="n">sigma</span>
+<span class="go">(True, 80, 0.9875046330402963)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span><span class="o">.</span><span class="n">df_fixed_effects</span>  <span class="c1"># no-noise values would be [17, 1, 2, 4]</span>
+<span class="go">               Value     Stdev     Tvalue         Pvalue       Name</span>
+<span class="go">Intercept  16.671046  2.874801   5.799025   6.670147e-09  Intercept</span>
+<span class="go">A           0.857537  0.115097   7.450542   9.295788e-14          A</span>
+<span class="go">B           1.938975  0.111619  17.371308   1.360888e-67          B</span>
+<span class="go">C           4.041939  0.115315  35.051338  3.720338e-269          C</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span><span class="o">.</span><span class="n">df_fixed_effects</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">]</span>
+<span class="go">1.938974721449711</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span><span class="o">.</span><span class="n">df_random_effects</span>  <span class="c1"># no-noise values would be 5 * [-1, 0, 1] = [-5, 0, +5]</span>
+<span class="go">      Group GroupName</span>
+<span class="go">X -5.237536         X</span>
+<span class="go">Y  0.575538         Y</span>
+<span class="go">Z  4.661998         Z</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-started-with-class-linearfit">
+<h2>Getting Started with Class <a class="reference internal" href="../api/astropack.stats.LinearFit.html#astropack.stats.LinearFit" title="astropack.stats.LinearFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearFit</span></code></a></h2>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.stats</span> <span class="kn">import</span> <span class="n">LinearFit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># First, set up regression data:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    A, B, and C are independent &#39;X&#39; variables, and</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    Dep is the independent &#39;Y&#39; variable, with a bit of random error/noise</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="mi">80</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">points</span><span class="p">),</span>
+<span class="go">        &#39;B&#39;: np.random.randn(points),</span>
+<span class="go">        &#39;C&#39;: np.random.randn(points),</span>
+<span class="go">        &#39;Dep&#39;: 0}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df_model</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df_model</span><span class="p">[</span><span class="s1">&#39;Dep&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">13</span> <span class="o">+</span> <span class="mf">1.5</span><span class="o">*</span><span class="n">df_model</span><span class="o">.</span><span class="n">A</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">df_model</span><span class="o">.</span><span class="n">B</span> <span class="o">+</span> <span class="mi">4</span><span class="o">*</span><span class="n">df_model</span><span class="o">.</span><span class="n">C</span> <span class="o">+</span> \
+<span class="go">                      1*np.random.randn(len(df_model))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Run regression, yielding the fit object:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span> <span class="o">=</span> <span class="n">LinearFit</span><span class="p">(</span><span class="n">df_model</span><span class="p">,</span> <span class="n">dep_var</span><span class="o">=</span><span class="s1">&#39;Dep&#39;</span><span class="p">,</span> <span class="n">indep_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Inspect results:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span><span class="o">.</span><span class="n">nobs</span><span class="p">,</span> <span class="n">fit</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="n">fit</span><span class="o">.</span><span class="n">r2</span>
+<span class="go">(80.0, 0.922577047445627, 0.960727350867271)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fit</span><span class="o">.</span><span class="n">df_indep_vars</span>  <span class="c1"># no-noise values would be [13, 1.5, 2, 4]</span>
+<span class="go">               Value     Stdev      Tvalue        PValue       Name</span>
+<span class="go">Intercept  13.059410  0.107755  121.195947  1.004265e-88  Intercept</span>
+<span class="go">A           1.375857  0.109955   12.512852  3.847126e-20          A</span>
+<span class="go">B           1.984497  0.106754   18.589413  5.346495e-30          B</span>
+<span class="go">C           4.003729  0.109965   36.409117  7.426987e-50          C</span>
+</pre></div>
+</div>
 </section>
 <section id="reference-api">
 <h2>Reference/API</h2>
@@ -134,7 +204,8 @@ Numerous statistics and regression classes and functions.</p>
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Mixed-Model Regression (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.stats</span></code>)</a><ul>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#getting-started-with-class-mixedmodelfit">Getting Started with Class <code class="xref py py-class docutils literal notranslate"><span class="pre">MixedModelFit</span></code></a></li>
+<li><a class="reference internal" href="#getting-started-with-class-linearfit">Getting Started with Class <code class="xref py py-class docutils literal notranslate"><span class="pre">LinearFit</span></code></a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.stats">astropack.stats Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
@@ -160,7 +231,7 @@ Numerous statistics and regression classes and functions.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

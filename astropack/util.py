@@ -48,10 +48,10 @@ class Timespan:
 
         Parameters
         ----------
-        start_time : |py.datetime| or |Time|
+        start_time : |py.datetime| or |Time|, UTC timezone required.
             Start time of new |Timespan|.
 
-        end_time :  |py.datetime| or |Time|
+        end_time :  |py.datetime| or |Time|, UTC timezone required.
             End time of new |Timespan|.
 
         Attributes
@@ -356,7 +356,7 @@ class Timespan:
             return []
         n_events = min(max_events, 1 +
                        floor(Timespan(first_time, self.end).seconds / period.sec))
-        print('\nn_events', str(n_events))
+        # print('\nn_events', str(n_events))
         event_times = [first_time + i * period for i in range(n_events)]
         return event_times
 
@@ -422,11 +422,6 @@ def ra_as_degrees(ra_string):
     -------
     ra_degrees : float, or None
         Right Ascension in degrees in range [0, 360], or None if value is < 0 or > 360.
-
-    No rounding errors on degrees, as is seen with Astropy.Angle:
-
-
-
     """
     ra_list = parse_hex(ra_string)
     if len(ra_list) == 1:

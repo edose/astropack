@@ -9,7 +9,7 @@ from math import sqrt
 
 # External packages:
 import pandas as pd
-import statsmodels.regression.mixed_linear_model as sm_mm  # NB: only statsmodels version >= 0.8
+import statsmodels.regression.mixed_linear_model as sm_mm  # NB: statsmodels ver >= 0.8
 import statsmodels.api as sm_api  # sm version >= 0.8
 
 
@@ -26,8 +26,7 @@ class MixedModelFit:
     Current implementation uses formula form, i.e.,
     statsmodel::sm_mm.MixedLM.from_formula()
 
-    >>> fit = MixedModelFit(df, 'Y', ['X1', 'X2'], 'a_group_type']
-    >>> fit = MixedModelFit(df, 'Y', 'X1', 'a_group_type'] (one indep var)
+    >>>
 
     Parameters
     ----------
@@ -123,7 +122,7 @@ class MixedModelFit:
         model = sm_mm.MixedLM.from_formula(formula, groups=data[group_var], data=data)
         fit = model.fit()
 
-        self.statsmodels_object = fit  # instance of class MixedLMResults (py pkg statsmodels)
+        self.statsmodels_object = fit  # instance of class MixedLMResults
 
         # Scalar and naming attributes:
         self.converged = fit.converged  # bool
@@ -208,8 +207,7 @@ class LinearFit:
 
     Internally uses column-name API to statsmodels OLS.
 
-    >>> fit = LinearFit(df_input, 'Y', ['X1', 'X2']]
-    >>> fit = LinearFit(df_input, 'Y', 'X1'] (one indep var)
+    >>>
 
     Parameters
     ----------
@@ -295,7 +293,7 @@ class LinearFit:
 
         # Make solution (indep vars) dataframe:
         df = pd.DataFrame({'Value': fit.params})
-        df = df.join(pd.DataFrame({'Stdev': fit.bse}))       # use join to enforce consistency
+        df = df.join(pd.DataFrame({'Stdev': fit.bse}))       # join for consistency
         df = df.join(pd.DataFrame({'Tvalue': fit.tvalues}))  # "
         df = df.join(pd.DataFrame({'PValue': fit.pvalues}))  # "
         df.index = ['Intercept' if x.lower() == 'const' else x for x in df.index]
@@ -354,7 +352,7 @@ def weighted_mean(values, weights):
 
     Raises
     ------
-    VelueError
+    ValueError
         Raised when values and weights are unequal in number, as required.
 
         Raised when sum of weights is not positive, as required.
@@ -377,6 +375,7 @@ def weighted_mean(values, weights):
         resid2 = [(val-w_mean)**2 for val in value_list]
         nwt2 = sum(nwt**2 for nwt in norm_weights)
         rel_factor = 1.0 / (1.0 - nwt2)  # reliability factor (better than N'/(N'-1))
-        w_stdev_pop = sqrt(rel_factor * sum(nwt * r2 for (nwt, r2) in zip(norm_weights, resid2)))
+        w_stdev_pop = sqrt(rel_factor * sum(nwt * r2
+                                            for (nwt, r2) in zip(norm_weights, resid2)))
         w_stdev_w_mean = sqrt(nwt2) * w_stdev_pop
     return w_mean, w_stdev_pop, w_stdev_w_mean

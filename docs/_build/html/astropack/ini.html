@@ -77,47 +77,80 @@
             
   <section id="site-instrument-and-observer-ini-files-astropack-ini">
 <h1>Site, Instrument and Observer .ini files (<a class="reference internal" href="#module-astropack.ini" title="astropack.ini"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.ini</span></code></a>)</h1>
-<p>classes +  code. (rst file)</p>
-<section id="introduction">
-<h2>Introduction</h2>
-<section id="example-site-ini-file">
-<h3>Example <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> .ini file</h3>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Site</span><span class="p">]</span>
-<span class="n">Name</span> <span class="o">=</span> <span class="n">New</span> <span class="n">Mexico</span> <span class="n">Skies</span> <span class="p">(</span><span class="n">Dome</span><span class="p">)</span>
-<span class="n">MPC</span> <span class="n">Code</span> <span class="o">=</span> <span class="n">N</span><span class="o">/</span><span class="n">A</span>
-
-<span class="p">[</span><span class="n">Location</span><span class="p">]</span>
-<span class="c1"># Longitude, Latitude: decimal degrees; Elevation: meters.</span>
-<span class="n">Longitude</span> <span class="o">=</span> <span class="o">-</span><span class="mf">105.53</span>
-<span class="n">Latitude</span> <span class="o">=</span> <span class="o">+</span><span class="mf">32.90</span>
-<span class="n">Elevation</span> <span class="o">=</span> <span class="mi">2200</span>
-<span class="c1"># For correct timezone in standard (not daylight savings/summer) time.</span>
-<span class="c1"># Needed only to determine this site&#39;s side of International Date Line.</span>
-<span class="n">UTC</span> <span class="n">Offset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">7</span>
-<span class="c1"># User discretion, for sufficiently dark to observe.</span>
-<span class="n">Sun</span> <span class="n">Altitude</span> <span class="n">Dark</span> <span class="o">=</span> <span class="o">-</span><span class="mi">9</span>
-
-<span class="p">[</span><span class="n">Climate</span><span class="p">]</span>
-<span class="c1"># Coldest date of each year in mm-dd.</span>
-<span class="n">Coldest</span> <span class="n">Date</span> <span class="o">=</span> <span class="mi">01</span><span class="o">-</span><span class="mi">25</span>
-<span class="c1"># Nominal midnight temperatures (deg C): summer winter</span>
-<span class="n">Midnight</span> <span class="n">Temperatures</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">-</span><span class="mi">3</span>
-<span class="c1"># Nominal midnight percent humidity: summer winter</span>
-<span class="n">Midnight</span> <span class="n">Humidities</span> <span class="o">=</span> <span class="mi">40</span> <span class="mi">60</span>
-<span class="c1"># Each line: filter summer_extinction winter_extinction</span>
-<span class="c1"># Approximate values, but that&#39;s ok.</span>
-<span class="n">Extinctions</span> <span class="o">=</span> <span class="n">Clear</span> <span class="mf">0.18</span> <span class="mf">0.14</span><span class="p">,</span>
-              <span class="n">V</span>     <span class="mf">0.20</span> <span class="mf">0.15</span><span class="p">,</span>
-              <span class="n">R</span>     <span class="mf">0.16</span> <span class="mf">0.12</span><span class="p">,</span>
-              <span class="n">I</span>     <span class="mf">0.11</span> <span class="mf">0.08</span>
-
-<span class="p">[</span><span class="n">Dome</span><span class="p">]</span>
-<span class="n">Present</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="c1"># Dome slew rate in (degrees azimuth)/second.</span>
-<span class="n">Slew</span> <span class="n">Rate</span> <span class="o">=</span> <span class="mf">2.85</span>
+<p>Module <a class="reference internal" href="#module-astropack.ini" title="astropack.ini"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.ini</span></code></a> provides .ini file infrastructure, as well as three
+<em>server classes</em> for .ini file formats useful to astronomy:</p>
+<ul class="simple">
+<li><p>Class <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a>, reading and serving data about an observing site,</p></li>
+<li><p>Class <a class="reference internal" href="../api/astropack.ini.Instrument.html#astropack.ini.Instrument" title="astropack.ini.Instrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a>, reading and serving data about a
+mount-telescope-camera astronomical instrument, and</p></li>
+<li><p>Class <a class="reference internal" href="../api/astropack.ini.HumanObserver.html#astropack.ini.HumanObserver" title="astropack.ini.HumanObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">HumanObserver</span></code></a>, which contains a small amount of data about the
+person taking the astronomical images, especially in support of automatic
+generation of ALCDEF-format astroid lightcurve data submission files
+(where ALCDEF refers to the Asteroid Lightcurve Data Exchange Format,
+as well as to a database harboring and serving such data). See
+<a class="reference external" href="https://alcdef.org/index.php">https://alcdef.org/index.php</a></p></li>
+</ul>
+<p>The idea behind these simple .ini files and respective classes
+is to separate code from data, that is, to put specific user data
+in safe, separate places that can be updated freely without having
+to modify or even to understand the python code at all.</p>
+<section id="getting-started-with-the-site-class">
+<h2>Getting Started with the <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> class</h2>
+<p>The <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> class simply reads and parses a Site-format .ini file,
+and returns data on demand.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.ini</span> <span class="kn">import</span> <span class="n">Site</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fullpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">INI_DIRECTORY</span><span class="p">,</span> <span class="s1">&#39;my_dome.ini&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Site</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;My Observatory Site (Dome)&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">longitude</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">latitude</span>
+<span class="go">(-105.528978, 32.903156)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">site</span><span class="o">.</span><span class="n">extinction</span><span class="p">[</span><span class="s1">&#39;Clear&#39;</span><span class="p">]</span>  <span class="c1"># for winter, summer</span>
+<span class="go">(0.18, 0.14)</span>
 </pre></div>
 </div>
+<p>There are many more attributes available to the user.
+An example <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> .ini file and all class methods and attributes
+are given in <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a>’s API page.</p>
 </section>
+<section id="getting-started-with-the-instrument-class">
+<h2>Getting Started with the <a class="reference internal" href="../api/astropack.ini.Instrument.html#astropack.ini.Instrument" title="astropack.ini.Instrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a> class</h2>
+<p>The <a class="reference internal" href="../api/astropack.ini.Instrument.html#astropack.ini.Instrument" title="astropack.ini.Instrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a> class simply reads and parses an Instrument-format .ini file,
+and returns data on demand.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.ini</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Instrument</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">INI_DIRECTORY</span><span class="p">,</span> <span class="s1">&#39;my_C14.ini&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">mount_model</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">camera_model</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">ota_aperture</span>  <span class="c1"># aperture diameter in meters</span>
+<span class="go">(&#39;PlaneWave L-500&#39;, &#39;SBIG STXL-6303E&#39;, 0.35)</span>
+<span class="go">&gt;&gt;&gt;s.filters_available</span>
+<span class="go">(&#39;Clear&#39;, &#39;BB&#39;, &#39;SG&#39;, &#39;SR&#39;, &#39;SI&#39;)</span>
+<span class="go"># Transform keys are (filter, target passband, color passbands 1 and 2).</span>
+<span class="go"># Values are first- and optionally second-order color coefficients.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">transforms</span>
+<span class="go">{(&#39;Clear&#39;, &#39;SR&#39;, &#39;SR&#39;, &#39;SI&#39;): (0.4, -0.6),</span>
+<span class="go"> (&#39;BB&#39;, &#39;SR&#39;, &#39;SR&#39;, &#39;SI&#39;): (-0.131,)}</span>
+</pre></div>
+</div>
+<p>There are many more attributes available to the user.
+An example <a class="reference internal" href="../api/astropack.ini.Instrument.html#astropack.ini.Instrument" title="astropack.ini.Instrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a> .ini file and all class methods and attributes
+are given in <a class="reference internal" href="../api/astropack.ini.Instrument.html#astropack.ini.Instrument" title="astropack.ini.Instrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a>’s API page.</p>
+</section>
+<section id="getting-started-with-the-humanobserver-class">
+<h2>Getting Started with the <a class="reference internal" href="../api/astropack.ini.HumanObserver.html#astropack.ini.HumanObserver" title="astropack.ini.HumanObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">HumanObserver</span></code></a> class</h2>
+<p>The <a class="reference internal" href="../api/astropack.ini.HumanObserver.html#astropack.ini.HumanObserver" title="astropack.ini.HumanObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">HumanObserver</span></code></a> class simply reads and parses a very small
+HumanObserver-format .ini file, and returns data on demand.
+Used by the author mostly in code that generates ALCDEF submissions.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.ini</span> <span class="kn">import</span> <span class="n">HumanObserver</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fullpath</span> <span class="o">=</span> <span class="p">(</span><span class="n">INI_DIRECTORY</span><span class="p">,</span> <span class="s1">&#39;myself.ini&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">HumanObserver</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span><span class="o">.</span><span class="n">alcdef_contact_name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span><span class="o">.</span><span class="n">alcdef_observers</span>
+<span class="go">&#39;Dose, E.V.&#39;</span>
+<span class="go">obs.alcdef_contact_info</span>
+<span class="go">&#39;ahaha@noway.com&#39;</span>
+</pre></div>
+</div>
+<p>An example <a class="reference internal" href="../api/astropack.ini.HumanObserver.html#astropack.ini.HumanObserver" title="astropack.ini.HumanObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">HumanObserver</span></code></a> .ini file and class attributes
+are given in <a class="reference internal" href="../api/astropack.ini.HumanObserver.html#astropack.ini.HumanObserver" title="astropack.ini.HumanObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">HumanObserver</span></code></a>’s API page.</p>
 </section>
 <section id="reference-api">
 <h2>Reference/API</h2>
@@ -152,7 +185,7 @@ serve them on request.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Site</span></code></a>(fullpath)</p></td>
-<td><p>Holds and makes available one telescope/observer site's information.</p></td>
+<td><p>Holds and makes available one telescope/observer site's information, by loading info from one .ini file and returning data on demand.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.ini.SiteParseError.html#astropack.ini.SiteParseError" title="astropack.ini.SiteParseError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SiteParseError</span></code></a></p></td>
 <td><p>Raised when a line in Site .ini file cannot be meaningfuly parsed.</p></td>
@@ -188,10 +221,9 @@ serve them on request.</p>
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Site, Instrument and Observer .ini files (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.ini</span></code>)</a><ul>
-<li><a class="reference internal" href="#introduction">Introduction</a><ul>
-<li><a class="reference internal" href="#example-site-ini-file">Example <code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code> .ini file</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#getting-started-with-the-site-class">Getting Started with the <code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code> class</a></li>
+<li><a class="reference internal" href="#getting-started-with-the-instrument-class">Getting Started with the <code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code> class</a></li>
+<li><a class="reference internal" href="#getting-started-with-the-humanobserver-class">Getting Started with the <code class="xref py py-class docutils literal notranslate"><span class="pre">HumanObserver</span></code> class</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.ini">astropack.ini Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
@@ -217,7 +249,7 @@ serve them on request.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

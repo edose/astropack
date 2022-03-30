@@ -229,6 +229,7 @@ modindex_common_prefix = ["astropack."]
 numpydoc_show_class_members = False
 
 autosummary_generate = True
+automodsumm_inherited_members = True
 
 # autodoc_member_order = 'alphabetical'  # doesn't work with automodapi.
 

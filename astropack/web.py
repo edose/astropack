@@ -22,8 +22,7 @@ from astropy.time import Time
 from astroquery.mpc import MPC
 
 
-__all__ = ['get_mp_ephem',
-           'get_mp_info']
+__all__ = ['get_mp_info', 'get_mp_ephem']
 
 
 __________FUNCTIONS___________________________________________________________ = 0

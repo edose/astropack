@@ -29,6 +29,7 @@ ISO_8601_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 __all__ = ['FITS',
            'MaskError',
+           'Ap',
            'PointSourceAp',
            'MovingSourceAp',
            'make_circular_mask',
@@ -151,12 +152,12 @@ class FITS:
         Declination of image center, in degrees, from ``wcs_corrected``.
     """
 
-    """NB: ``pinpoint_pixel_scale_multiplier`` is a value (prob. near 1) by which to 
-    multiply pixel scale, iff PinPoint plate solution is detected. 
+    """NB: ``pinpoint_pixel_scale_multiplier`` is a value (prob. near 1) by which to
+    multiply pixel scale, iff PinPoint plate solution is detected.
     It's the best solution I can devise for the PinPoint's pixel scale deviating from
     those of linear WCS plate solvers.
-    This arises because (sigh) Pinpoint plate solutions include "private" 
-    distortion parameters, so that their WCS values are not what they would be & 
+    This arises because (sigh) Pinpoint plate solutions include "private"
+    distortion parameters, so that their WCS values are not what they would be &
     should be for a linear-WCS-only solution.
     That is, PinPoint zero-order solution cannot be used as one, nor even correctable
     given its "private" distortion parameters.
@@ -254,7 +255,7 @@ class FITS:
     def xy_to_skycoords(self, xy):
         """ Convert the image's (x,y) coordinates to (RA, Dec) sky coordinates.
 
-        Wrapper for :meth:`astropy.WCS.wcs.pixel_to_world()`, using ``wcs_corrected``.
+        Wrapper for :meth:`astropy.wcs.WCS.pixel_to_world()`, using ``wcs_corrected``.
 
         Parameters
         ----------
@@ -309,7 +310,7 @@ class FITS:
         # TODO: consider returning astropack.geometry.XY (namedtuple) or list of them.
         xy = skycoord_to_pixel(skycoords, self.wcs_corrected, origin=0, mode='wcs')
         if xy[0].size == 1:
-            xy = float(xy[0]), float(xy[1])  # due to python weirdness.
+            xy = float(xy[0]), float(xy[1])  # fix python weirdness with return types.
         else:
             xy = list(zip(xy[0], xy[1]))
         return xy
@@ -522,8 +523,8 @@ class Ap:
         self.xy_center = xy_center
         # Cutout offset (dx,dy), relative to image (0,0).
         self.dxy_offset = dxy_offset
-        self.input_foreground_mask = foreground_mask
-        self.input_background_mask = background_mask
+        input_foreground_mask = foreground_mask
+        input_background_mask = background_mask
         self.source_id = str(source_id)
         self.obs_id = str(obs_id)
 
@@ -533,35 +534,35 @@ class Ap:
 
         # Ensure background mask is boolean array of same shape as foreground mask:
         # If no background mask given, make one from inverse of foreground mask:
-        if self.input_background_mask is None:
-            self.background_mask = np.logical_not(self.input_foreground_mask)
+        if input_background_mask is None:
+            self.background_mask = np.logical_not(input_foreground_mask)
         # If background mask is given but int or float array (rare),
         # convert it to a boolean numpy array:
-        elif type(self.input_background_mask) in (int, float) and \
-            self.input_background_mask == 0:
-            self.background_mask = np.full_like(self.input_foreground_mask,
+        elif type(input_background_mask) in (int, float) and \
+            input_background_mask == 0:
+            self.background_mask = np.full_like(input_foreground_mask,
                                                 fill_value=True, dtype=np.bool)
         # If background mask is valid array, use it directly
-        elif isinstance(self.input_background_mask, np.ndarray):
-            if self.input_background_mask.shape != self.input_foreground_mask.shape:
+        elif isinstance(input_background_mask, np.ndarray):
+            if input_background_mask.shape != input_foreground_mask.shape:
                 raise MaskError('Foreground and background masks differ in shape.')
-            self.background_mask = self.input_background_mask
+            self.background_mask = input_background_mask
         else:
             raise MaskError('Background mask type ' +
-                            str(type(self.input_background_mask)) + ' is not valid.')
+                            str(type(input_background_mask)) + ' is not valid.')
 
         # Determine x and y boundaries of cutout containing foreground and background:
         self.x_low = self.dxy_offset.dx
         self.y_low = self.dxy_offset.dy
-        self.x_high = self.dxy_offset.dx + self.input_foreground_mask.shape[0] - 1
-        self.y_high = self.dxy_offset.dy + self.input_foreground_mask.shape[1] - 1
+        self.x_high = self.dxy_offset.dx + input_foreground_mask.shape[0] - 1
+        self.y_high = self.dxy_offset.dy + input_foreground_mask.shape[1] - 1
         if not self._cutout_is_wholly_inside_image():
             self.is_valid = False
             return
 
         # Make the final cutout array and masks, all with indices in x,y order:
         self.cutout = image_xy[self.x_low: self.x_high + 1, self.y_low: self.y_high + 1]
-        self.foreground_mask = self.input_foreground_mask.copy()  # indices x,y order.
+        self.foreground_mask = input_foreground_mask.copy()  # indices x,y order.
         self.background_mask = self.background_mask.copy()        # "
 
         # Compute pixels in use by both masks (should always be zero):
@@ -612,15 +613,17 @@ class Ap:
                (self.y_high < self.image_xy.shape[0])
 
     def flux_stddev(self, gain=1):
-        """Returns important stats related to net flux of foreground pixels.
+        """Returns estimated standard deviation of background-corrected flux.
 
         This was made a method so that ``gain`` can be passed in separately.
+
+        Subclasses should inherit this method unchanged.
 
         Parameters
         ----------
         gain : float
             CCD-like gain in e-/ADU. Property of the specific camera (model).
-            Needed only for accurate uncertainty estimation.
+            Needed only to improve accuracy of uncertainty estimations.
 
         Returns
         -------
@@ -681,7 +684,7 @@ class Ap:
 
 
 class PointSourceAp(Ap):
-    """Standard photometric aperture for stationary point source of light,
+    """Standard circular photometric aperture for stationary point source of light,
     esp. for a star.
 
     Subclass of `~.image.Ap`.
@@ -691,11 +694,11 @@ class PointSourceAp(Ap):
     Parameters
     ----------
 
-     image_xy : 2-dimensional |ndarray| of float
+    image_xy : 2-dimensional |ndarray| of float
         Image array, with (x,y) indexing.
         Most conveniently arranged via |FITS| instance and passing its ``image_xy``.
 
-     xy_center : |XY|, or tuple of 2 float
+    xy_center : |XY|, or tuple of 2 float
         Pixel position (x,y) of light source within parent image.
         This should be the best prior estimate of the light source's centroid
         at mid-exposure.
@@ -723,6 +726,43 @@ class PointSourceAp(Ap):
     Attributes
     ----------
 
+    image_xy : 2-dimensional |ndarray| of float
+        Image array, with (x,y) indexing.
+        Most conveniently arranged via |FITS| instance and passing its ``image_xy``.
+
+    xy_center : |XY| instance
+        Pixel position (x,y) of light source within parent image.
+        This should be the best prior estimate of the light source's centroid
+        at mid-exposure.
+
+    dxy_offset : |DXY| instance
+        lowest (x,y) index of cutout (upper-left corner of image), that is,
+        the offset of cutout origin from parent image's origin.
+
+    foreground_mask : 2-dmensional |ndarray| of bool
+        Mask array for pixels to be counted in flux, centroid, etc.
+        Required. Uses (x,y) index convention and numpy mask convention
+        (True = pixel is masked out and unused).
+        Mask shape defines shape of cutout to be used.
+
+    background_mask : 2-dimensional |ndarray| of bool, or int, or float, optional
+        Specifies Mask array for pixels to be counted in background flux, centroid, etc.
+        If |ndarray|: boolean array in same shape as foreground_mask, giving mask
+        directly.
+        If int or float: this mask will be set to that value per pixel. If zero,
+        background mask is not used.
+        If unspecified: this mask will be set to the inverse of `foreground_mask`.
+        Numpy mask convention (True -> pixel masked out, unused).
+
+    source_id : str, optional
+        String identifying the source (e.g., comp star ID, MP number) that this
+        aperture is intended to measure. Default is empty string.
+
+    obs_id : str, optional
+        String identifying the specific observation to which this aperture applies,
+        typically unique among all observations (aperture instances) in one image.
+        Default is empty string.
+
     foreground_radius : float
         Radial size of foreground around point source centroid, in pixels, from
         input parameter ``foreground_radius``.
@@ -741,6 +781,60 @@ class PointSourceAp(Ap):
 
     annulus_outer_radius : float
         Radius of outer edge of background annulus, in pixels.
+
+    is_valid : Bool
+        True if aperture appears valid, else False.
+
+    cutout : |ndarray|
+        Small subset of image emcompassing the aperture and masks.
+
+    mask_overlap_pixel_count : int
+        Number of image pixels in both the foreground mask and background mask.
+        Ideally zero.
+
+    foreground_pixel_count : int
+        Number of pixels for which foreground flux is summed.
+
+    background_pixel_count : int
+        Number of pixels for which background flux is summed.
+
+    foreground_max : float
+        Maximum ADU of any pixel in the foreground.
+
+    background_min : float
+        Maximum ADU of any pixel in the foreground.
+
+    raw_flux : float
+        Total flux in foreground, before subtracting background level.
+
+    net_flux : float
+        Background-corrected foreground flux in foreground.
+        Used in computing the instrumental magnitude.
+
+    stats : photutils :class:~photutils.segmentation.SourceCatalog instance
+        A bundle of statistics derived from this aperture.
+
+        See https://photutils.readthedocs.io/en/stable/api/photutils.segmentation.
+        SourceCatalog.html#photutils.segmentation.SourceCatalog
+
+    xy_centroid : tuple of 2 float
+        Pixel (x,y) position for centroid of background-corrected flux,
+        for this target
+
+    sigma : float
+        RMS distance of pixels from centroid, weighted by background-corrected flux.
+        A measure of flux spreading.
+
+    fwhm : float
+        Full-width at half-maximum of background-corrected flux. A measure of flux
+        spreading, and estimated from ``sigma``.
+
+    elongation : float
+        A measure of non-circularity of background-corrected flux.
+        Circular flux profiles will give zero.
+        Specifically, elongation is the ratio of the lengths of semi-major and
+        semi-minor axes of the corrected flux, considered as having best-fit
+        elliptical shape.
     """
 
     def __init__(self, image_xy, xy_center, foreground_radius, gap, background_width,
@@ -834,28 +928,127 @@ class MovingSourceAp(Ap):
     Attributes
     ----------
 
-    xy_start : |XY|
+    image_xy : 2-dimensional |ndarray| of float
+        Image array, with (x,y) indexing.
+        Most conveniently arranged via |FITS| instance and passing its ``image_xy``.
+
+    xy_start :|XY| instance
         Pixel position (x,y) of light source within parent image, at the beginning
-        time of exposure, from input parameter ``xy_start``.
+        time of exposure.
 
-    xy_end : |XY|
+    xy_end : |XY| instance
         Pixel position (x,y) of light source within parent image, at the end
-        time of exposure, from input parameter ``xy_end``.
+        time of exposure.
 
-    background_inner_radius : float
+    dxy_offset : |DXY| instance
+        lowest (x,y) index of cutout (upper-left corner of image), that is,
+        the offset of cutout origin from parent image's origin.
+
+    foreground_mask : 2-dmensional |ndarray| of bool
+        Mask array for pixels to be counted in flux, centroid, etc.
+        Required. Uses (x,y) index convention and numpy mask convention
+        (True = pixel is masked out and unused).
+        Mask shape defines shape of cutout to be used.
+
+    background_mask : 2-dimensional |ndarray| of bool, or int, or float, optional
+        Specifies Mask array for pixels to be counted in background flux, centroid, etc.
+        If |ndarray|: boolean array in same shape as foreground_mask, giving mask
+        directly.
+        If int or float: this mask will be set to that value per pixel. If zero,
+        background mask is not used.
+        If unspecified: this mask will be set to the inverse of `foreground_mask`.
+        Numpy mask convention (True -> pixel masked out, unused).
+
+    source_id : str, optional
+        String identifying the source (e.g., comp star ID, MP number) that this
+        aperture is intended to measure. Default is empty string.
+
+    obs_id : str, optional
+        String identifying the specific observation to which this aperture applies,
+        typically unique among all observations (aperture instances) in one image.
+        Default is empty string.
+
+    foreground_radius : float
+        Radial size of foreground around point source centroid, in pixels, from
+        input parameter ``foreground_radius``.
+
+    gap : float
+        Width of gap, that is, the difference between radius of foreground and
+        inside radius of background annulus, in pixels, from input parameter ``gap``.
+
+    background_width : float
+        Radial width of annulus, that is, the difference between inside and
+        outside radii of background annulus, in pixels, from input parameter
+        ``background_width``.
+
+    annulus_inner_radius : float
         Radius of inner edge of background annulus, in pixels.
 
-    background_outer_radius : float
+    annulus_outer_radius : float
         Radius of outer edge of background annulus, in pixels.
+
+    is_valid : Bool
+        True if aperture appears valid, else False.
+
+    cutout : |ndarray|
+        Small subset of image emcompassing the aperture and masks.
+
+    mask_overlap_pixel_count : int
+        Number of image pixels in both the foreground mask and background mask.
+        Ideally zero.
+
+    foreground_pixel_count : int
+        Number of pixels for which foreground flux is summed.
+
+    background_pixel_count : int
+        Number of pixels for which background flux is summed.
+
+    foreground_max : float
+        Maximum ADU of any pixel in the foreground.
+
+    background_min : float
+        Maximum ADU of any pixel in the foreground.
+
+    raw_flux : float
+        Total flux in foreground, before subtracting background level.
+
+    net_flux : float
+        Background-corrected foreground flux in foreground.
+        Used in computing the instrumental magnitude.
+
+    stats : photutils :class:~photutils.segmentation.SourceCatalog instance
+        A bundle of statistics derived from this aperture.
+
+        See https://photutils.readthedocs.io/en/stable/api/photutils.segmentation.
+        SourceCatalog.html#photutils.segmentation.SourceCatalog
+
+    xy_centroid : tuple of 2 float
+        Pixel (x,y) position for centroid of background-corrected flux,
+        for this target
+
+    sigma : float
+        RMS distance of pixels from centroid, weighted by background-corrected flux.
+        A measure of flux spreading.
+
+    fwhm : float
+        Full-width at half-maximum of background-corrected flux. A measure of flux
+        spreading, and estimated from ``sigma``.
+
+    elongation : float
+        A measure of non-circularity of background-corrected flux.
+        Circular flux profiles will give zero.
+        Specifically, elongation is the ratio of the lengths of semi-major and
+        semi-minor axes of the corrected flux, considered as having best-fit
+        elliptical shape.        Radius of outer edge of background annulus, in pixels.
     """
 
     def __init__(self, image_xy, xy_start, xy_end,
                  foreground_radius, gap, background_width,
                  source_id='', obs_id=''):
-        if isinstance(xy_start, tuple):
-            self.xy_start = XY.from_tuple(xy_start)
-        if isinstance(xy_end, tuple):
-            self.xy_end = XY.from_tuple(xy_end)
+        self.xy_start = xy_start if isinstance(xy_start, XY) \
+            else XY.from_tuple(xy_start)
+        self.xy_end = xy_end if isinstance(xy_end, XY) \
+            else XY.from_tuple(xy_end)
         self.foreground_radius = foreground_radius
         self.gap = gap
         self.background_width = background_width
@@ -997,15 +1190,15 @@ def make_pill_mask(mask_shape_xy, xya, xyb, radius):
     rectangle = Rectangle_in_2D(xy_corner1, xy_corner2, xy_corner3)
 
     # Make mask, including edges so no gaps can appear at rectangle corners:
-    circle_a_contains = circle_a.contains_points_unitgrid(0, mask_shape_xy[0] - 1,
-                                                          0, mask_shape_xy[1] - 1,
-                                                          True)
-    circle_b_contains = circle_b.contains_points_unitgrid(0, mask_shape_xy[0] - 1,
-                                                          0, mask_shape_xy[1] - 1,
-                                                          True)
-    rectangle_contains = rectangle.contains_points_unitgrid(0, mask_shape_xy[0] - 1,
-                                                            0, mask_shape_xy[1] - 1,
-                                                            True)
+    circle_a_contains = \
+        circle_a.contains_points_unitgrid(0, mask_shape_xy.as_tuple[0] - 1,
+                                          0, mask_shape_xy.as_tuple[1] - 1, True)
+    circle_b_contains = \
+        circle_b.contains_points_unitgrid(0, mask_shape_xy.as_tuple[0] - 1,
+                                          0, mask_shape_xy.as_tuple[1] - 1, True)
+    rectangle_contains = \
+        rectangle.contains_points_unitgrid(0, mask_shape_xy.as_tuple[0] - 1,
+                                           0, mask_shape_xy.as_tuple[1] - 1, True)
     # Render each in numpy mask-boolean but (x,y) index conventions:
     circle_a_mask = np.logical_not(circle_a_contains)
     circle_b_mask = np.logical_not(circle_b_contains)

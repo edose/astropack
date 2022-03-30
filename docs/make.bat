@@ -40,6 +40,8 @@ rem as tamed by EVD 2022-03-20:
     del /q %BUILDDIR%\doctrees\api
     del /q %BUILDDIR%\html\api
     del /q %BUILDDIR%\html\astropack
+    del /q %BUILDDIR%\html\_sources\api
+    del /q %BUILDDIR%\html\_sources\astropack
 
 rem the following were removed EVD 2022-03-20 as damaging (esp. from deleting /_static):
 rem	for /d %%i in (%BUILDDIR%\*) do rmdir /q /s %%i
