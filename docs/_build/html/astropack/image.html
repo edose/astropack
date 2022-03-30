@@ -84,9 +84,74 @@ point light sources, esp. target stars and comparison stars.</p>
 moving light sources, especially minor planets/asteroids. Constructs and applies
 a ‘pill-shaped’ aperture and background-annulus set that automatically include
 the effects of target motion.</p>
-<section id="getting-started">
-<h2>Getting Started</h2>
-<p>Examples, etc.</p>
+<section id="getting-started-with-class-fits">
+<h2>Getting Started with class <a class="reference internal" href="../api/astropack.image.FITS.html#astropack.image.FITS" title="astropack.image.FITS"><code class="xref py py-class docutils literal notranslate"><span class="pre">FITS</span></code></a></h2>
+<p><a class="reference internal" href="../api/astropack.image.FITS.html#astropack.image.FITS" title="astropack.image.FITS"><code class="xref py py-class docutils literal notranslate"><span class="pre">FITS</span></code></a> is another <em>server class</em> that reads data and organizes it, then serves
+parsed and derived data on demand.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.image</span> <span class="kn">import</span> <span class="n">FITS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fullpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">IMAGE_DIRECTORY</span><span class="p">,</span> <span class="s1">&#39;MP_1300-0004-BB.fts&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">FITS</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">object</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">exposure</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filter</span>
+<span class="go">(&#39;MP_1300&#39;, 630.0, &#39;BB&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">header_value</span><span class="p">(</span><span class="s1">&#39;airmass&#39;</span><span class="p">)</span>
+<span class="go">1.01368456711</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">header_value</span><span class="p">(</span><span class="s1">&#39;invalid header key&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="go">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">xy_to_skycoords</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">874</span><span class="p">))</span>
+<span class="go">&lt;SkyCoord (FK5: equinox=2000.0): (ra, dec) in deg</span>
+<span class="go">    (124.0593176, 30.15306119)&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">corner_skycoords</span><span class="p">()</span>
+<span class="go">&lt;SkyCoord (FK5: equinox=2000.0): (ra, dec) in deg</span>
+<span class="go">    [(124.16886656, 30.31980748), (123.49149578, 30.31639601),</span>
+<span class="go">     (124.17015564, 29.93020564), (123.49545203, 29.92680762)]&gt;</span>
+<span class="go">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.coordinates</span> <span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="go">sc = SkyCoord(124.059, 30.153, unit=u.deg)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">skycoords_to_xy</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
+<span class="go">(501.41738211369625, 874.3474219930808)</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-started-with-the-aperture-classes">
+<h2>Getting Started with the Aperture classes</h2>
+<p>The Aperture classes <a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a> and <a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a>
+are designed for aperture photometry.</p>
+<p><a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a> applies to effectively stationary targets of approximately known
+pixel location. It is suitable to stars in an image, including to comparison stars.
+It generates and applies foreground and background pixel masks of circular shape.
+<a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a> works most conveniently with instances of the class <a class="reference internal" href="../api/astropack.image.FITS.html#astropack.image.FITS" title="astropack.image.FITS"><code class="xref py py-class docutils literal notranslate"><span class="pre">FITS</span></code></a>,
+but such are not required.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.image</span> <span class="kn">import</span> <span class="n">FITS</span><span class="p">,</span> <span class="n">PointSourceAp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fullpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">IMAGE_DIRECTORY</span><span class="p">,</span> <span class="s1">&#39;MP_1300-0004-BB.fts&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">FITS</span><span class="p">(</span><span class="n">fullpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ap</span> <span class="o">=</span> <span class="n">PointSourceAp</span><span class="p">(</span><span class="n">image_xy</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">image_xy</span><span class="p">,</span> <span class="n">xy_center</span><span class="o">=</span><span class="p">(</span><span class="mi">1489</span><span class="p">,</span> <span class="mi">955</span><span class="p">),</span>
+<span class="go">                       foreground_radius=12, gap=5, background_width=8,</span>
+<span class="go">                       source_id=&#39;some star&#39;, obs_id=&#39;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ap</span><span class="o">.</span><span class="n">is_valid</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">foreground_pixel_count</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">foreground_max</span>
+<span class="go">(True, 441, 23277.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ap</span><span class="o">.</span><span class="n">xy_centroid</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">fwhm</span>
+<span class="go">((1488.3887587250026, 955.2717900451668), 3.400290617513252, 7.439113620441175)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ap</span><span class="o">.</span><span class="n">background_pixel_count</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">background_level</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">background_std</span>
+<span class="go">(1060, 1078.0, 25.96445561050696)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ap</span><span class="o">.</span><span class="n">raw_flux</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">net_flux</span><span class="p">,</span> <span class="n">ap</span><span class="o">.</span><span class="n">flux_stddev</span><span class="p">(</span><span class="n">gain</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="go">(1621816.0, 1146418.0, 1039.947662017538)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a> applies to targets that move significantly during an image’s
+exposure time, especially for minor planets/asteroids.
+It generates and applies foreground and background pixel masks of ‘pill’ or
+‘racetrack’ shape, that is, shapes constructed of the union of 3 elementary shapes:
+a circle centered over the target’s position at exposure start,
+a circle centered over the target’s position at exposure end,
+and a rectangle comprising all the pixels between the two circles.
+<a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a> works most conveniently with instances of the class <a class="reference internal" href="../api/astropack.image.FITS.html#astropack.image.FITS" title="astropack.image.FITS"><code class="xref py py-class docutils literal notranslate"><span class="pre">FITS</span></code></a>,
+but such are not required.</p>
+<p><a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a> and <a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a> differ only in the constructor and in the
+instance attributes describing target pixel position (a single point for
+<a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a> vs. start and end points for <a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a>).
+The APIs (pixel counts, fluxes, etc) are otherwise identical.</p>
 </section>
 <section id="reference-api">
 <h2>Reference/API</h2>
@@ -129,14 +194,29 @@ Adapted from author’s photrix package, image module.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.image.MaskError.html#astropack.image.MaskError" title="astropack.image.MaskError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaskError</span></code></a></p></td>
 <td><p>Raised when encountering any mask error, most often when masks differ in shape from image cutout or from each other.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a>(image_xy, xy_center, ...[, ...])</p></td>
-<td><p>Standard photometric aperture for stationary point source of light, esp.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.image.Ap.html#astropack.image.Ap" title="astropack.image.Ap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ap</span></code></a>(image_xy, xy_center, dxy_offset, ...[, ...])</p></td>
+<td><p>PARENT CLASS of all apertures for aperture photometry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a>(image_xy, xy_start, xy_end, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.image.PointSourceAp.html#astropack.image.PointSourceAp" title="astropack.image.PointSourceAp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PointSourceAp</span></code></a>(image_xy, xy_center, ...[, ...])</p></td>
+<td><p>Standard circular photometric aperture for stationary point source of light, esp.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.image.MovingSourceAp.html#astropack.image.MovingSourceAp" title="astropack.image.MovingSourceAp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MovingSourceAp</span></code></a>(image_xy, xy_start, xy_end, ...)</p></td>
 <td><p>Elongated 'pill-shaped' photometric aperture for moving point source of light, esp.</p></td>
 </tr>
 </tbody>
 </table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">pinpoint_pixel_scale_multiplier</span></code> is a value (prob. near 1) by which to
+multiply pixel scale, iff PinPoint plate solution is detected.
+It’s the best solution I can devise for the PinPoint’s pixel scale deviating from
+those of linear WCS plate solvers.
+This arises because (sigh) Pinpoint plate solutions include “private”
+distortion parameters, so that their WCS values are not what they would be &amp;
+should be for a linear-WCS-only solution.
+That is, PinPoint zero-order solution cannot be used as one, nor even correctable
+given its “private” distortion parameters.</p>
+</div>
 </section>
 </section>
 </section>
@@ -151,7 +231,8 @@ Adapted from author’s photrix package, image module.</p>
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">FITS reading, Aperture Photometry (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.image</span></code>)</a><ul>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#getting-started-with-class-fits">Getting Started with class <code class="xref py py-class docutils literal notranslate"><span class="pre">FITS</span></code></a></li>
+<li><a class="reference internal" href="#getting-started-with-the-aperture-classes">Getting Started with the Aperture classes</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.image">astropack.image Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
@@ -177,7 +258,7 @@ Adapted from author’s photrix package, image module.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

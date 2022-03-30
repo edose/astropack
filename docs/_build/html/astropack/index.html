@@ -72,32 +72,32 @@
   h1 { display:none; }
 </style><section id="astropack-documentation">
 <h1>Astropack Documentation</h1>
-<img src="../_static/backpack-star-logo2.png" width="500" style="margin-bottom:30px;"/><p><strong>Astropack</strong> began as <a class="reference external" href="https://github.com/edose">my (Eric Dose’s)</a>
+<img src="../_static/backpack-star-logo2.png" width="500" style="margin-bottom:30px;"/><p><strong>Astropack</strong> began as <a class="reference external" href="https://github.com/edose">my</a>
 personal utilities repo in support of my independent variable-star and
-asteroid/minor planet observing programs. Astropack continues to grow.</p>
+asteroid/minor planet observing programs.
+Consider this a stub code library. Astropack will grow to cover all manner
+of needs not addressed by <a href="#id2"><span class="problematic" id="id3">|astropy|</span></a> and other libraries.</p>
 <p><strong>Astropack</strong> is also the first package that I’ve tested
-and documented to an <a class="reference external" href="http://www.astropy.org/about.html">Astropy</a>-like level of detail.
-Here’s what that means to you, Dear Reader:</p>
+and documented to an <a class="reference external" href="http://www.astropy.org/about.html">Astropy</a>-like level of detail.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>1. What’s here is good to go.
 It’s tested and documented. Indeed it’s tested <em>against</em> the documentation.</p>
-<p>2. So you can install it, or take code from it, or adapt code to taste,
+<p>2. So you can install it, or take code from it, or adapt code to taste.
 But let’s make a deal–if you take or use 10 lines of code or more, you’ll please
 make an attribution back to me and Astropack.
 Fair enough? (That’s pretty much what the license says, anyway.)</p>
 <p>3. <strong>Astropack</strong> is a work in progress (April 2022). It’s marked as 0.1 beta
-version, but it’s more like <strong>Deep Beta</strong>, really more like a Delta or Sigma version.
+version, but it’s more like <strong>Deep Beta</strong>.
 So long as it remains in version zero-point-anything, I may well remove items,
 or I may change the API, and I may even make breaking changes to the API (I’ll try
-not to, but
-in any version 0.x, all’s fair). But whatever is in the repo, that code will work
+not to, but in any version 0.x, all’s fair).
+But whatever is in the repo, that code will work
 as documented. The test files are also in the repo and they’ve all passed, always.</p>
 </div>
-<p>A pattern arising in much of the code is what I call
-<strong>server classes</strong>.
-That is: classes and their objects designed to (1) get data, (2) organize
-and extend the data automatically, and (3) serve it on demand.
+<p>A pattern arising in much of the code is what I call <strong>server classes</strong>.
+That is: classes and their objects that I’ve designed to (1) get data, (2) organize
+and extend the data automatically, and (3) serve it to the user’s code on demand.
 Like a particularly talented tecnical assistant.
 You’ll see this server pattern, for example, in Astropack classes
 <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a>, <a class="reference internal" href="../api/astropack.catalogs.AtlasRefcat2.html#astropack.catalogs.AtlasRefcat2" title="astropack.catalogs.AtlasRefcat2"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtlasRefcat2</span></code></a>, and <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a>.
@@ -105,7 +105,7 @@ A class constructs an object and then delivers a clean,
 reliable and extremely well-defined bit of data whenever the user (the user’s code,
 really) needs it. That bit of data, and not more.</p>
 <p>Maybe an quick example, from class <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> (which represents one observing site
-during on observing night):</p>
+during one observing night):</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.almanac</span> <span class="kn">import</span> <span class="n">Astronight</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.ini</span> <span class="kn">import</span> <span class="n">Site</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">this_site</span> <span class="o">=</span> <span class="n">Site</span><span class="p">(</span><span class="s1">&#39;My Dome&#39;</span><span class="p">)</span>
@@ -117,13 +117,15 @@ during on observing night):</p>
 <span class="go">&lt;SkyCoord (ICRS): (ra, dec) in deg</span>
 <span class="go">    (34.98185288, 11.95750862)&gt;</span>
 <span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.coordinates</span> <span class="kn">import</span> <span class="n">SkyCoord</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">betelgeuse</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="s1">&#39;05h 55m 10.30536s +07d 24m 25.4304s&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_observable</span><span class="p">(</span><span class="n">betelgeuse</span><span class="p">,</span> <span class="n">min_alt</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">min_moon_dist</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">an</span><span class="o">.</span><span class="n">timespan_observable</span><span class="p">(</span><span class="n">betelgeuse</span><span class="p">,</span> <span class="n">min_alt</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">min_moon_dist</span><span class="o">=</span><span class="mi">45</span><span class="p">))</span>
+<span class="go">Timespan &#39;2022-04-03 02:02:36.490&#39; to &#39;2022-04-03 04:08:12.314&#39; = 7535.824 seconds.</span>
 </pre></div>
 </div>
-<p>In other words: as I refer to it, a server class represents a <strong>bundle of data that speaks for
-itself</strong>. A reference book that opens itself to just the right page whenever you ask,
-and stays completely out of the way when you don’t.
+<p>In other words: what I mean by a server class is a <strong>bundle of data that speaks for
+itself</strong>. A reference book that opens itself to just the right page when you need
+it to, and hides away when you don’t.
 It’s how much of Astropack is coded. It’s ideal for technical coding.</p>
 <p>Or so I say. Check it for yourself. Right here, in fact:</p>
 <section id="documentation-by-module">
@@ -181,7 +183,7 @@ It’s how much of Astropack is coded. It’s ideal for technical coding.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

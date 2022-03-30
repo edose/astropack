@@ -21,7 +21,7 @@
     <link rel="shortcut icon" href="../_static/backpack-star-favicon3.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="get_mp_ephem" href="../api/astropack.web.get_mp_ephem.html" />
+    <link rel="next" title="get_mp_info" href="../api/astropack.web.get_mp_info.html" />
     <link rel="prev" title="Timespan" href="../api/astropack.util.Timespan.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
@@ -50,7 +50,7 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="../api/astropack.web.get_mp_ephem.html" title="get_mp_ephem">
+	<a href="../api/astropack.web.get_mp_info.html" title="get_mp_info">
 	  next &raquo;
 	</a>
       </li>
@@ -77,11 +77,47 @@
             
   <section id="web-retrieval-for-minor-planets-asteroids-astropack-web">
 <h1>Web Retrieval for Minor Planets/Asteroids (<a class="reference internal" href="#module-astropack.web" title="astropack.web"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.web</span></code></a>)</h1>
-<p>Retrieval of minor planet data from the Minor Planet Center,
-each function returning results as a very convenient pandas <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a>.</p>
-<section id="getting-started">
-<h2>Getting Started</h2>
-<p>Examples, etc.</p>
+<p>Functions that retrieve minor planet data from the
+<a class="reference external" href="https://minorplanetcenter.net/web_service/">Minor Planet Center Web Service</a>
+and <a class="reference external" href="https://www.minorplanetcenter.net/iau/MPEph/MPEph.html">Minor Planet Ephemeris Service</a>
+via package
+<a class="reference external" href="https://astroquery.readthedocs.io/en/latest/index.html">astroquery</a>.</p>
+<p>Each function returns results as a convenient pandas <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a>.</p>
+<section id="getting-started-with-the-web-functions">
+<h2>Getting Started with the web functions</h2>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.web</span> <span class="kn">import</span> <span class="n">get_mp_info</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df_info</span> <span class="o">=</span> <span class="n">get_mp_info</span><span class="p">(</span><span class="mi">333</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df_info</span>
+<span class="go">{&#39;name&#39;: &#39;Badenia&#39;,</span>
+<span class="go"> &#39;number&#39;: 333,</span>
+<span class="go"> &#39;designation&#39;: None,</span>
+<span class="go"> &#39;period&#39;: &#39;5.54&#39;,</span>
+<span class="go"> &#39;H&#39;: &#39;9.49&#39;,</span>
+<span class="go"> &#39;G&#39;: &#39;0.15&#39;}</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.web</span> <span class="kn">import</span> <span class="n">get_mp_ephem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.ini</span> <span class="kn">import</span> <span class="n">Site</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_site</span> <span class="o">=</span> <span class="n">Site</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">INI_DIRECTORY</span><span class="p">,</span> <span class="s1">&#39;MySite.ini&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df_ephem</span> <span class="o">=</span> <span class="n">get_mp_ephem</span><span class="p">(</span><span class="mi">333</span><span class="p">,</span> <span class="s1">&#39;2022-04-03 12:34:56&#39;</span><span class="p">,</span> <span class="n">step_hours</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="go">               num_entries=6, site=my_site)  # site=None returns geocentric data.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df_ephem</span>
+<span class="go">                 Date          RA  ...  Moon distance  Moon altitude</span>
+<span class="go">0 2022-04-03 12:00:00  157.998750  ...            116            -24</span>
+<span class="go">1 2022-04-03 14:00:00  157.989583  ...            115             -2</span>
+<span class="go">2 2022-04-03 16:00:00  157.980417  ...            114             22</span>
+<span class="go">3 2022-04-03 18:00:00  157.971667  ...            113             47</span>
+<span class="go">4 2022-04-03 20:00:00  157.962917  ...            112             68</span>
+<span class="go">5 2022-04-03 22:00:00  157.953750  ...            111             68</span>
+<span class="go">[6 rows x 16 columns]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df_ephem</span><span class="o">.</span><span class="n">columns</span>
+<span class="go">Index([&#39;Date&#39;, &#39;RA&#39;, &#39;Dec&#39;, &#39;Delta&#39;, &#39;r&#39;, &#39;Elongation&#39;, &#39;Phase&#39;, &#39;V&#39;,</span>
+<span class="go">       &#39;Proper motion&#39;, &#39;Direction&#39;, &#39;Azimuth&#39;, &#39;Altitude&#39;, &#39;Sun altitude&#39;,</span>
+<span class="go">       &#39;Moon phase&#39;, &#39;Moon distance&#39;, &#39;Moon altitude&#39;],</span>
+<span class="go">      dtype=&#39;object&#39;)</span>
+</pre></div>
+</div>
 </section>
 <section id="reference-api">
 <h2>Reference/API</h2>
@@ -102,11 +138,11 @@ download attempts by all known packages.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.web.get_mp_ephem.html#astropack.web.get_mp_ephem" title="astropack.web.get_mp_ephem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mp_ephem</span></code></a>(mp_id, utc_start, step_hours, ...)</p></td>
-<td><p>Return MPES ephemeris information from one MPES web page (i.e., for one asteroid/minor planet).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.web.get_mp_info.html#astropack.web.get_mp_info" title="astropack.web.get_mp_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mp_info</span></code></a>([mp_number, mp_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.web.get_mp_info.html#astropack.web.get_mp_info" title="astropack.web.get_mp_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mp_info</span></code></a>([mp_number, mp_name])</p></td>
 <td><p>Given either a Minor Planet number or name (not both), return a python dictionary of principal data as retrieved from the Minor Planet Center database.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/astropack.web.get_mp_ephem.html#astropack.web.get_mp_ephem" title="astropack.web.get_mp_ephem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mp_ephem</span></code></a>(mp_id, utc_start, step_hours, ...)</p></td>
+<td><p>Return MPES ephemeris information from one MPES web page (i.e., for one asteroid/minor planet).</p></td>
 </tr>
 </tbody>
 </table>
@@ -124,7 +160,7 @@ download attempts by all known packages.</p>
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Web Retrieval for Minor Planets/Asteroids (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.web</span></code>)</a><ul>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#getting-started-with-the-web-functions">Getting Started with the web functions</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.web">astropack.web Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
@@ -149,7 +185,7 @@ download attempts by all known packages.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

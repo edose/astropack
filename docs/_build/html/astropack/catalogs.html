@@ -78,16 +78,75 @@
   <section id="catalog-retrieval-astropack-catalogs">
 <h1>Catalog retrieval (<a class="reference internal" href="#module-astropack.catalogs" title="astropack.catalogs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.catalogs</span></code></a>)</h1>
 <p>ATLAS refcat2 catalog handling, via class <a class="reference internal" href="../api/astropack.catalogs.AtlasRefcat2.html#astropack.catalogs.AtlasRefcat2" title="astropack.catalogs.AtlasRefcat2"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtlasRefcat2</span></code></a>.</p>
-<section id="getting-started">
-<h2>Getting Started</h2>
-<p>Examples, etc.</p>
+<section id="getting-started-with-atlasrefcat2">
+<h2>Getting Started with AtlasRefcat2</h2>
+<p>The wonderful ATLAS refcat2 astronomical catalog is the only catalog that most advanced
+amateurs will need. It combines Gaia astrometry for outstandingly accurate star
+positions with ATLAS photometry, mostly in Sloan-like filters and passbands.
+It is essentially all-sky complete to magnitude 19.</p>
+<p>In this <a class="reference internal" href="#module-astropack.catalogs" title="astropack.catalogs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.catalogs</span></code></a> module, the <a class="reference internal" href="../api/astropack.catalogs.AtlasRefcat2.html#astropack.catalogs.AtlasRefcat2" title="astropack.catalogs.AtlasRefcat2"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtlasRefcat2</span></code></a> class represents the catalog
+data for all catalog stars within a user-specified range of Right Ascensions and
+Declinations.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Before first use of <a class="reference internal" href="../api/astropack.catalogs.AtlasRefcat2.html#astropack.catalogs.AtlasRefcat2" title="astropack.catalogs.AtlasRefcat2"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtlasRefcat2</span></code></a>,
+the user must (1) download the catalog “chunk” subdirectories, and
+(2) make a small index file pointing to the local subdirectories’ locations.
+This index file is very small and simple, e.g.,</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;D:/Astro/Catalogs/ATLAS-refcat2/index.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">16 : mag-0-16</span>
+<span class="go">17 : mag-16-17</span>
+<span class="go">18 : mag-17-18</span>
+</pre></div>
+</div>
+<p>The catalog has one magnitude “chunk” per subdirectory.
+The user-created index file has one line per subdirectory, each line containing only:
+the maximum magnitude of the chunk, a colon, and the subdirectory name.
+The index file must reside in the same directory as the catalog subdirectories,
+in the above case, <em>D:/Astro/Catalogs/ATLAS-refcat2/</em>.</p>
+<p>Once this index file is created and the subdirectories are downloaded and copied in,
+they need never be touched again. The <a class="reference internal" href="../api/astropack.catalogs.AtlasRefcat2.html#astropack.catalogs.AtlasRefcat2" title="astropack.catalogs.AtlasRefcat2"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtlasRefcat2</span></code></a> class will merge star entries
+from the subdirectories as needed, automatically.</p>
+</div>
+<p>To get catalog data, instantiate the AtlasRefcat2 instance with the catalog
+location and ranges of RA and Dec.
+The <code class="docutils literal notranslate"><span class="pre">target_epoch</span></code> may be and usually should be specified as the approximate date
+for which data are needed, for example, the date when images were taken for which
+catalog data are needed.
+This ensures that proper motions are accounted for in star positions.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.catalogs</span> <span class="kn">import</span> <span class="n">AtlasRefcat2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">AtlasRefcat2</span><span class="p">(</span><span class="s1">&#39;D:/Astro/Catalogs/ATLAS-refcat2/&#39;</span><span class="p">,</span> <span class="s1">&#39;index.txt&#39;</span><span class="p">,</span> \
+<span class="gp">&gt;&gt;&gt; </span>  <span class="n">ra_deg_range</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">),</span> <span class="n">dec_deg_range</span><span class="o">=</span><span class="p">(</span><span class="mi">34</span><span class="p">,</span> <span class="mf">34.7</span><span class="p">),</span> \
+<span class="gp">&gt;&gt;&gt; </span>  <span class="n">target_epoch</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">df_all</span><span class="p">)</span>
+<span class="go">2178</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">min</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">df_all</span><span class="o">.</span><span class="n">RA_deg</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">df_all</span><span class="o">.</span><span class="n">RA_deg</span><span class="p">)</span>
+<span class="go">3.000373075624063, 4.499971973935839</span>
+</pre></div>
+</div>
+<p>Then apply the class’s methods to select the catalog stars by
+magnitude ranges, etc, as needed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">df_all</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">df_selected</span><span class="p">)</span>
+<span class="go">2178, 2178</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">select_on_r_mag</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">select_on_ri_color</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">df_all</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">df_selected</span><span class="p">)</span>
+<span class="go">2178, 67</span>
+</pre></div>
+</div>
+<p>Users still working in legacy Johnson-Cousins UBVRI filters will have to apply
+transforms to convert ATLAS refcat2 Sloan magnitudes to UBVRI magnitudes, and vice versa.
+All new astronomical catalogs known to the author, including ATLAS refcat2, provide
+Sloan magnitudes natively.
+(Astropack’s author gave up on Johnson-Cousins photometry years ago.)</p>
 </section>
 <section id="reference-api">
 <h2>Reference/API</h2>
 <section id="module-astropack.catalogs">
 <span id="astropack-catalogs-module"></span><h3>astropack.catalogs Module</h3>
-<p>Module astropack.catalogs:
-Catalog parsing and presentation. One class per catalog.</p>
+<p>Catalog parsing and presentation.</p>
 <p>As of March 2022, only ATLAS refcat2 catalog is handled.</p>
 <section id="classes">
 <h4>Classes</h4>
@@ -116,7 +175,7 @@ Catalog parsing and presentation. One class per catalog.</p>
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Catalog retrieval (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.catalogs</span></code>)</a><ul>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#getting-started-with-atlasrefcat2">Getting Started with AtlasRefcat2</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.catalogs">astropack.catalogs Module</a><ul>
 <li><a class="reference internal" href="#classes">Classes</a></li>
@@ -141,7 +200,7 @@ Catalog parsing and presentation. One class per catalog.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

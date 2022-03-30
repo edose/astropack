@@ -169,16 +169,16 @@ def test_class_pointsourceap_constructor():
     assert ap.image_xy.shape == (3072, 2047)
     assert ap.xy_center == XY(1489, 955)
     assert ap.dxy_offset == DXY(1489 - 27, 955 - 27)
-    assert ap.input_foreground_mask.shape == (54, 54)
-    assert ap.input_background_mask.shape == ap.input_foreground_mask.shape
+    # assert ap.input_foreground_mask.shape == (54, 54)
+    # assert ap.input_background_mask.shape == ap.input_foreground_mask.shape
     assert ap.source_id == 'some star'
     assert ap.obs_id == 'whatever'
     assert ap.is_valid == True
-    assert (ap.background_mask == ap.input_background_mask).all()
-    assert (ap.x_low, ap.y_low) == tuple(ap.dxy_offset)
+    # assert (ap.background_mask == ap.input_background_mask).all()
+    assert (ap.x_low, ap.y_low) == ap.dxy_offset.as_tuple
     assert ap.x_high == ap.x_low + 53
     assert ap.y_high == ap.y_low + 53
-    assert ap.cutout.shape == ap.input_foreground_mask.shape
+    # assert ap.cutout.shape == ap.input_foreground_mask.shape
     assert ap.mask_overlap_pixel_count == 0
     assert ap.foreground_pixel_count == 441
     assert ap.background_pixel_count == 1060
@@ -202,21 +202,21 @@ def test_class_pointsourceap_recenter():
     ap = image.PointSourceAp(image_xy=fits.image_xy, xy_center=(1482, 952),
                              foreground_radius=12, gap=5, background_width=8,
                              source_id='some star', obs_id='whatever')
-    assert tuple(ap.xy_center) == pytest.approx((1482, 952))
+    assert ap.xy_center.as_tuple == pytest.approx((1482, 952))
     assert tuple(ap.xy_centroid) == pytest.approx((1487.8586617491405,
                                                    955.097767706891),
                                                   abs=0.01)
 
     ap_1 = ap.recenter(max_iterations=1)
-    assert tuple(ap_1.xy_center) == ap.xy_centroid
-    assert tuple(ap_1.xy_centroid) == pytest.approx((1488.350973107373,
-                                                     955.2710427996668),
-                                                    abs=0.01)
+    assert ap_1.xy_center.as_tuple == ap.xy_centroid
+    assert ap_1.xy_centroid == pytest.approx((1488.350973107373,
+                                                       955.2710427996668),
+                                                      abs=0.01)
 
     ap_2 = ap.recenter(max_iterations=2)
-    assert tuple(ap_2.xy_centroid) == pytest.approx((1488.3554435661015,
-                                                     955.2871555171624),
-                                                    abs=0.01)
+    assert ap_2.xy_centroid == pytest.approx((1488.3554435661015,
+                                                       955.2871555171624),
+                                                      abs=0.01)
 
     ap_3 = ap.recenter(max_iterations=3)
     assert ap_3.xy_centroid == ap_2.xy_centroid
@@ -233,8 +233,8 @@ def test_class_movingsourceap_constructor():
                               xy_start=(1223, 972.8), xy_end=(1226.4, 973.8),
                               foreground_radius=12, gap=5, background_width=8,
                               source_id='some MP', obs_id='rock observation')
-    assert tuple(ap.xy_start) == pytest.approx((1223, 972.8))
-    assert tuple(ap.xy_end) == pytest.approx((1226.4, 973.8))
+    assert ap.xy_start.as_tuple == pytest.approx((1223, 972.8))
+    assert ap.xy_end.as_tuple == pytest.approx((1226.4, 973.8))
     assert ap.foreground_radius == 12
     assert ap.gap == 5
     assert ap.background_width == 8
@@ -243,12 +243,11 @@ def test_class_movingsourceap_constructor():
     assert ap.source_id == 'some MP'
     assert ap.obs_id == 'rock observation'
     assert ap.is_valid == True
-    assert tuple(ap.xy_center) == pytest.approx(ap.xy_start +
-                                                (ap.xy_end - ap.xy_start) / 2.0)
-    assert tuple(ap.dxy_offset) == (1196, 945)
-    assert ap.input_background_mask.shape == (57, 55)  # nb: x,y index order.
-    assert ap.input_background_mask.shape == ap.input_foreground_mask.shape
-    assert ap.cutout.shape == ap.input_foreground_mask.shape
+    assert ap.xy_center == ap.xy_start + (ap.xy_end - ap.xy_start) / 2.0
+    assert ap.dxy_offset.as_tuple == (1196, 945)
+    # assert ap.input_background_mask.shape == (57, 55)  # nb: x,y index order.
+    # assert ap.input_background_mask.shape == ap.input_foreground_mask.shape
+    # assert ap.cutout.shape == ap.input_foreground_mask.shape
     assert ap.cutout[34, 27] == ap.image_xy[1230, 972] == 2810.0  # all x,y index order.
     assert ap.cutout[20, 29] == ap.image_xy[20 + ap.dxy_offset.dx,
                                             29 + ap.dxy_offset.dy] == 1235.0  # "
@@ -278,10 +277,10 @@ def test_class_movingsourceap_recenter():
     assert ap.xy_centroid == pytest.approx((1225.622, 973.242), abs=0.002)
 
     ap_1 = ap.recenter(max_iterations=1)
-    assert tuple(ap_1.xy_center) == ap.xy_centroid
+    assert ap_1.xy_center.as_tuple == ap.xy_centroid
     assert ap_1.xy_centroid == pytest.approx((1225.671140374866,
-                                                     973.2309884931738),
-                                                    abs=0.002)
+                                              973.2309884931738),
+                                             abs=0.002)
 
     ap_2 = ap.recenter(max_iterations=2)
     assert tuple(ap_2.xy_centroid) == pytest.approx((1225.6740937846748,

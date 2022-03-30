@@ -10,6 +10,7 @@ import os
 
 # External packages:
 import pytest
+import astropy.units as u
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 from skyfield.api import load, Star
@@ -343,6 +344,29 @@ def test_astronight_constructor():
     site = ini.Site(site_fullpath)
     an_1 = almanac.Astronight(site, 20220208)
     assert an_1.sun_altitude_dark == site.sun_altitude_dark
+
+
+def test_astronight_transit():
+    site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'NMS_Dome.ini')
+    site = ini.Site(site_fullpath)
+    an = almanac.Astronight(site, 20220402)
+    betelgeuse = SkyCoord('05h 55m 10.30536s +07d 24m 25.4304s')
+    transit_time = an.transit(betelgeuse)
+    assert isinstance(transit_time, Time)
+    assert (transit_time - Time('2022-04-03 00:13:12.8')).to_value(u.second) == \
+           pytest.approx(0, abs=2)
+
+
+def test_astronight_timespan_observable():
+    site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'NMS_Dome.ini')
+    site = ini.Site(site_fullpath)
+    an = almanac.Astronight(site, 20220402)
+    betelgeuse = SkyCoord('05h 55m 10.30536s +07d 24m 25.4304s')
+    ts_obs = an.timespan_observable(betelgeuse, min_alt=30, min_moon_dist=45)
+    assert isinstance(ts_obs, Timespan)
+    assert ts_obs.start == an.timespan_dark.start
+    assert (ts_obs.end - Time('2022-04-03 04:08:12.3')).to_value(u.second) ==\
+           pytest.approx(0, abs=2)
 
 
 def test_astronight_exceptions():

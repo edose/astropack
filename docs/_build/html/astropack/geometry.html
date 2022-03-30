@@ -77,13 +77,67 @@
             
   <section id="point-and-vectors-classes-for-photometry-astropack-geometry">
 <h1>Point and Vectors classes for Photometry (<a class="reference internal" href="#module-astropack.geometry" title="astropack.geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.geometry</span></code></a>)</h1>
-<p>Classes <a class="reference internal" href="../api/astropack.geometry.XY.html#astropack.geometry.XY" title="astropack.geometry.XY"><code class="xref py py-class docutils literal notranslate"><span class="pre">XY</span></code></a> (point) and <a class="reference internal" href="../api/astropack.geometry.DXY.html#astropack.geometry.DXY" title="astropack.geometry.DXY"><code class="xref py py-class docutils literal notranslate"><span class="pre">DXY</span></code></a> (vector) for managing locations in a 2-dimensional plane
-as for photometric apertures in an image.</p>
-<p>Classes <a class="reference internal" href="../api/astropack.geometry.Rectangle_in_2D.html#astropack.geometry.Rectangle_in_2D" title="astropack.geometry.Rectangle_in_2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rectangle_in_2D</span></code></a> and <a class="reference internal" href="../api/astropack.geometry.Circle_in_2D.html#astropack.geometry.Circle_in_2D" title="astropack.geometry.Circle_in_2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Circle_in_2D</span></code></a> for defining regions in a 2-dimensional plane
-as for constructing aperture masks for background-corrected aperture photometry.</p>
-<section id="getting-started">
-<h2>Getting Started</h2>
-<p>Examples, etc.</p>
+<p>Classes <a class="reference internal" href="../api/astropack.geometry.XY.html#astropack.geometry.XY" title="astropack.geometry.XY"><code class="xref py py-class docutils literal notranslate"><span class="pre">XY</span></code></a> (point) and <a class="reference internal" href="../api/astropack.geometry.DXY.html#astropack.geometry.DXY" title="astropack.geometry.DXY"><code class="xref py py-class docutils literal notranslate"><span class="pre">DXY</span></code></a> (vector) are lightweight classes
+for managing locations in a 2-dimensional plane, as for photometric apertures in an image.
+Instances are subclasses of namedtuple, and so are themselves both tuples and namedtuples.</p>
+<p>Classes <a class="reference internal" href="../api/astropack.geometry.Rectangle_in_2D.html#astropack.geometry.Rectangle_in_2D" title="astropack.geometry.Rectangle_in_2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rectangle_in_2D</span></code></a> and <a class="reference internal" href="../api/astropack.geometry.Circle_in_2D.html#astropack.geometry.Circle_in_2D" title="astropack.geometry.Circle_in_2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Circle_in_2D</span></code></a> for defining regions in a 2-dimensional plane.
+They are normally used for constructing aperture masks for background-corrected
+aperture photometry.</p>
+<section id="getting-started-with-xy-and-dxy-classes">
+<h2>Getting Started with <a class="reference internal" href="../api/astropack.geometry.XY.html#astropack.geometry.XY" title="astropack.geometry.XY"><code class="xref py py-class docutils literal notranslate"><span class="pre">XY</span></code></a> and <a class="reference internal" href="../api/astropack.geometry.DXY.html#astropack.geometry.DXY" title="astropack.geometry.DXY"><code class="xref py py-class docutils literal notranslate"><span class="pre">DXY</span></code></a> classes</h2>
+<p>First, let’s use class <a class="reference internal" href="../api/astropack.geometry.XY.html#astropack.geometry.XY" title="astropack.geometry.XY"><code class="xref py py-class docutils literal notranslate"><span class="pre">XY</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.geometry</span> <span class="kn">import</span> <span class="n">XY</span><span class="p">,</span> <span class="n">DXY</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span> <span class="o">=</span> <span class="n">XY</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">xy1</span><span class="o">.</span><span class="n">y</span>
+<span class="go">(1, 5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span>
+<span class="go">XY(x=1, y=5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tuple2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy2</span> <span class="o">=</span> <span class="n">XY</span><span class="o">.</span><span class="n">from_tuple</span><span class="p">(</span><span class="n">tuple2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy2</span>
+<span class="go">XY(x=2, y=9)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span> <span class="o">==</span> <span class="n">xy2</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span> <span class="o">!=</span> <span class="n">xy2</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy2</span> <span class="o">-</span> <span class="n">xy1</span>  <span class="c1"># vector from xy1 to xy2</span>
+<span class="go">DXY(dx=1, dy=4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span><span class="o">.</span><span class="n">vector_to</span><span class="p">(</span><span class="n">xy2</span><span class="p">)</span>  <span class="c1"># synonym for subtraction</span>
+<span class="go">DXY(dx=1, dy=4)</span>
+</pre></div>
+</div>
+<p>Now, let’s add in class <a class="reference internal" href="../api/astropack.geometry.DXY.html#astropack.geometry.DXY" title="astropack.geometry.DXY"><code class="xref py py-class docutils literal notranslate"><span class="pre">DXY</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ...continuing the above:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span> <span class="o">=</span> <span class="n">DXY</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxyb</span> <span class="o">=</span> <span class="n">DXY</span><span class="o">.</span><span class="n">from_tuple</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>  <span class="c1"># tuple inside parentheses</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span> <span class="o">==</span> <span class="n">dxyb</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span> <span class="o">!=</span> <span class="n">dxyb</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="n">dxya</span><span class="o">.</span><span class="n">length2</span>
+<span class="go">(5.0, 25)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxyb</span> <span class="o">+</span> <span class="n">dxya</span>  <span class="c1"># vectors DXY may be added (points XY cannot)</span>
+<span class="go">DXY(dx=8, dy=11)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxyb</span> <span class="o">-</span> <span class="n">dxya</span>
+<span class="go">DXY(dx=2, dy=3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span> <span class="o">*</span> <span class="mi">5</span>
+<span class="go">DXY(dx=15, dy=20)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">dxya</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span> <span class="o">/</span> <span class="mi">2</span>
+<span class="go">DXY(dx=1.5, dy=2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span> <span class="o">+</span> <span class="n">dxya</span>  <span class="c1"># point xy1 displaced by dxya</span>
+<span class="go">XY(x=4, y=9)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xy1</span> <span class="o">+</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">dxya</span> <span class="o">-</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">dxyb</span>
+<span class="go">XY(x=6, y=9)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span><span class="o">.</span><span class="n">direction</span>         <span class="c1"># result in radians</span>
+<span class="go">0.9272952180016122</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span><span class="o">.</span><span class="n">angle_with</span><span class="p">(</span><span class="n">dxyb</span><span class="p">)</span>  <span class="c1"># result in radians</span>
+<span class="go">0.023251622810463002</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dxya</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dxyb</span><span class="p">)</span>
+<span class="go">43</span>
+</pre></div>
+</div>
 </section>
 <section id="reference-api">
 <h2>Reference/API</h2>
@@ -145,7 +199,7 @@ apertures and aperture masks.</p>
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Point and Vectors classes for Photometry (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.geometry</span></code>)</a><ul>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#getting-started-with-xy-and-dxy-classes">Getting Started with <code class="xref py py-class docutils literal notranslate"><span class="pre">XY</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">DXY</span></code> classes</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.geometry">astropack.geometry Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
@@ -171,7 +225,7 @@ apertures and aperture masks.</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

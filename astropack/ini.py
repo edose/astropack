@@ -76,8 +76,45 @@ class SiteValueError(Exception):
 
 
 class Site:
-    """Holds and makes available one telescope/observer site's information.
-    Loads info from one .ini file.
+    """Holds and makes available one telescope/observer site's information,
+    by loading info from one .ini file and returning data on demand.
+
+    **Example .ini file for Site class:**
+    ::
+
+        [Site]
+        Name = New Mexico Skies (Dome)
+        MPC Code = N/A
+
+        [Location]
+        # Longitude, Latitude: decimal degrees; Elevation: meters.
+        Longitude = -105.53
+        Latitude = +32.90
+        Elevation = 2200
+        # For correct timezone in standard (not daylight savings/summer) time.
+        # Needed only to determine this site's side of International Date Line.
+        UTC Offset = -7
+        # User discretion, for sufficiently dark to observe.
+        Sun Altitude Dark = -9
+
+        [Climate]
+        # Coldest date of each year in mm-dd.
+        Coldest Date = 01-25
+        # Nominal midnight temperatures (deg C): summer winter
+        Midnight Temperatures = 20 -3
+        # Nominal midnight percent humidity: summer winter
+        Midnight Humidities = 40 60
+        # Each line: filter summer_extinction winter_extinction
+        # Approximate values, but that's ok.
+        Extinctions = Clear 0.18 0.14,
+                      V     0.20 0.15,
+                      R     0.16 0.12,
+                      I     0.11 0.08
+
+        [Dome]
+        Present = True
+        # Dome slew rate in (degrees azimuth)/second.
+        Slew Rate = 2.85
 
     Parameters
     ----------
@@ -346,6 +383,51 @@ class Instrument:
     Includes information about mount performance, telescope, and camera.
     Loads info from one .ini file.
 
+    **Example .ini file for Instrument class:**
+    ::
+
+        [Mount]
+        Model = PlaneWave L-500
+        Nominal Slew Time = 10
+
+        [OTA]
+        Model = Celestron C14 Edge
+        Aperture = 0.35
+        Focal Length = 2710
+
+        [Camera]
+        Model = SBIG STXL-6303E
+        X Pixels = 3072
+        Y Pixels = 2047
+        Pixel Size = 9
+        # Gain is in electrons/ADU.
+        CCD Gain = 1.57
+        Saturation ADU = 54000
+        Vignetting Pct At Corner = 38
+        Nominal Cooling Time = 360
+
+        [Plate Solution]
+        Pinpoint Pixel Scale Multiplier = 0.99388
+
+        [Filters]
+        Available = Clear BB SG SR SI
+        V14 Time To SN 100 = Clear 20,
+                             V     50,
+                             BB    25
+        # Transforms = Filter Passband CI_pb1 CI_pb2 1st-order_tr [2nd-order tr]
+        # One only per line
+        Transforms = Clear SR SR SI   +0.4  -0.6,
+                     BB    SR SR SI   -0.131
+
+        [Scale]
+        Min FWHM Pixels = 1.5
+        Max FWHM Pixels = 14
+        Nominal FWHM Pixels = 7
+
+        [Timing]
+        Exposure Overhead = 20
+        Max Exposure No Guiding = 119
+
     Parameters
     ----------
     fullpath : str
@@ -524,6 +606,17 @@ Observers = Dose, E.V.
 
 class HumanObserver:
     """ Holds one human observer's information. Gets info from one .ini file.
+
+    **Example .ini file for HumanObserver class:**
+    ::
+
+        [Identity]
+        Name = Eric Dose
+
+        [ALCDEF]
+        Contact Name = Eric V. Dose
+        Contact Info = haha@nicetry.com
+        Observers = Dose, E.V.
 
     Parameters
     ----------

@@ -348,12 +348,13 @@ class Astronight:
         # middark_sf = self.timescale.from_astropy(self.utc_local_middark)
 
         star_list = _skycoords_to_skyfield_star_list(target_skycoord)
-        timespan_target_up = find_target_up_down(self.obs, self.master_eph, star_list,
+        this_star = star_list[0]
+        timespan_target_up = find_target_up_down(self.obs, self.master_eph, this_star,
                                                  self.timescale, self.timespan_dark,
                                                  'up', min_alt)
-        moon_dist = self.moon_ra.separation_from(star_list)
-        if moon_dist >= min_moon_dist:
-            return timespan_target_up
+        moon_dist = self.moon_skycoord.separation(target_skycoord)
+        if moon_dist.degree >= min_moon_dist:
+            return timespan_target_up[0]
         else:
             return [time_up.intersection(self.timespan_dark_no_moon)
                     for time_up in timespan_target_up]
@@ -756,7 +757,7 @@ def moon_illumination_pct(master_eph, timescale, time):
 
 
 def make_skyfield_observatory_from_site(site):
-    """ Return Skyfield observer (earth location) object made
+    """ Return skyfield observer (earth location) object made
     from astropack |Site| instance.
 
     Parameters

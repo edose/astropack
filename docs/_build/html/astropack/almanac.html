@@ -77,10 +77,117 @@
             
   <section id="observation-planning-astropack-almanac">
 <h1>Observation Planning (<a class="reference internal" href="#module-astropack.almanac" title="astropack.almanac"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.almanac</span></code></a>)</h1>
-<p>Astronight class + other almanac code. (rst file)</p>
-<section id="getting-started">
-<h2>Getting Started</h2>
-<p>Examples, etc.</p>
+<p>The <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> class forms the centerpiece of astropack’s observation planning.
+The user forms an Astronight instance by passing in a <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> instance and
+an “astronight date”, which is practically always the <em>local</em> date when the sun sets.</p>
+<p>Then, once the <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> instance is in place, most almanac data
+(e.g., dark time span,
+moon’s illumination percent, transit time, and time span above horizon) are available
+as instance attributes, and observable time spans and transit times are available for
+any sky object with known Right Ascension and Declination.</p>
+<p>A number of almanac functions are also available in this module, but most users
+would better construct an <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> instance and refer to the attributes.</p>
+<section id="getting-started-with-class-astronight">
+<h2>Getting Started with class Astronight</h2>
+<p>In user code for observation planning, constructing the <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> instance is the first
+step:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.almanac</span> <span class="kn">import</span> <span class="n">Astronight</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropack.ini</span> <span class="kn">import</span> <span class="n">Site</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">site_ini_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">INI_DIRECTORY</span><span class="p">,</span> <span class="s1">&#39;my_site.ini&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_site</span> <span class="o">=</span> <span class="n">Site</span><span class="p">(</span><span class="n">site_ini_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an_date</span> <span class="o">=</span> <span class="mi">20220402</span>  <span class="c1"># int, or as string &#39;20220402&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span> <span class="o">=</span> <span class="n">Astronight</span><span class="p">(</span><span class="n">my_site</span><span class="p">,</span> <span class="n">an_date</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>That’s all there is to making the instance.
+The user may set the sun (negative) altitude denoting observable darkness either
+explicitly through <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a>’s <code class="docutils literal notranslate"><span class="pre">sun_altitude_dark</span></code> parameter, or simply use
+the default value in the Site .ini file.</p>
+<p>Now that the instance is constructed,
+many useful attributes are available for all kinds of observation planning tasks:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_no_sun</span>
+<span class="go">Timespan(2022-04-03 01:23:07.224, 2022-04-03 12:47:19.178)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_no_sun</span><span class="o">.</span><span class="n">start</span>
+<span class="go">&lt;Time object: scale=&#39;utc&#39; format=&#39;iso&#39; value=2022-04-03 01:23:07.224&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_no_sun</span><span class="o">.</span><span class="n">end</span>
+<span class="go">&lt;Time object: scale=&#39;utc&#39; format=&#39;iso&#39; value=2022-04-03 12:47:19.178&gt;</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="../api/astropack.util.Timespan.html#astropack.util.Timespan" title="astropack.util.Timespan"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timespan</span></code></a> is an astropack representation of a span of time having a definite <code class="docutils literal notranslate"><span class="pre">start</span></code>
+and <code class="docutils literal notranslate"><span class="pre">end</span></code>. <a class="reference external" href="https://docs.astropy.org/en/latest/api/astropy.time.Time.html#astropy.time.Time" title="(in Astropy v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Time</span></code></a> is astropy’s standard Time object, representing a single instant of
+time, which may be expressed in any of numerous timescales and formats.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_dark</span>
+<span class="go">Timespan(2022-04-03 02:02:36.490, 2022-04-03 12:07:51.845)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_dark_no_moon</span>
+<span class="go">Timespan(2022-04-03 03:01:28.676, 2022-04-03 12:07:51.845)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">.timespan_no_sun</span></code> is the span of time (for this night, at this site)
+during which the sun is below the horizon.
+<code class="docutils literal notranslate"><span class="pre">.timespan_dark</span></code> is the span of time during which the sun is far enough below the
+horizon to be considered observable (if there is no moon).
+<code class="docutils literal notranslate"><span class="pre">.timespan_dark_no_moon</span></code> is the span of time during which the sun is far below the horizon
+and the moon is down.</p>
+<p><a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> offers yet more planning data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">utc_local_middark</span>
+<span class="go">&lt;Time object: scale=&#39;utc&#39; format=&#39;iso&#39; value=2022-04-03 07:05:14.167&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">local_middark_lst_hour_string</span>
+<span class="go">&#39;12:49:31.26&#39;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">.utc_local_middark</span></code> is the midpoint UTC <a class="reference external" href="https://docs.astropy.org/en/latest/api/astropy.time.Time.html#astropy.time.Time" title="(in Astropy v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Time</span></code></a> of the <code class="docutils literal notranslate"><span class="pre">.timespan_dark</span></code> Timespan.
+Astronight uses “mid-dark” rather than local clock midnight to remove dependence on
+time zones, etc. (Also, “mid-dark” time is not quite the same as the
+sun’s anti-transit time, its time of farthest extent below the horizon.)</p>
+<p><code class="docutils literal notranslate"><span class="pre">.local_middark_lst_hour_string</span></code> is the local sidereal time (the Right Ascension
+directly overhead) at mid-dark time.</p>
+<p>The moon is important to observing, so these attributes are available, again, for this
+site during the specified observing night:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">moon_illumination</span>  <span class="c1"># in percent, at middark</span>
+<span class="go">4.3253057700347375</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">moon_transit</span>
+<span class="go">&lt;Time object: scale=&#39;utc&#39; format=&#39;iso&#39; value=2022-04-02 20:18:47.519&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">moon_ra</span><span class="p">,</span> <span class="n">an</span><span class="o">.</span><span class="n">moon_dec</span>  <span class="c1"># in degrees, at middark</span>
+<span class="go">(34.98185287647763, 11.957508621623298)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">moon_skycoord</span>
+<span class="go">&lt;SkyCoord (ICRS): (ra, dec) in deg</span>
+<span class="go">    (34.98185288, 11.95750862)&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">moon_up_timespans</span>
+<span class="go">[Timespan(2022-04-03 02:02:36.490, 2022-04-03 03:01:28.676)]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">.moon_transit</span></code> is the transit time closest to the night’s mid-dark time.
+<code class="docutils literal notranslate"><span class="pre">.moon_skycoord</span></code> is the astropy <a class="reference external" href="https://docs.astropy.org/en/latest/api/astropy.coordinates.SkyCoord.html#astropy.coordinates.SkyCoord" title="(in Astropy v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SkyCoord</span></code></a> representation of the same data
+in <code class="docutils literal notranslate"><span class="pre">.moon_ra</span></code> and <code class="docutils literal notranslate"><span class="pre">.moon_dec</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">.moon_up_timespans</span></code> is always given as a list, because it is possible, usually in
+winter near full moon, for the moon to be up at sunset and sunrise, but down between,
+giving two moon-lit time spans in the same night. The attribute name ends in a
+plural to remind the user. But usually there is only one timespan, and the
+<a class="reference internal" href="../api/astropack.util.Timespan.html#astropack.util.Timespan" title="astropack.util.Timespan"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timespan</span></code></a> itself is obtained as <code class="docutils literal notranslate"><span class="pre">an.moon_up_timespans[0]</span></code>.</p>
+<p>Finally, user-specified targets may have their observation availability characterized:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">astropy.coordinates</span> <span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">betelgeuse</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="s1">&#39;05h 55m 10.30536s +07d 24m 25.4304s&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_observable</span><span class="p">(</span><span class="n">betelgeuse</span><span class="p">,</span> <span class="n">min_alt</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">min_moon_dist</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="go">Timespan(2022-04-03 02:02:36.490, 2022-04-03 04:08:12.314)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">timespan_observable</span><span class="p">(</span><span class="n">betelgeuse</span><span class="p">,</span> <span class="n">min_alt</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_moon_dist</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="go">Timespan(2022-04-03 02:02:36.490, 2022-04-03 05:43:43.096)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an</span><span class="o">.</span><span class="n">transit</span><span class="p">(</span><span class="n">betelgeuse</span><span class="p">)</span>
+<span class="go">&lt;Time object: scale=&#39;utc&#39; format=&#39;iso&#39; value=2022-04-03 00:13:12.843&gt;</span>
+</pre></div>
+</div>
+<p>Note that targets’ observable timespans are always limited to sky darkness.
+Targets are not considered observable while (1) the moon is nearer than
+<code class="docutils literal notranslate"><span class="pre">min_moon_dist</span></code> in degrees, and (2) the moon is above the horizon.</p>
+</section>
+<section id="getting-started-with-astropack-almanac-module-functions">
+<h2>Getting Started with <a class="reference internal" href="#module-astropack.almanac" title="astropack.almanac"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.almanac</span></code></a> module functions</h2>
+<p>A number of free-standing almanac functions are also available in this module,
+but most require familiarity with the skyfield package
+(<a class="reference external" href="https://rhodesmill.org/skyfield/">https://rhodesmill.org/skyfield/</a>); in most cases,
+it is better and much easier simply to construct an <a class="reference internal" href="../api/astropack.almanac.Astronight.html#astropack.almanac.Astronight" title="astropack.almanac.Astronight"><code class="xref py py-class docutils literal notranslate"><span class="pre">Astronight</span></code></a> instance
+and then call on the attributes as needed.
+See the Reference/API section below if you’re interested in usage details,
+or if you’re interested in the implementing code.</p>
 </section>
 <section id="reference-api">
 <h2>Reference/API</h2>
@@ -127,7 +234,7 @@ Astronight class + other almanac code. (py file)</p>
 <td><p>Convert skyfield time to astropy time in UTC timescale and ISO format.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/astropack.almanac.make_skyfield_observatory_from_site.html#astropack.almanac.make_skyfield_observatory_from_site" title="astropack.almanac.make_skyfield_observatory_from_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_skyfield_observatory_from_site</span></code></a>(site)</p></td>
-<td><p>Return Skyfield observer (earth location) object made from astropack <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> instance.</p></td>
+<td><p>Return skyfield observer (earth location) object made from astropack <a class="reference internal" href="../api/astropack.ini.Site.html#astropack.ini.Site" title="astropack.ini.Site"><code class="xref py py-class docutils literal notranslate"><span class="pre">Site</span></code></a> instance.</p></td>
 </tr>
 </tbody>
 </table>
@@ -165,7 +272,8 @@ Astronight class + other almanac code. (py file)</p>
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">Observation Planning (<code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.almanac</span></code>)</a><ul>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#getting-started-with-class-astronight">Getting Started with class Astronight</a></li>
+<li><a class="reference internal" href="#getting-started-with-astropack-almanac-module-functions">Getting Started with <code class="xref py py-obj docutils literal notranslate"><span class="pre">astropack.almanac</span></code> module functions</a></li>
 <li><a class="reference internal" href="#reference-api">Reference/API</a><ul>
 <li><a class="reference internal" href="#module-astropack.almanac">astropack.almanac Module</a><ul>
 <li><a class="reference internal" href="#functions">Functions</a></li>
@@ -191,7 +299,7 @@ Astronight class + other almanac code. (py file)</p>
   <p>
     &copy; Copyright 2022  Eric Dose, Albuquerque.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.4.0. &nbsp;
-    Last built 2022-03-26. <br/>
+    Last built 2022-03-30. <br/>
   </p>
 </footer>
   </body>

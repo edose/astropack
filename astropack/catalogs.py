@@ -1,8 +1,6 @@
-""" Module astropack.catalogs:
-    Catalog parsing and presentation. One class per catalog.
+"""Catalog parsing and presentation.
 
-    As of March 2022, only ATLAS refcat2 catalog is handled.
-"""
+    As of March 2022, only ATLAS refcat2 catalog is handled."""
 
 __author__ = "Eric Dose, Albuquerque"
 

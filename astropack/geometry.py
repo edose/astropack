@@ -6,6 +6,7 @@ apertures and aperture masks.
 __author__ = "Eric Dose, Albuquerque"
 
 # Python base:
+import collections
 from collections import namedtuple
 import numbers
 from math import sqrt, atan2, pi
@@ -24,30 +25,10 @@ __all__ = ['XY',
 __________CLASSES_____________________________________________________________ = 0
 
 
-class XY(namedtuple('XY', ['x', 'y'])):
+class XY:
     """Represents a Cartesian point (x,y) in a plane.
 
-    |XY| is a subclass of python namedtuple.
     |XY| instances are capable of a few operations not listed in the methods.
-
-    >>> from astropack.geometry import XY, DXY
-    >>> xya = XY(3,4)
-    >>> xyb = XY(5,7)
-    >>> xya == xyb
-    False
-    >>> xya == xya
-    True
-    >>> xya != xyb
-    True
-
-    >>> str(xyb - xya)  # vector from xya to xyb
-    'DXY: 2, 3'
-    >>> str(xya.vector_to(xyb))  # synonym for '-'.
-    'DXY: 2, 3'
-    >>> str(xya + DXY(5,1))  # displace xy by dxy
-    'XY: 8, 5'
-    >>> str(xya - DXY(5,1))
-    'XY: -2, 3'
 
     Parameters
     ----------
@@ -56,6 +37,7 @@ class XY(namedtuple('XY', ['x', 'y'])):
     y : float
         Y point location.
 
+
     Attributes
     ----------
     x : float
@@ -63,10 +45,9 @@ class XY(namedtuple('XY', ['x', 'y'])):
     y : float
         Y point location.
     """
-    __slots__ = ()
 
-    # def __init__(self, x, y):
-    #     self.x, self.y = x, y
+    def __init__(self, x, y):
+        self.x, self.y = x, y
 
     @classmethod
     def from_tuple(cls, xy_tuple):
@@ -83,6 +64,17 @@ class XY(namedtuple('XY', ['x', 'y'])):
             new |XY| instance from ``xy_tuple``.
         """
         return XY(xy_tuple[0], xy_tuple[1])
+
+    @property
+    def as_tuple(self):
+        """Return (x,y) as a tuple of floats.
+
+        Returns
+        -------
+        xy_tuple : tuple of 2 float
+            (x,y) as a tuple of 2 float numbers
+        """
+        return tuple([self.x, self.y])
 
     def __eq__(self, other):
         """True if this XY instance is numerically equivalent to ``other``,
@@ -161,33 +153,132 @@ class XY(namedtuple('XY', ['x', 'y'])):
         return 'XY: ' + ', '.join([str(self.x), str(self.y)])
 
 
-class DXY(namedtuple('DXY', ['dx', 'dy'])):
+# class XY_old(namedtuple('XY', ['x', 'y'])):
+#     """Represents a Cartesian point (x,y) in a plane.
+#
+#     |XY| is a subclass of python namedtuple.
+#     |XY| instances are capable of a few operations not listed in the methods.
+#
+#     Parameters
+#     ----------
+#     x : float
+#         X point location.
+#     y : float
+#         Y point location.
+#
+#     Methods
+#     -------
+#     from_tuple : float
+#     vector_to : XY
+#
+#     Attributes
+#     ----------
+#     x : float
+#         X point location.
+#     y : float
+#         Y point location.
+#     """
+#
+# #     __slots__ = ()
+#
+#     @classmethod
+#     def from_tuple(cls, xy_tuple):
+#         """Alternate constructor, from a tuple of 2 floats.
+#
+#         Parameters
+#         ----------
+#         xy_tuple : tuple of 2 float
+#             Tuple (x,y) to be converted to new |XY| instance.
+#
+#         Returns
+#         -------
+#         new_xy : |XY|
+#             new |XY| instance from ``xy_tuple``.
+#         """
+#         return XY(xy_tuple[0], xy_tuple[1])
+#
+#     def __eq__(self, other):
+#         """True if this XY instance is numerically equivalent to ``other``,
+#         else False."""
+#         if not isinstance(other, XY):
+#             return False
+#         return (self.x == other.x) and (self.y == other.y)
+#
+#     def __ne__(self, other):
+#         """True if this XY instance is numerically unequal to ``other``,
+#         else False."""
+#         if not isinstance(other, XY):
+#             return False
+#         return not self == other
+#
+#     def __add__(self, dxy):
+#         """Add a displacement to this point.
+#
+#         Parameters
+#         ----------
+#         dxy : |DXY|
+#             Distance by which to displace this point to yield new |XY| instance.
+#
+#         Returns
+#         -------
+#         new_xy : |XY|
+#             new |XY| (point) which is displaced from this point by ``other``.
+#         """
+#         if isinstance(dxy, DXY):
+#             return XY(self.x + dxy.dx, self.y + dxy.dy)
+#         raise TypeError('XY.__add__() requires type DXY as operand.')
+#
+#     def __sub__(self, other):
+#         """Subtract a displacement to give a new point, or
+#         subtract another point to give the displacement from this point to new point.
+#
+#         Parameters
+#         ----------
+#         other : |DXY| or |XY|
+#             If |DXY| instance, the inverse of distance by which to displace
+#             this point to yield new point.
+#             If |XY| instance, the starting point of a vector ending in this point.
+#
+#         Returns
+#         -------
+#         new_xy : |XY| or |DXY|
+#             If ``other`` is |DXY|, a new |XY| (point) which is
+#             displaced from this point by ``other``.
+#             If ``other`` is |XY|, a new |DXY| (vector) which
+#             is the displacement ``other`` to this point.
+#         """
+#         if isinstance(other, XY):
+#             return DXY(self.x - other.x, self.y - other.y)
+#         elif isinstance(other, DXY):
+#             return XY(self.x - other.dx, self.y - other.dy)
+#         raise TypeError('XY.__sub__() requires type XY or DXY as operand.')
+#
+#     def vector_to(self, other):
+#         """Returns |DXY| vector extending from this point to another point.
+#
+#         Parameters
+#         ----------
+#         other : |XY|
+#             Another point, defining the end of the result vector.
+#
+#         Returns
+#         -------
+#         new_vector : |DXY|
+#             Vector from this point to ``other``.
+#         """
+#         if isinstance(other, XY):
+#             return other - self
+#         raise TypeError('XY.vector_to() requires type XY as operand.')
+#
+#     def __str__(self):
+#         return 'XY: ' + ', '.join([str(self.x), str(self.y)])
+
+
+# class DXY(namedtuple('DXY', ['dx', 'dy'])):
+class DXY():
     """Represents a vector (dx, dy) in a plane. A two-dimensional displacement.
 
-    |DXY| is a subclass of python namedtuple.
     |DXY| instances are capable of a few operations not listed in the methods.
-
-    >>> from astropack.geometry import XY, DXY
-    >>> dxya = DXY(3,4)
-    >>> dxyb = DXY(5,7)
-    >>> dxya == dxyb
-    False
-    >>> dxya == dxya
-    True
-    >>> dxya != dxyb
-    True
-
-    >>> str(dxyb + dxya)
-    'DXY: 8, 11'
-    >>> str(dxyb - dxya)
-    'DXY: 2, 3'
-
-    >>> str(dxya * 5)
-    'DXY: 15, 20'
-    >>> str(5 * dxya)
-    'DXY: 15, 20'
-    >>> str(dxya / 2)
-    'DXY: 1.5, 2.0'
 
     Parameters
     ----------
@@ -204,7 +295,8 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
         Vector magnitude in Y direction.
     """
 
-    __slots__ = ()
+    def __init__(self, dx, dy):
+        self.dx, self.dy = dx, dy
 
     @classmethod
     def from_tuple(cls, dxy_tuple):
@@ -221,6 +313,17 @@ class DXY(namedtuple('DXY', ['dx', 'dy'])):
             new |DXY| instance from ``dxy_tuple``.
         """
         return DXY(dxy_tuple[0], dxy_tuple[1])
+
+    @property
+    def as_tuple(self):
+        """Return (dx,dy) as a tuple of floats.
+
+        Returns
+        -------
+        dxy_tuple : tuple of 2 float
+            (dx,dy) as a tuple of 2 float numbers
+        """
+        return tuple([self.dx, self.dy])
 
     def __eq__(self, other):
         """True if this DXY instance is numerically equivalent to ``other``,
@@ -408,7 +511,7 @@ class Rectangle_in_2D:
 
     Parameters
     ----------
-    xy_a, xy_b, xy_c: each |DXY|
+    xy_a, xy_b, xy_c: each |XY|
         Each a vertex of the new rectangle.
         Vertices must be adjacent, clockwise or counter-clockwise.
 
@@ -666,9 +769,9 @@ def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
     if any([isinstance(xy, (XY, tuple)) is False for xy in [xy_pt, xy_1, xy_2]]):
         raise TypeError('Parameters \'xy_pt\', \'xy_1\', and \'xy_2\' '
                         'must each be 2-tuple or XY instance.')
-    xpt, ypt = tuple(xy_pt)
-    x1, y1 = tuple(xy_1)
-    x2, y2 = tuple(xy_2)
+    xpt, ypt = xy_pt if isinstance(xy_pt, tuple) else xy_pt.as_tuple
+    x1, y1 = xy_1 if isinstance(xy_1, tuple) else xy_1.as_tuple
+    x2, y2 = xy_2 if isinstance(xy_2, tuple) else xy_2.as_tuple
 
     if (x1, y1) == (x2, y2):
         return sqrt((xpt - x1)**2 + (ypt - y1)**2)
