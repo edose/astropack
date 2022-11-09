@@ -16,6 +16,7 @@ from astropy.wcs import WCS
 from astropy.wcs.utils import pixel_to_skycoord, skycoord_to_pixel
 from astropy.time import Time, TimeDelta
 from astropy.stats import sigma_clipped_stats
+from astropy.convolution import Gaussian2DKernel
 from photutils.morphology import data_properties
 from photutils.segmentation import make_source_mask
 
@@ -174,7 +175,7 @@ class FITS:
         self.header = hdulist[0].header.copy()
 
         # FITS convention = (vert/Y, horiz/X), pixel (1,1) bottom left -- rarely used.
-        self.image_fits = hdulist[0].data.astype(np.float64)
+        self.image_fits = hdulist[0].data.astype(float)
         hdulist.close()
 
         # MaxIm/Astrometrica convention = (horiz/X, vert/Y) pixel (0,0) top left).
@@ -541,7 +542,7 @@ class Ap:
         elif type(input_background_mask) in (int, float) and \
             input_background_mask == 0:
             self.background_mask = np.full_like(input_foreground_mask,
-                                                fill_value=True, dtype=np.bool)
+                                                fill_value=True, dtype=bool)
         # If background mask is valid array, use it directly
         elif isinstance(input_background_mask, np.ndarray):
             if input_background_mask.shape != input_foreground_mask.shape:
@@ -588,10 +589,11 @@ class Ap:
         cutout_net_ma = np.ma.array(self.cutout - self.background_level,
                                     mask=self.foreground_mask)
         self.net_flux = np.sum(cutout_net_ma)
-        self.stats = data_properties(data=cutout_net_ma.data,
-                                     mask=self.foreground_mask,
-                                     background=np.full_like(cutout_net_ma.data,
-                                     fill_value=self.background_level))
+        self.stats = data_properties(
+            data=cutout_net_ma.data,
+            mask=self.foreground_mask,
+            background=np.full_like(cutout_net_ma.data,
+                                    fill_value=self.background_level))
         # NB: self.stats yields numpy (y,x) order.
         self.xy_centroid = (self.stats.ycentroid + self.dxy_offset.dx,
                             self.stats.xcentroid + self.dxy_offset.dy)
@@ -1240,7 +1242,7 @@ def calc_background_value(data, mask=None, dilate_size=3):
         standard deviation, both within active background pixels.
     """
     if mask is None:  # use all pixels.
-        this_mask = np.full_like(data, False, dtype=np.bool)
+        this_mask = np.full_like(data, False, dtype=bool)
     elif mask.shape != data.shape:  # bad mask shape.
         return None
     # nb: despite python warnings, to write ...(mask is False) would fail here.
@@ -1253,15 +1255,15 @@ def calc_background_value(data, mask=None, dilate_size=3):
     # Notes on make_source_mask():
     #    this_mask: user-supplied mask of pixels simply not to consider at all.
     #    npixels = 2, which will mask out practically all cosmic ray hits.
-    #    filter_fwhm=2, small enough to still capture cosmic ray hits, etc.
-    #        (make_source_mask() will probably fail if fwhm < 2.)
+    #    kernel(fwhm=2), a bit of smoothing,
     #    dilate_size=3, small enough to preserve most background pixels,
     #    but user may override.
     #    source_mask: masks out detected light-source pixels.
     #    MAY INCLUDE pixels masked out by this_mask!
     #    stats_mask: the intersection of valid pixels from this_mask and source_mask.
+    kernel = Gaussian2DKernel(2.0 / FWHM_PER_SIGMA)
     source_mask = make_source_mask(data, mask=this_mask, nsigma=2, npixels=5,
-                                   filter_fwhm=2, dilate_size=int(dilate_size))
+                                   kernel=kernel, dilate_size=int(dilate_size))
     stats_mask = np.logical_or(this_mask, source_mask)
     _, median, std = sigma_clipped_stats(data, sigma=3.0, mask=stats_mask)
     return median, std

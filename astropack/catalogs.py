@@ -170,12 +170,12 @@ class AtlasRefcat2:
         filename = '{:03d}'.format(ra_index) + '{:+03d}'.format(dec_index) + '.rc2'
         fullpath = os.path.join(subdir_path, filename)
         df = pd.read_csv(fullpath, sep=',', engine='python', header=None,
-                         skip_blank_lines=True, error_bad_lines=False, nrows=max_stars,
+                         skip_blank_lines=True, on_bad_lines='error', nrows=max_stars,
                          # Column numbers have origin zero:
                          usecols=[0, 1, 4, 5, 6, 7,
                                   8, 9, 10, 11, 12, 13,
                                   14, 16, 18, 19, 20,
-                                  21, 22, 25, 26, 29, 30, 33, 34], prefix='col')
+                                  21, 22, 25, 26, 29, 30, 33, 34])
         df.columns = ['RA_deg', 'Dec_deg', 'PM_ra', 'dPM_ra', 'PM_dec', 'dPM_dec',
                       'G_gaia', 'dG_gaia', 'BP_gaia', 'dBP_gaia', 'RP_gaia', 'dRP_gaia',
                       'T_eff', 'dupvar', 'RP1', 'R1', 'R10',
@@ -478,6 +478,7 @@ def _make_ra_index_list(ra_deg_range, include_max_bound=False):
     wrap_angle = Angle(180.0 * u.deg + ra_center)
     ra_deg_wrapped = ra_range.wrap_at(wrap_angle).degree
     ra_index_first = floor(ra_deg_wrapped[0])
+    # TODO: I doubt next stmt; wouldn't it be if i_m_b or (r_d_w[1] == ra_range[1]) ?
     ra_index_last = ceil(ra_deg_wrapped[1]) if include_max_bound \
         else floor(ra_deg_wrapped[1])
     ra_index_list = [ra % 360 for ra in range(ra_index_first, ra_index_last + 1)]
@@ -488,6 +489,7 @@ def _make_dec_index_list(dec_deg_range, include_max_bound=False):
     """Accept tuple (Dec_min, Dec_max), return all integer Declination values
     covering the range."""
     dec_deg_first = floor(dec_deg_range[0])
+    # TODO: I doubt next stmt; wouldn't it be if i_m_b or (d_d_w[1] == dec_range[1]) ?
     dec_deg_last = ceil(dec_deg_range[1]) if include_max_bound \
         else floor(dec_deg_range[1])
     dec_index_list = [dec for dec in range(dec_deg_first, dec_deg_last + 1)]

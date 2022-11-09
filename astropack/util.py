@@ -397,10 +397,10 @@ def hhmm_from_datetime_utc(datetime_utc):
         String of form 'hhmm' (e.g., '1352') representing UTC time of day.
     """
     # Apply banker's rounding: for a tie, give the nearest even value:
-    minutes_of_day = int(round(datetime_utc.hour*60
-                               + datetime_utc.minute
-                               + datetime_utc.second/60
-                               + datetime_utc.microsecond/(60*1000000))) % 1440
+    minutes_of_day = int(round(datetime_utc.hour*60 +
+                               datetime_utc.minute +
+                               datetime_utc.second/60 +
+                               datetime_utc.microsecond/(60*1000000))) % 1440
     hh, mm = divmod(minutes_of_day, 60)
     return '{0:0>4d}'.format(100 * hh + mm)
 

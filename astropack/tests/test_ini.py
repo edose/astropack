@@ -42,9 +42,9 @@ def test__parse_multiline():
     assert len(d) == 2
     assert d['Second'] == ('XZXC', 'haha')
     # Error: invalid number of words (substrings) per line:
-    with pytest.raises(ini.MultilineParseError) as e:
+    with pytest.raises(ini.MultilineParseError):
         _ = ini._parse_multiline(lines, min_words_per_line=1, max_words_per_line=2)
-    with pytest.raises(ini.MultilineParseError) as e:
+    with pytest.raises(ini.MultilineParseError):
         _ = ini._parse_multiline(lines, min_words_per_line=4, max_words_per_line=100)
 
 
@@ -57,7 +57,7 @@ def test__dict_to_floats():
     assert f['HA'] == float('-5.4')
     # Error: value doesn't represent float:
     d = {'DSS': '0.18', 'HA': 'XXX'}
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         _ = ini._dict_to_floats(d)
 
 
@@ -162,7 +162,8 @@ def test_class_instrument():
     assert inst.v14_time_to_sn100['V'] == 50.0
     assert inst.v14_time_to_sn100['BB'] == 25.0
     assert len(inst.transforms) == 2
-    assert inst.transforms[('Clear', 'SR', 'SR', 'SI')] == (float('+0.4'), float('-0.6'))
+    assert inst.transforms[('Clear', 'SR', 'SR', 'SI')] == \
+           (float('+0.4'), float('-0.6'))
     assert inst.transforms[('BB', 'SR', 'SR', 'SI')] == (float('-0.131'), )
     assert inst.min_fwhm_pixels == 1.5
     assert inst.max_fwhm_pixels == 14.0

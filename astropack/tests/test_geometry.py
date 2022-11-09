@@ -5,7 +5,7 @@ __author__ = "Eric Dose, Albuquerque"
 from math import pi, sqrt
 
 import pytest
-import numpy as np
+# import numpy as np
 
 # Test target:
 import astropack.geometry as geom
@@ -144,8 +144,10 @@ class Test_Class_DXY:
     def test_dxy_angle_with(self, setup_dxy):
         xy1, _, dxy1, dxy2a, dxy2b = setup_dxy
         assert dxy1.angle_with(dxy1) == 0.0
-        assert geom.DXY(5, 2).angle_with(geom.DXY(-2, 5)) == pytest.approx(pi / 2, abs=0.000001)
-        assert geom.DXY(5, 2).angle_with(geom.DXY(2, -5)) == pytest.approx((3 / 2) * pi, abs=0.000001)
+        assert geom.DXY(5, 2).angle_with(geom.DXY(-2, 5)) == \
+               pytest.approx(pi / 2, abs=0.000001)
+        assert geom.DXY(5, 2).angle_with(geom.DXY(2, -5)) == \
+               pytest.approx((3 / 2) * pi, abs=0.000001)
         with pytest.raises(TypeError):
             _ = dxy1.angle_with((5, 5))
             _ = dxy1.angle_with(xy1)
@@ -182,7 +184,8 @@ class Test_Class_Rectangle_in_2D:
 
     def test_constructor(self, setup_rectangle_in_2d):
         rect = setup_rectangle_in_2d
-        assert (rect.a, rect.b, rect.c) == (geom.XY(5, 0), geom.XY(0, 2), geom.XY(1, 4.5))
+        assert (rect.a, rect.b, rect.c) == \
+               (geom.XY(5, 0), geom.XY(0, 2), geom.XY(1, 4.5))
         assert rect.ab == geom.DXY(-5, 2)
         assert rect.bc == geom.DXY(1, 2.5)
         bad_pt_c = geom.XY(1, 4.49)
@@ -208,8 +211,10 @@ class Test_Class_Rectangle_in_2D:
                        geom.XY(0.5, 3.25),
                        geom.XY(3.5, 3.5),
                        geom.XY(5.5, 1.25)]
-        assert all([rect.contains_point(pt, include_edges=True) for pt in pts_on_edge])
-        assert not any([rect.contains_point(pt, include_edges=False) for pt in pts_on_edge])
+        assert all([rect.contains_point(pt, include_edges=True)
+                    for pt in pts_on_edge])
+        assert not any([rect.contains_point(pt, include_edges=False)
+                        for pt in pts_on_edge])
 
     def test_contains_points(self, setup_rectangle_in_2d):
         rect = setup_rectangle_in_2d
@@ -244,8 +249,8 @@ class Test_Class_Rectangle_in_2D:
             _ = rect.contains_points_unitgrid(11, 8, -3, 12)
             _ = rect.contains_points_unitgrid(-3, 15, 12, 3)
         result_grid = rect.contains_points_unitgrid(-3, 15, -3, 12, include_edges=True)
-        assert result_grid.shape == (19, 16)  # (num x grid pts, num y grid pts)...not numpy's convention.
-        assert result_grid.dtype == np.bool
+        assert result_grid.shape == (19, 16)  # (n x grid pts, n y grid pts), not numpy
+        assert result_grid.dtype == bool
         assert result_grid.sum() == 132
         assert result_grid[0, :].sum() == 0
         assert result_grid[:, 0].sum() == 0
@@ -256,9 +261,10 @@ class Test_Class_Rectangle_in_2D:
 
         assert result_grid[4, :].sum() == 10
         assert result_grid[:, 3].sum() == 9
-        result_grid2 = rect.contains_points_unitgrid(-3, 15, -3, 12, include_edges=False)
+        result_grid2 = rect.contains_points_unitgrid(-3, 15, -3, 12,
+                                                     include_edges=False)
         assert result_grid2.shape == (19, 16)
-        assert result_grid2.dtype == np.bool
+        assert result_grid2.dtype == bool
         assert result_grid2.sum() == 124
 
 
@@ -319,7 +325,7 @@ class Test_Class_Circle_in_2D:
         result_grid = circle.contains_points_unitgrid(-3, 15, -3, 12,
                                                       include_edges=True)
         assert result_grid.shape == (19, 16)  # (x,y), not numpy's convention
-        assert result_grid.dtype == np.bool
+        assert result_grid.dtype == bool
         assert result_grid.sum() == 149
         assert result_grid[0, :].sum() == 0
         assert result_grid[15, :].sum() == 7
@@ -330,7 +336,7 @@ class Test_Class_Circle_in_2D:
         result_grid2 = circle.contains_points_unitgrid(-3, 15, -3, 12,
                                                        include_edges=False)
         assert result_grid2.shape == (19, 16)
-        assert result_grid2.dtype == np.bool
+        assert result_grid2.dtype == bool
         assert result_grid2.sum() == 145
 
 

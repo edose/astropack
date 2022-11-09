@@ -52,7 +52,7 @@ and returns data on demand.
 >>> s = Instrument(os.path.join(INI_DIRECTORY, 'my_C14.ini')
 >>> s.mount_model, s.camera_model, s.ota_aperture  # aperture diameter in meters
 ('PlaneWave L-500', 'SBIG STXL-6303E', 0.35)
->>>s.filters_available
+>>> s.filters_available
 ('Clear', 'BB', 'SG', 'SR', 'SI')
 # Transform keys are (filter, target passband, color passbands 1 and 2).
 # Values are first- and optionally second-order color coefficients.

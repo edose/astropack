@@ -20,7 +20,8 @@ from astropack.ini import Site
 import astropack.web as web
 
 
-THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+THIS_PACKAGE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))
 TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "tests")
 
 

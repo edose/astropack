@@ -9,8 +9,9 @@ import sys
 
 from setuptools import setup
 
-from extension_helpers import get_extensions
+# from extension_helpers import get_extensions  # Only for packages with C/Cython.
 
+setup()
 
 # First provide helpful messages if contributors try and run legacy commands
 # for tests or docs.
@@ -76,6 +77,7 @@ except Exception:
     version = '{version}'
 """.lstrip()
 
-setup(use_scm_version={'write_to': os.path.join('astropack', 'version.py'),
-                       'write_to_template': VERSION_TEMPLATE},
-      ext_modules=get_extensions())
+# Only for packages with C/Cython.
+# setup(use_scm_version={'write_to': os.path.join('astropack', 'version.py'),
+#                        'write_to_template': VERSION_TEMPLATE},
+#       ext_modules=get_extensions())

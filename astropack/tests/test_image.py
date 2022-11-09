@@ -326,7 +326,7 @@ def test_calc_background_value():
     assert std == pytest.approx(2.445, abs=0.005)
 
     # Test uniform pixel (problematic) case:
-    im = np.full(shape=(10, 20), fill_value=7, dtype=np.float).copy()
+    im = np.full(shape=(10, 20), fill_value=7, dtype=float).copy()
     median, std = image.calc_background_value(im)
     assert median == 7.0
     assert std == 0.0

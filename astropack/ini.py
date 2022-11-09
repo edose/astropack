@@ -572,8 +572,8 @@ class Instrument:
         -------
         transform_dict : dict
             Transform dictionary, in which each key is a tuple in form
-            (filter, passband, color passband 1, color passband 2), and each corresponding
-            value is a tuple of float(s) giving the transform value.
+            (filter, passband, color passband 1, color passband 2), and each
+            corresponding value is a tuple of float(s) giving the transform value.
         """
         min_values_per_transform = 5
         max_values_per_transform = 6

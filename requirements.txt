@@ -1,3 +1,5 @@
+# requirements.txt for astropack (2022).
+# LOCAL requirements for LOCAL developer venv.
 setuptools
 pytest
 pandas

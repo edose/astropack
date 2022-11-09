@@ -112,7 +112,7 @@ def get_mp_info(mp_number=None, mp_name=None):
             * H: reduced magnitude, V band
             * G: phase slope, V band
     """
-    query_result = None # keep IDE happy.
+    query_result = None  # keep IDE happy.
     if mp_number is not None:
         if isinstance(mp_number, int):
             query_result = MPC.query_object(target_type='asteroid', number=mp_number)

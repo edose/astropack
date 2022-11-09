@@ -375,8 +375,8 @@ def test_class_timespan():
     # Test equality __eq__():
     assert util.Timespan(t1, t2) == ts1
     assert util.Timespan(t1, t1+timedelta(hours=1)) != ts1
-    assert util.Timespan(t1+timedelta(hours=1), t1) != ts1
-    assert util.Timespan(t1+timedelta(hours=1), t2+timedelta(hours=1)) != ts1
+    assert util.Timespan(t1 + timedelta(hours=1), t1) != ts1
+    assert util.Timespan(t1 + timedelta(hours=1), t2 + timedelta(hours=1)) != ts1
     assert util.Timespan(t1, t2) == util.Timespan(t1, t2)
 
     # Test equivalence and non-identity of Time and datetime inputs:

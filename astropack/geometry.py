@@ -6,7 +6,6 @@ apertures and aperture masks.
 __author__ = "Eric Dose, Albuquerque"
 
 # Python base:
-import collections
 from collections import namedtuple
 import numbers
 from math import sqrt, atan2, pi

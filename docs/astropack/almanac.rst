@@ -62,6 +62,16 @@ and the moon is down.
 
 |Astronight| offers yet more planning data:
 
+    >>> an.local_middark_utc
+    <Time object: scale='utc' format='iso' value=2022-04-03 07:05:14.167>
+    >>> an.local_middark_lst_hour_string
+    '12:49:31.26'
+
+    >>> an.local_middark_utc
+    <Time object: scale='utc' format='iso' value=2022-04-03 07:05:14.167>
+    >>> an.local_middark_lst_hour_string
+    '12:49:31.26'
+
     >>> an.utc_local_middark
     <Time object: scale='utc' format='iso' value=2022-04-03 07:05:14.167>
     >>> an.local_middark_lst_hour_string
