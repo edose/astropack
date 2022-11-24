@@ -9,6 +9,7 @@ __author__ = "Eric Dose, Albuquerque"
 from collections import namedtuple
 import numbers
 from math import sqrt, atan2, pi
+from typing import TypeAlias, Union
 
 # External packages:
 import numpy as np
@@ -21,7 +22,13 @@ __all__ = ['XY',
            'make_golden_spiral']
 
 
+XY_type: TypeAlias = 'XY'
+DXY_type: TypeAlias = 'DXY'
+
+
 __________CLASSES_____________________________________________________________ = 0
+
+# import astropack.geometry
 
 
 class XY:
@@ -49,7 +56,7 @@ class XY:
         self.x, self.y = x, y
 
     @classmethod
-    def from_tuple(cls, xy_tuple):
+    def from_tuple(cls, xy_tuple: tuple[float, float]) -> XY_type:
         """Alternate constructor, from a tuple of 2 floats.
 
         Parameters
@@ -65,7 +72,7 @@ class XY:
         return XY(xy_tuple[0], xy_tuple[1])
 
     @property
-    def as_tuple(self):
+    def as_tuple(self) -> tuple[float, ...]:
         """Return (x,y) as a tuple of floats.
 
         Returns
@@ -75,21 +82,21 @@ class XY:
         """
         return tuple([self.x, self.y])
 
-    def __eq__(self, other):
+    def __eq__(self, other: XY_type) -> bool:
         """True if this XY instance is numerically equivalent to ``other``,
         else False."""
         if not isinstance(other, XY):
             return False
         return (self.x == other.x) and (self.y == other.y)
 
-    def __ne__(self, other):
+    def __ne__(self, other: XY_type) -> bool:
         """True if this XY instance is numerically unequal to ``other``,
         else False."""
         if not isinstance(other, XY):
             return False
         return not self == other
 
-    def __add__(self, dxy):
+    def __add__(self, dxy: DXY_type) -> XY_type:
         """Add a displacement to this point.
 
         Parameters
@@ -106,7 +113,7 @@ class XY:
             return XY(self.x + dxy.dx, self.y + dxy.dy)
         raise TypeError('XY.__add__() requires type DXY as operand.')
 
-    def __sub__(self, other):
+    def __sub__(self, other: Union[XY_type, DXY_type]) -> Union[XY_type, DXY_type]:
         """Subtract a displacement to give a new point, or
         subtract another point to give the displacement from this point to new point.
 
@@ -131,7 +138,7 @@ class XY:
             return XY(self.x - other.dx, self.y - other.dy)
         raise TypeError('XY.__sub__() requires type XY or DXY as operand.')
 
-    def vector_to(self, other):
+    def vector_to(self, other: XY_type) -> DXY_type:
         """Returns |DXY| vector extending from this point to another point.
 
         Parameters
@@ -148,133 +155,11 @@ class XY:
             return other - self
         raise TypeError('XY.vector_to() requires type XY as operand.')
 
-    def __str__(self):
-        return 'XY: ' + ', '.join([str(self.x), str(self.y)])
+    def __str__(self) -> str:
+        return f'XY: {", ".join([str(self.x), str(self.y)])}'
 
 
-# class XY_old(namedtuple('XY', ['x', 'y'])):
-#     """Represents a Cartesian point (x,y) in a plane.
-#
-#     |XY| is a subclass of python namedtuple.
-#     |XY| instances are capable of a few operations not listed in the methods.
-#
-#     Parameters
-#     ----------
-#     x : float
-#         X point location.
-#     y : float
-#         Y point location.
-#
-#     Methods
-#     -------
-#     from_tuple : float
-#     vector_to : XY
-#
-#     Attributes
-#     ----------
-#     x : float
-#         X point location.
-#     y : float
-#         Y point location.
-#     """
-#
-# #     __slots__ = ()
-#
-#     @classmethod
-#     def from_tuple(cls, xy_tuple):
-#         """Alternate constructor, from a tuple of 2 floats.
-#
-#         Parameters
-#         ----------
-#         xy_tuple : tuple of 2 float
-#             Tuple (x,y) to be converted to new |XY| instance.
-#
-#         Returns
-#         -------
-#         new_xy : |XY|
-#             new |XY| instance from ``xy_tuple``.
-#         """
-#         return XY(xy_tuple[0], xy_tuple[1])
-#
-#     def __eq__(self, other):
-#         """True if this XY instance is numerically equivalent to ``other``,
-#         else False."""
-#         if not isinstance(other, XY):
-#             return False
-#         return (self.x == other.x) and (self.y == other.y)
-#
-#     def __ne__(self, other):
-#         """True if this XY instance is numerically unequal to ``other``,
-#         else False."""
-#         if not isinstance(other, XY):
-#             return False
-#         return not self == other
-#
-#     def __add__(self, dxy):
-#         """Add a displacement to this point.
-#
-#         Parameters
-#         ----------
-#         dxy : |DXY|
-#             Distance by which to displace this point to yield new |XY| instance.
-#
-#         Returns
-#         -------
-#         new_xy : |XY|
-#             new |XY| (point) which is displaced from this point by ``other``.
-#         """
-#         if isinstance(dxy, DXY):
-#             return XY(self.x + dxy.dx, self.y + dxy.dy)
-#         raise TypeError('XY.__add__() requires type DXY as operand.')
-#
-#     def __sub__(self, other):
-#         """Subtract a displacement to give a new point, or
-#         subtract another point to give the displacement from this point to new point.
-#
-#         Parameters
-#         ----------
-#         other : |DXY| or |XY|
-#             If |DXY| instance, the inverse of distance by which to displace
-#             this point to yield new point.
-#             If |XY| instance, the starting point of a vector ending in this point.
-#
-#         Returns
-#         -------
-#         new_xy : |XY| or |DXY|
-#             If ``other`` is |DXY|, a new |XY| (point) which is
-#             displaced from this point by ``other``.
-#             If ``other`` is |XY|, a new |DXY| (vector) which
-#             is the displacement ``other`` to this point.
-#         """
-#         if isinstance(other, XY):
-#             return DXY(self.x - other.x, self.y - other.y)
-#         elif isinstance(other, DXY):
-#             return XY(self.x - other.dx, self.y - other.dy)
-#         raise TypeError('XY.__sub__() requires type XY or DXY as operand.')
-#
-#     def vector_to(self, other):
-#         """Returns |DXY| vector extending from this point to another point.
-#
-#         Parameters
-#         ----------
-#         other : |XY|
-#             Another point, defining the end of the result vector.
-#
-#         Returns
-#         -------
-#         new_vector : |DXY|
-#             Vector from this point to ``other``.
-#         """
-#         if isinstance(other, XY):
-#             return other - self
-#         raise TypeError('XY.vector_to() requires type XY as operand.')
-#
-#     def __str__(self):
-#         return 'XY: ' + ', '.join([str(self.x), str(self.y)])
-
-
-# class DXY(namedtuple('DXY', ['dx', 'dy'])):
-class DXY():
+class DXY:
     """Represents a vector (dx, dy) in a plane. A two-dimensional displacement.
 
     |DXY| instances are capable of a few operations not listed in the methods.
@@ -294,11 +179,11 @@ class DXY():
         Vector magnitude in Y direction.
     """
 
-    def __init__(self, dx, dy):
+    def __init__(self, dx: float, dy: float):
         self.dx, self.dy = dx, dy
 
     @classmethod
-    def from_tuple(cls, dxy_tuple):
+    def from_tuple(cls, dxy_tuple: tuple[float, float]) -> DXY_type:
         """Alternate constructor, from a tuple of 2 floats.
 
         Parameters
@@ -314,7 +199,7 @@ class DXY():
         return DXY(dxy_tuple[0], dxy_tuple[1])
 
     @property
-    def as_tuple(self):
+    def as_tuple(self) -> tuple[float, ...]:
         """Return (dx,dy) as a tuple of floats.
 
         Returns
@@ -324,14 +209,14 @@ class DXY():
         """
         return tuple([self.dx, self.dy])
 
-    def __eq__(self, other):
+    def __eq__(self, other: DXY_type):
         """True if this DXY instance is numerically equivalent to ``other``,
         else False."""
         if not isinstance(other, DXY):
             return False
         return self.dx == other.dx and self.dy == other.dy
 
-    def __add__(self, other):
+    def __add__(self, other: Union[XY_type, DXY_type]) -> Union[XY_type, DXY_type]:
         """Adds two vectors to make a sum vector,
         or adds this vector to a point to make a new, displaced point.
 
@@ -344,7 +229,7 @@ class DXY():
         Returns
         -------
         result : |DXY| or |XY|
-            Sum of vectors, or a new point displaced by this vector from point `other'.
+            Sum of vectors, or a new point displaced by this vector from point 'other'.
         """
         if isinstance(other, DXY):
             return DXY(self.dx + other.dx, self.dy + other.dy)
@@ -352,7 +237,7 @@ class DXY():
             return XY(other.x + self.dx, other.y + self.dy)
         raise TypeError('DXY.__add__() requires type DXY or XY as operand.')
 
-    def __mul__(self, factor):
+    def __mul__(self, factor: float) -> DXY_type:
         """Multiplies this vector by a scalar factor.
 
         Parameters
@@ -370,7 +255,7 @@ class DXY():
             return DXY(factor * self.dx, factor * self.dy)
         raise TypeError('DXY.__mul__() requires float scalar as operand.')
 
-    def __rmul__(self, factor):
+    def __rmul__(self, factor: float) -> DXY_type:
         """Alias of __mul__(), to handle case of ``dxy * factor`` (in that order).
 
         Parameters
@@ -388,7 +273,7 @@ class DXY():
             return DXY(factor * self.dx, factor * self.dy)
         raise TypeError('DXY.__rmul__() requires float scalar as operand.')
 
-    def __sub__(self, other):
+    def __sub__(self, other: DXY_type) -> DXY_type:
         """Subtracts vector ``other`` from this one, yielding new vector.
 
         Parameters
@@ -405,7 +290,7 @@ class DXY():
             return DXY(self.dx - other.dx, self.dy - other.dy)
         raise TypeError('DXY.__sub__() requires type DXY as operand.')
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: float) -> DXY_type:
         """Divides this vector by a scalar factor to yield a new vector.
 
         Parameters
@@ -424,7 +309,7 @@ class DXY():
             raise ZeroDivisionError
         raise TypeError('DXY.__div__() requires scalar float as operand.')
 
-    def angle_with(self, other):
+    def angle_with(self, other: DXY_type) -> float:
         """Returns angle with other |DXY| vector, in radians, within range [0, 2 * pi].
 
         Parameters
@@ -444,7 +329,7 @@ class DXY():
             return angle
         raise TypeError('DXY.angle_with() requires type DXY as operand.')
 
-    def dot(self, other):
+    def dot(self, other: DXY_type) -> float:
         """Returns dot product of this vector with another |DXY| vector.
 
         Parameters
@@ -462,7 +347,7 @@ class DXY():
         raise TypeError('DXY.dot () requires type DXY as operand.')
 
     @property
-    def length2(self):
+    def length2(self) -> float:
         """Return square of vector length.
 
         Returns
@@ -473,7 +358,7 @@ class DXY():
         return self.dx ** 2 + self.dy ** 2
 
     @property
-    def length(self):
+    def length(self) -> float:
         """Return vector length.
 
         Returns
@@ -484,7 +369,7 @@ class DXY():
         return sqrt(self.length2)
 
     @property
-    def direction(self):
+    def direction(self) -> float:
         """Return angle of this vector relative to positive x-axis
         (e.g., +y yields +pi/2), in radians. Returns zero if vector is zero-length.
 
@@ -498,8 +383,8 @@ class DXY():
             return atan2(self.dy, self.dx)
         return 0.0
 
-    def __str__(self):
-        return 'DXY: ' + ', '.join([str(self.dx), str(self.dy)])
+    def __str__(self) -> str:
+        return f'DXY: {", ".join([str(self.dx), str(self.dy)])}'
 
 
 class Rectangle_in_2D:
@@ -527,7 +412,7 @@ class Rectangle_in_2D:
             raise ValueError('Rectangle_in_2D edges are not perpendicular.')
         self.area = self.ab.length * self.bc.length
 
-    def contains_point(self, xy, include_edges=True):
+    def contains_point(self, xy: XY_type, include_edges: bool = True) -> bool:
         """Returns True if this rectangle contains point ``xy``, else return False.
 
         Parameters
@@ -552,7 +437,8 @@ class Rectangle_in_2D:
             return (0 <= dot_ab_pt <= dot_ab) and (0 <= dot_bc_pt <= dot_bc)
         return (0 < dot_ab_pt < dot_ab) and (0 < dot_bc_pt < dot_bc)
 
-    def contains_points(self, xy_array, include_edges=True):
+    def contains_points(self, xy_array: list[XY_type] | np.ndarray[XY_type],
+                        include_edges: bool = True) -> bool | list[bool]:
         """Returns True for each corresponding point in ``xy_array`` if this rectangle
          contains that point, else return False. Array version of `contains_point()`.
 
@@ -581,7 +467,9 @@ class Rectangle_in_2D:
         return[(0 < dot_a_pt < dot_ab) and (0 < dot_b_pt < dot_bc)
                for (dot_a_pt, dot_b_pt) in zip(dot_ab_array, dot_bc_array)]
 
-    def contains_points_unitgrid(self, x_min, x_max, y_min, y_max, include_edges=True):
+    def contains_points_unitgrid(self, x_min: int, x_max: int,
+                                 y_min: int, y_max: int,
+                                 include_edges: bool = True) -> np.ndarray:
         """Constructs a unit grid in X and Y, then sets each point in the grid to
         True if and only if that point's coordinates fall within this rectangle,
         else sets the point to False.
@@ -647,7 +535,7 @@ class Circle_in_2D:
         Area of circle.
     """
 
-    def __init__(self, xy_origin, radius):
+    def __init__(self, xy_origin: XY, radius: float):
         self.origin = xy_origin
         self.radius = radius
         if not isinstance(self.origin, XY):
@@ -655,7 +543,7 @@ class Circle_in_2D:
         self.x, self.y = (self.origin.x, self.origin.y)
         self.area = pi * (self.radius ** 2)
 
-    def contains_point(self, xy, include_edges=True):
+    def contains_point(self, xy: XY_type, include_edges: bool = True) -> bool:
         """Returns True if this circle contains point ``xy``, else return False.
 
         Parameters
@@ -677,7 +565,8 @@ class Circle_in_2D:
             return distance2 <= self.radius ** 2
         return distance2 < self.radius ** 2
 
-    def contains_points(self, xy_array, include_edges=True):
+    def contains_points(self, xy_array: np.ndarray[XY_type] | list[XY_type],
+                        include_edges=True) -> np.ndarray[bool] | list[bool]:
         """Returns True for each corresponding point in ``xy_array`` if this circle
          contains that point, else return False. Array version of ``contains_point()``.
 
@@ -701,7 +590,9 @@ class Circle_in_2D:
             return [distance2 <= self.radius ** 2 for distance2 in distances2]
         return [distance2 < self.radius ** 2 for distance2 in distances2]
 
-    def contains_points_unitgrid(self, x_min, x_max, y_min, y_max, include_edges=True):
+    def contains_points_unitgrid(self, x_min: int, x_max: int,
+                                 y_min: int, y_max: int,
+                                 include_edges=True) -> np.ndarray:
         """Constructs a unit grid in X and Y, then sets each point in the grid to
         True if and only if that point's coordinates fall within this circle,
         else sets the point to False.
@@ -741,7 +632,10 @@ class Circle_in_2D:
 __________FUNCTIONS_____________________________________________________________ = 0
 
 
-def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
+def distance_to_line(xy_pt: Union[XY_type, tuple[float, float]],
+                     xy_1: Union[XY_type, tuple[float, float]],
+                     xy_2: Union[XY_type, tuple[float, float]],
+                     dist_12: float | None = None) -> float:
     """Shortest distance from a point to a line defined by two non-coincident points.
     Line is consdered to extend infinitely in both directions (that is, it is a
     formal line, not a line *segment*).
@@ -780,7 +674,7 @@ def distance_to_line(xy_pt, xy_1, xy_2, dist_12=None):
     return distance
 
 
-def make_golden_spiral(n_points):
+def make_golden_spiral(n_points: int) -> list[namedtuple]:
     """Return points evenly spaced on a sphere.
 
 .. note:: This function may be removed in favor of recommending astropy's

@@ -8,6 +8,7 @@ __author__ = "Eric Dose :: Albuquerque"
 
 # Python core packages:
 from math import ceil, sqrt
+from typing import Self, TypeAlias
 
 # External packages:
 import numpy as np
@@ -15,6 +16,7 @@ import astropy.io.fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import pixel_to_skycoord, skycoord_to_pixel
 from astropy.time import Time, TimeDelta
+from astropy.coordinates import SkyCoord
 from astropy.stats import sigma_clipped_stats
 from astropy.convolution import Gaussian2DKernel
 from photutils.morphology import data_properties
@@ -23,6 +25,9 @@ from photutils.segmentation import make_source_mask
 # From elsewhere in this package:
 from .reference import FWHM_PER_SIGMA, ARCSECONDS_PER_RADIAN
 from .geometry import XY, DXY, Circle_in_2D, Rectangle_in_2D
+
+PointSourceAp_type: TypeAlias = 'PointSourceAp'
+MovingSourceAp_type: TypeAlias = 'MovingSourceAp'
 
 FITS_EXTENSIONS = ['fts', 'fit', 'fits']  # allowed filename extensions
 ISO_8601_FORMAT = '%Y-%m-%dT%H:%M:%S'
@@ -164,7 +169,7 @@ class FITS:
     given its "private" distortion parameters.
     """
 
-    def __init__(self, fullpath, pinpoint_pixel_scale_multiplier=1):
+    def __init__(self, fullpath: str, pinpoint_pixel_scale_multiplier: float = 1):
         self.fullpath = fullpath
         self.pinpoint_pixel_scale_multiplier = pinpoint_pixel_scale_multiplier
         try:
@@ -213,7 +218,7 @@ class FITS:
 
         self.is_valid = True  # if it got through all that initialization.
 
-    def header_value(self, key):
+    def header_value(self, key: str | list[str]) -> str | None:
         """Return value associated with given FITS header key, or None if key not found.
 
         Parameters
@@ -237,12 +242,12 @@ class FITS:
                 return value
         return None
 
-    def _detect_pinpoint_plate_solution(self):
+    def _detect_pinpoint_plate_solution(self) -> bool:
         """True if proprietary PinPoint plate solution was detected, else False."""
         return all([key in self.header.keys()
                     for key in ['TR1_0', 'TR2_1', 'TR1_6', 'TR2_5']])
 
-    def _make_corrected_wcs(self):
+    def _make_corrected_wcs(self) -> WCS:
         """Make and return corrected WCS object.
         If `pinpoint_pixel_scale_multipler`` is one, return a copy of ``wcs_fits``."""
         corrected_header = self.header.copy()
@@ -253,7 +258,8 @@ class FITS:
                                             self.pinpoint_pixel_scale_multiplier
         return WCS(corrected_header)
 
-    def xy_to_skycoords(self, xy):
+    def xy_to_skycoords(self, xy: XY | tuple[float, float] | list[XY] | list[tuple]) \
+            -> SkyCoord:
         """ Convert the image's (x,y) coordinates to (RA, Dec) sky coordinates.
 
         Wrapper for :meth:`astropy.wcs.WCS.pixel_to_world()`, using ``wcs_corrected``.
@@ -262,7 +268,7 @@ class FITS:
         ----------
         xy : |XY|, or tuple of 2 float, or a list of either
             Image (x,y) coordinates, or a list of such coordinates.
-            If list, all elements must be of same type (all |XY|, or all tuple).
+            If a list, all elements must be of same type (all |XY|, or all tuple).
 
         Returns
         -------
@@ -287,9 +293,10 @@ class FITS:
         else:
             raise ValueError('FITS.xy_to_skycoords() requires a tuple'
                              ' (x,y) or a list of such tuples.')
-        return pixel_to_skycoord(x, y, self.wcs_corrected, origin=0, mode='wcs')
+        return pixel_to_skycoord(x, y, self.wcs_corrected, origin=0,
+                                 mode='wcs', cls=SkyCoord)
 
-    def skycoords_to_xy(self, skycoords):
+    def skycoords_to_xy(self, skycoords: SkyCoord) -> tuple[float, float] | list[tuple]:
         """Convert (RA, Dec) sky coordinates to image (x,y) coordinates.
 
         Wrapper for :meth:`astropy.wcs.WCS.world_to_pixel()`, using ``wcs_corrected``.
@@ -316,7 +323,7 @@ class FITS:
             xy = list(zip(xy[0], xy[1]))
         return xy
 
-    def corner_skycoords(self):
+    def corner_skycoords(self) -> SkyCoord:
         """Return sky coordinates for the four corners of this image.
 
         Returns
@@ -328,26 +335,25 @@ class FITS:
         """
         x_size, y_size = self.image_xy.shape
         xy_list = [(0, 0), (x_size - 1, 0), (0, y_size - 1), (x_size - 1, y_size - 1)]
-        skycoords = self.xy_to_skycoords(xy_list)
-        return skycoords
+        return self.xy_to_skycoords(xy_list)
 
-    def _is_calibrated_by_maxim_5_6(self):
+    def _is_calibrated_by_maxim_5_6(self) -> bool:
         hval = self.header_value('CALSTAT')
         if hval is not None:
             if hval.strip().upper() == 'BDF':  # calib. by MaxIm DL v. 5 or 6
                 return True
         return False
 
-    def _is_calibrated(self):
+    def _is_calibrated(self) -> bool:
         """Returns True if this FITS file was photometrically calibrated
         (by Maxim 5 or 6), else False."""
         calib_fn_list = [self._is_calibrated_by_maxim_5_6()]
         return any([is_c for is_c in calib_fn_list])
 
-    def _is_plate_solved(self):
+    def _is_plate_solved(self) -> bool:
         return self.wcs_fits is not None
 
-    def _get_focal_length(self):
+    def _get_focal_length(self) -> str | None:
         # If FL available, return it. Else, compute FL from plate solution.
         value = self.header_value('FOCALLEN')
         if value is not None:
@@ -358,11 +364,13 @@ class FITS:
         y_scale = self.header_value('CDELT2')
         if any([val is None for val in [x_pixel, y_pixel, x_scale, y_scale]]):
             return None
-        fl_x = x_pixel / abs(x_scale) * (ARCSECONDS_PER_RADIAN / (3600 * 1800))
-        fl_y = y_pixel / abs(y_scale) * (ARCSECONDS_PER_RADIAN / (3600 * 1800))
-        return (fl_x + fl_y) / 2.0
+        fl_x = float(x_pixel) / abs(float(x_scale)) * (ARCSECONDS_PER_RADIAN /
+                                                       (3600 * 1800))
+        fl_y = float(y_pixel) / abs(float(y_scale)) * (ARCSECONDS_PER_RADIAN /
+                                                       (3600 * 1800))
+        return str((fl_x + fl_y) / 2.0)
 
-    def _get_utc_start(self):
+    def _get_utc_start(self) -> Time:
         utc_string = self.header_value('DATE-OBS')
         utc_start = Time(utc_string)
         utc_start.format = 'iso'
@@ -516,8 +524,10 @@ class Ap:
         Elongation of the background-corrected flux in ``cutout``.
     """
 
-    def __init__(self, image_xy, xy_center, dxy_offset, foreground_mask,
-                 background_mask=None, source_id='', obs_id=''):
+    def __init__(self, image_xy: np.ndarray[float], xy_center: XY, dxy_offset: DXY,
+                 foreground_mask: np.ndarray[float],
+                 background_mask: np.ndarray[float] | int | float | None = None,
+                 source_id: str = '', obs_id: str = ''):
         # Save inputs:
         self.image_xy = image_xy
         # Starting (x,y), relative to image (0,0):
@@ -539,8 +549,7 @@ class Ap:
             self.background_mask = np.logical_not(input_foreground_mask)
         # If background mask is given but int or float array (rare),
         # convert it to a boolean numpy array:
-        elif type(input_background_mask) in (int, float) and \
-            input_background_mask == 0:
+        elif type(input_background_mask) in (int, float) and input_background_mask == 0:
             self.background_mask = np.full_like(input_foreground_mask,
                                                 fill_value=True, dtype=bool)
         # If background mask is valid array, use it directly
@@ -606,15 +615,15 @@ class Ap:
         self.is_valid = True
 
     def __str__(self):
-        raise NotImplementedError
+        raise NotImplementedError("Every subclass of Ap must implement .__str__().")
 
-    def _cutout_is_wholly_inside_image(self):
+    def _cutout_is_wholly_inside_image(self) -> bool:
         """Returns True iff cutout lies entirely within parent image."""
         return (self.x_low > 0) and (self.y_low > 0) and \
                (self.x_high < self.image_xy.shape[1]) and \
                (self.y_high < self.image_xy.shape[0])
 
-    def flux_stddev(self, gain=1):
+    def flux_stddev(self, gain: float = 1) -> float:
         """Returns estimated standard deviation of background-corrected flux.
 
         This was made a method so that ``gain`` can be passed in separately.
@@ -648,7 +657,7 @@ class Ap:
         raise NotImplementedError("Every subclass of Ap must implement "
                                   "._make_new_object().")
 
-    def recenter(self, max_adjustment=None, max_iterations=3):
+    def recenter(self, max_adjustment: float = None, max_iterations: int = 3) -> Self:
         """Iteratively refine estimate of light source's center, and adjust the image
         cutout's location on the image if needed.
 
@@ -839,8 +848,9 @@ class PointSourceAp(Ap):
         elliptical shape.
     """
 
-    def __init__(self, image_xy, xy_center, foreground_radius, gap, background_width,
-                 source_id='', obs_id=''):
+    def __init__(self, image_xy: np.ndarray[float], xy_center: XY,
+                 foreground_radius: float, gap: float, background_width: float,
+                 source_id: str = '', obs_id: str = ''):
         if isinstance(xy_center, tuple):
             xy_center = XY(xy_center[0], xy_center[1])  # ensure is XY object.
         self.foreground_radius = foreground_radius
@@ -866,7 +876,7 @@ class PointSourceAp(Ap):
         super().__init__(image_xy, xy_center, dxy_origin,
                          foreground_mask, background_mask, source_id, obs_id)
 
-    def _make_new_object(self, new_xy_center):
+    def _make_new_object(self, new_xy_center: XY) -> PointSourceAp_type:
         """ Make new object using new xy_center. Overrides parent-class method, as
         required. Masks will be recreated by the constructor, using new xy_center.
         """
@@ -874,7 +884,7 @@ class PointSourceAp(Ap):
                              self.foreground_radius, self.gap, self.background_width,
                              self.source_id, self.obs_id)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'PointSourceAp at x,y = ' + str(self.xy_center.x) + ', ' + \
                str(self.xy_center.y)
 
@@ -1044,9 +1054,10 @@ class MovingSourceAp(Ap):
         elliptical shape.        Radius of outer edge of background annulus, in pixels.
     """
 
-    def __init__(self, image_xy, xy_start, xy_end,
-                 foreground_radius, gap, background_width,
-                 source_id='', obs_id=''):
+    def __init__(self, image_xy: np.ndarray,
+                 xy_start: XY | tuple[float, float], xy_end: XY | tuple[float, float],
+                 foreground_radius: float, gap: float, background_width: float,
+                 source_id: str = '', obs_id: str = ''):
         self.xy_start = xy_start if isinstance(xy_start, XY) \
             else XY.from_tuple(xy_start)
         self.xy_end = xy_end if isinstance(xy_end, XY) \
@@ -1056,7 +1067,7 @@ class MovingSourceAp(Ap):
         self.background_width = background_width
         self.background_inner_radius = self.foreground_radius + self.gap
         self.background_outer_radius = self.foreground_radius + \
-                                       self.gap + self.background_width
+            self.gap + self.background_width
         xy_center = self.xy_start + (self.xy_end - self.xy_start) / 2
         corner_x_values = (self.xy_start.x + self.background_outer_radius,
                            self.xy_start.x - self.background_outer_radius,
@@ -1093,7 +1104,8 @@ class MovingSourceAp(Ap):
         self.sigma = self.stats.semiminor_sigma.value
         self.fwhm = self.sigma * FWHM_PER_SIGMA
 
-    def _make_new_object(self, new_xy_center):
+    def _make_new_object(self, new_xy_center: XY | tuple[float, float]) \
+            -> MovingSourceAp_type:
         """ Make new object using new xy_center. Overrides parent-class method,
         as required.
         Masks will be recreated by the constructor, using new xy_center.
@@ -1108,7 +1120,7 @@ class MovingSourceAp(Ap):
                               self.foreground_radius, self.gap, self.background_width,
                               self.source_id, self.obs_id)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'MovingSourceAp at x,y = ' + str(self.xy_center.x) + ', ' + \
                str(self.xy_center.y)
 
@@ -1116,7 +1128,8 @@ class MovingSourceAp(Ap):
 _____IMAGE_and_GEOMETRY_SUPPORT____________________________________ = 0
 
 
-def make_circular_mask(mask_size, xy_origin, radius):
+def make_circular_mask(mask_size: int, xy_origin: XY | tuple[float, float],
+                       radius: float) -> np.ndarray[float]:
     """Construct a traditional circular mask array for small, stationary object,
     esp. for a star.
     Unmask only those pixels *within* ``radius`` pixels of a given point.
@@ -1147,14 +1160,16 @@ def make_circular_mask(mask_size, xy_origin, radius):
     return mask
 
 
-def make_pill_mask(mask_shape_xy, xya, xyb, radius):
+def make_pill_mask(mask_shape_xy: XY | tuple[int, int],
+                   xya: XY | tuple[float, float], xyb: XY | tuple[float, float],
+                   radius: float) -> np.ndarray:
     """Construct a mask array for light source in motion (e.g., minor planet)
      Unmask only those pixels within `radius` pixels of the line segment
      from ``xya`` to ``xyb``.
 
     Parameters
     ----------
-    mask_shape_xy : tuple of 2 float
+    mask_shape_xy : |XY|, or tuple of 2 int
         Pixel size (x,y) of mask array to generate.
 
     xya : |XY|, or tuple of 2 float
@@ -1193,14 +1208,14 @@ def make_pill_mask(mask_shape_xy, xya, xyb, radius):
 
     # Make mask, including edges so no gaps can appear at rectangle corners:
     circle_a_contains = \
-        circle_a.contains_points_unitgrid(0, mask_shape_xy.as_tuple[0] - 1,
-                                          0, mask_shape_xy.as_tuple[1] - 1, True)
+        circle_a.contains_points_unitgrid(0, int(mask_shape_xy.as_tuple[0]) - 1,
+                                          0, int(mask_shape_xy.as_tuple[1]) - 1, True)
     circle_b_contains = \
-        circle_b.contains_points_unitgrid(0, mask_shape_xy.as_tuple[0] - 1,
-                                          0, mask_shape_xy.as_tuple[1] - 1, True)
+        circle_b.contains_points_unitgrid(0, int(mask_shape_xy.as_tuple[0]) - 1,
+                                          0, int(mask_shape_xy.as_tuple[1]) - 1, True)
     rectangle_contains = \
-        rectangle.contains_points_unitgrid(0, mask_shape_xy.as_tuple[0] - 1,
-                                           0, mask_shape_xy.as_tuple[1] - 1, True)
+        rectangle.contains_points_unitgrid(0, int(mask_shape_xy.as_tuple[0]) - 1,
+                                           0, int(mask_shape_xy.as_tuple[1]) - 1, True)
     # Render each in numpy mask-boolean but (x,y) index conventions:
     circle_a_mask = np.logical_not(circle_a_contains)
     circle_b_mask = np.logical_not(circle_b_contains)
@@ -1209,7 +1224,8 @@ def make_pill_mask(mask_shape_xy, xya, xyb, radius):
     return mask
 
 
-def calc_background_value(data, mask=None, dilate_size=3):
+def calc_background_value(data: np.ndarray[float], mask: np.ndarray[bool] | None = None,
+                          dilate_size: float = 3) -> tuple[float, float] | None:
     """Calculate the best estimate of background value.
 
     Iterative sigma-clipped median is the best known algorithm. Author's testing

@@ -96,7 +96,10 @@ class MixedModelFit:
         including their fitted values and fit residuals.
     """
     # TODO: Replace internal 'formula' API with more robust column-name API.
-    def __init__(self, data, dep_var=None, fixed_vars=None, group_var=None):
+    def __init__(self, data: pd.DataFrame,
+                 dep_var: str = None,
+                 fixed_vars: list[str] | str = None,
+                 group_var: str = None):
         if not isinstance(data, pd.DataFrame):
             raise TypeError('Parameter \'data\' must be a pandas Dataframe'
                             ' of input data.')
@@ -155,7 +158,8 @@ class MixedModelFit:
         df['Residual'] = fit.resid
         self.df_observations = df.copy()
 
-    def predict(self, df_predict_input, include_random_effect=True):
+    def predict(self, df_predict_input: pd.DataFrame,
+                include_random_effect: bool = True) -> pd.Series:
         """From new data points, renders predicted dependent-variable values.
         Optionally includes effect of groups (random effects), unlike statsmodels
         itself.
@@ -254,7 +258,8 @@ class LinearFit:
         Dataframe, one per input data point, of data related to each data point,
         including their fitted values and fit residuals.
     """
-    def __init__(self, data, dep_var=None, indep_vars=None):
+    def __init__(self, data: pd.DataFrame, dep_var: str = None,
+                 indep_vars: list[str] | str = None):
         if not isinstance(data, pd.DataFrame):
             print('Parameter \'data\' must be a pandas Dataframe of input data.')
             return
@@ -305,7 +310,7 @@ class LinearFit:
         df['Residual'] = fit.resid
         self.df_observations = df.copy()
 
-    def predict(self, df_predict_input):
+    def predict(self, df_predict_input: pd.DataFrame) -> pd.Series:
         """From new data points, renders predicted dependent-variable values.
 
         Parameters
@@ -328,7 +333,9 @@ class LinearFit:
 _____STATISTICAL_FUNCTIONS__________________________________ = 0
 
 
-def weighted_mean(values, weights):
+def weighted_mean(values: list[float] | pd.Series,
+                  weights: list[float] | pd.Series) \
+                  -> tuple[float, float, float]:
     """Returns weighted mean, weighted standard deviation of values, and
     weighted standard deviation of the mean.
 

@@ -48,6 +48,18 @@ many useful attributes are available for all kinds of observation planning tasks
 and ``end``. |Time| is astropy's standard Time object, representing a single instant of
 time, which may be expressed in any of numerous timescales and formats.
 
+    >>> an.timespan_observable
+    Timespan(2022-04-03 02:02:36.490, 2022-04-03 12:07:51.845)
+    >>> an.timespan_dark_no_moon
+    Timespan(2022-04-03 03:01:28.676, 2022-04-03 12:07:51.845)
+time, which may be expressed in any of numerous timescales and formats.
+
+    >>> an.timespan_observable
+    Timespan(2022-04-03 02:02:36.490, 2022-04-03 12:07:51.845)
+    >>> an.timespan_dark_no_moon
+    Timespan(2022-04-03 03:01:28.676, 2022-04-03 12:07:51.845)
+time, which may be expressed in any of numerous timescales and formats.
+
     >>> an.timespan_dark
     Timespan(2022-04-03 02:02:36.490, 2022-04-03 12:07:51.845)
     >>> an.timespan_dark_no_moon

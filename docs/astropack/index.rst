@@ -57,6 +57,60 @@ during one observing night):
       >>> this_site = Site('My Dome')
       >>> an = Astronight(this_site, 20220402)
       >>>
+      >>> an.timespan_observable
+      Timespan(2022-04-03 02:02:36.490, 2022-04-03 12:07:51.845)
+      >>> an.moon_skycoord
+      <SkyCoord (ICRS): (ra, dec) in deg
+          (34.98185288, 11.95750862)>
+      >>>
+      >>> from astropy.coordinates import SkyCoord
+      >>> betelgeuse = SkyCoord('05h 55m 10.30536s +07d 24m 25.4304s')
+      >>> print(an.timespan_observable(betelgeuse, min_alt=30, min_moon_dist=45))
+      Timespan '2022-04-03 02:02:36.490' to '2022-04-03 04:08:12.314' = 7535.824 seconds.
+
+
+
+
+In other words: what I mean by a server class is a **bundle of data that speaks for
+itself**. A reference book that opens itself to just the right page when you need
+it to, and hides away when you don't.
+It's how much of Astropack is coded. It's ideal for technical coding.
+
+Or so I say. Check it for yourself. Right here, in fact:
+during one observing night):
+
+      >>> from astropack.almanac import Astronight
+      >>> from astropack.ini import Site
+      >>> this_site = Site('My Dome')
+      >>> an = Astronight(this_site, 20220402)
+      >>>
+      >>> an.timespan_observable
+      Timespan(2022-04-03 02:02:36.490, 2022-04-03 12:07:51.845)
+      >>> an.moon_skycoord
+      <SkyCoord (ICRS): (ra, dec) in deg
+          (34.98185288, 11.95750862)>
+      >>>
+      >>> from astropy.coordinates import SkyCoord
+      >>> betelgeuse = SkyCoord('05h 55m 10.30536s +07d 24m 25.4304s')
+      >>> print(an.timespan_observable(betelgeuse, min_alt=30, min_moon_dist=45))
+      Timespan '2022-04-03 02:02:36.490' to '2022-04-03 04:08:12.314' = 7535.824 seconds.
+
+
+
+
+In other words: what I mean by a server class is a **bundle of data that speaks for
+itself**. A reference book that opens itself to just the right page when you need
+it to, and hides away when you don't.
+It's how much of Astropack is coded. It's ideal for technical coding.
+
+Or so I say. Check it for yourself. Right here, in fact:
+during one observing night):
+
+      >>> from astropack.almanac import Astronight
+      >>> from astropack.ini import Site
+      >>> this_site = Site('My Dome')
+      >>> an = Astronight(this_site, 20220402)
+      >>>
       >>> an.timespan_dark
       Timespan(2022-04-03 02:02:36.490, 2022-04-03 12:07:51.845)
       >>> an.moon_skycoord

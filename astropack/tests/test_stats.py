@@ -25,7 +25,7 @@ def test_class_mixed_model_fit():
          'Dep': 0}
     df = pd.DataFrame(d)
     df['Dep'] = 17 + 1*df.A + 2*df.B + 4*df.C + 5*(df.Ran-1) + \
-                1*np.random.randn(len(df))
+        1*np.random.randn(len(df))
     categories = ['X', 'Y', 'Z']
     df['Ran'] = [categories[r] for r in df['Ran']]
     df.index = df.index + 200
@@ -101,7 +101,7 @@ def test_class_linear_fit():
          'Dep': 0}
     df_model = pd.DataFrame(d)
     df_model['Dep'] = 13 + 1.5*df_model.A + 2*df_model.B + 4*df_model.C + \
-                      1*np.random.randn(len(df_model))
+        1*np.random.randn(len(df_model))
 
     # Run regression, yielding the fit object:
     fit = stats.LinearFit(df_model, dep_var='Dep', indep_vars=['A', 'B', 'C'])

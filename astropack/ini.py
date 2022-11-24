@@ -179,8 +179,9 @@ class Site:
         Value is frequently near 3 for domes of diameter 3-5 meters.
     """
 
-    def __init__(self, fullpath):
+    def __init__(self, fullpath: str):
         self.fullpath, self.filename, i = get_ini_data(fullpath)
+        # NB: 'i' is the ConfigParser object holding all the data.
         self.name = i.get('Site', 'Name')
         self.mpc_code = i.get('Site', 'MPC Code')
         self.longitude = float(i.get('Location', 'Longitude'))  # degrees
@@ -233,7 +234,7 @@ class Site:
             raise SiteValueError('Coldest date must represent valid '
                                  'month-day date of year.')
 
-    def _get_date_phase(self, date):
+    def _get_date_phase(self, date: datetime):
         """For ``date`` as |py.datetime|, return annual date phase."""
         coldest_datetime = datetime(year=date.year,
                                     month=self.coldest_date[0],
@@ -242,7 +243,8 @@ class Site:
         phase = (date - coldest_datetime).days / 365.25
         return phase
 
-    def _interpolate_for_date(self, date, summer_quantity, winter_quantity):
+    def _interpolate_for_date(self, date: datetime,
+                              summer_quantity: float, winter_quantity: float) -> float:
         """Private utility to interpolate quantities between
         summer and winter nominal values."""
         amplitude = summer_quantity - winter_quantity
@@ -251,7 +253,7 @@ class Site:
         quantity_for_date = mean - (amplitude / 2) * cos(phase_in_radians)
         return quantity_for_date
 
-    def midnight_temperature_for_date(self, date):
+    def midnight_temperature_for_date(self, date: datetime) -> float:
         """Return interpolated nominal midnight temperature for site and date,
         based on summer and winter values.
 
@@ -273,7 +275,7 @@ class Site:
                                                    self.winter_midnight_temperature)
         return temp_for_date
 
-    def midnight_humidity_for_date(self, date):
+    def midnight_humidity_for_date(self, date: datetime) -> float:
         """Return interpolated nominal midnight humidity for date,
         based on summer and winter values.
 
@@ -295,7 +297,7 @@ class Site:
                                                        self.winter_midnight_humidity)
         return humidity_for_date
 
-    def extinction_for_date(self, date, filter):
+    def extinction_for_date(self, date: datetime, filter: str) -> float:
         """Return interpolated extinction for date, based on summer and winter values.
 
         Parameters
@@ -316,13 +318,26 @@ class Site:
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
         summer_extinction, winter_extinction = self.extinction[filter][0],\
-                                               self.extinction[filter][1]
+            self.extinction[filter][1]
         extinction_for_date = self._interpolate_for_date(date, summer_extinction,
                                                          winter_extinction)
         return extinction_for_date
 
-    def __str__(self):
-        return 'Site object: ' + self.name
+    @property
+    def longitude_hours(self) -> float:
+        """ Returns site longitude in hours relative to Greenwich meridian.
+        Respects International Date Line by using .utc_offset.
+        Accessed as: site_obj.longitude_hours.
+        """
+        if self.utc_offset < 0:
+            # West of Greenwich but east of Intl Date Line [Americas].
+            return ((self.longitude % 360) - 360.0) / 15.0
+        else:
+            # East of Greenwich but west of Intl Date Line [Eurasia, Africa, ANZ].
+            return (self.longitude % 360) / 15.0
+
+    def __str__(self) -> str:
+        return f'Site object: {self.name}'
 
 
 __________INSTRUMENT_INI_____________________________________________________ = 0
@@ -527,7 +542,7 @@ class Instrument:
     max_exposure_no_guiding : float
         Maximum exposure length allowed without invoking guiding, in seconds.
     """
-    def __init__(self, fullpath):
+    def __init__(self, fullpath: str):
         self.fullpath, self.filename, i = get_ini_data(fullpath)
         self.mount_model = i.get('Mount', 'Model')
         self.nominal_slew_time = float(i.get('Mount', 'Nominal Slew Time'))
@@ -560,7 +575,7 @@ class Instrument:
         self.max_exposure_no_guiding = float(i.get('Timing', 'Max Exposure No Guiding'))
 
     @staticmethod
-    def _get_transforms(multiline_string):
+    def _get_transforms(multiline_string: str) -> dict:
         """ Parse transform dictionary from the Transform multiline string.
 
         Parameters
@@ -582,7 +597,7 @@ class Instrument:
         for s in strings:
             values = s.replace(',', ' ').split()
             if len(values) < min_values_per_transform or \
-                len(values) > max_values_per_transform:
+               len(values) > max_values_per_transform:
                 raise TransformParseError('>' + s + '<')
             key = tuple(values[:4])
             value = tuple([float(v) for v in values[4:]])
@@ -640,15 +655,15 @@ class HumanObserver:
         Comma-separated list of observers' names.
         For one observer, may be the same as ``name`` above.
     """
-    def __init__(self, fullpath):
+    def __init__(self, fullpath: str):
         self.fullpath, self.filename, i = get_ini_data(fullpath)
         self.name = i.get('Identity', 'Name')
         self.alcdef_contact_name = i.get('ALCDEF', 'Contact Name')
         self.alcdef_contact_info = i.get('ALCDEF', 'Contact Info')
         self.alcdef_observers = i.get('ALCDEF', 'Observers')
 
-    def __str__(self):
-        return 'HumanObserver object: ' + self.name
+    def __str__(self) -> str:
+        return f'HumanObserver object: {self.name}'
 
 
 __________UTILITIES____________________________________________________________ = 0
@@ -659,7 +674,7 @@ class MultilineParseError(Exception):
     pass
 
 
-def get_ini_data(fullpath):
+def get_ini_data(fullpath: str) -> tuple[str, str, configparser.ConfigParser]:
     """Read .ini file into ConfigParser object. Called by all
     astropack .ini file readers.
 
@@ -670,7 +685,7 @@ def get_ini_data(fullpath):
 
     Returns
     -------
-    fullpath, filename, ini_data : tuple of str, str, dict
+    fullpath, filename, ini_data : tuple of str, str, ConfigParser object
         Where:
 
             **fullpath** is the full path to site's .ini file,
@@ -678,8 +693,8 @@ def get_ini_data(fullpath):
 
             **filename** is the base filename of ``fullpath``.
 
-            **ini_data** is a dict containing raw, unparsed data read from the
-            .ini file at ``fullpath``.
+            **ini_data** is a ConfigParser object containing raw, unparsed data
+            read from the .ini file at ``fullpath``.
     """
 
     if not (os.path.exists(fullpath) and os.path.isfile(fullpath)):
@@ -690,8 +705,9 @@ def get_ini_data(fullpath):
     return fullpath, filename, ini_data
 
 
-def _parse_multiline(multiline_string,
-                     min_words_per_line=None, max_words_per_line=None):
+def _parse_multiline(multiline_string: str,
+                     min_words_per_line: int | None = None,
+                     max_words_per_line: int | None = None) -> dict:
     """Parse one multiline ini value to a new dict, where each line's
     first substring (item) is made the key, and a tuple of remaining substrings
     (items) is made the value.
@@ -735,7 +751,7 @@ def _parse_multiline(multiline_string,
     return result_dict
 
 
-def _dict_to_floats(d):
+def _dict_to_floats(d: dict) -> dict:
     """Takes dict (e.g., a parsed ini value), and attempts to convert each item's
     value to a float or to a tuple of float.
 
@@ -762,17 +778,14 @@ def _dict_to_floats(d):
     return d
 
 
-def string_to_boolean(bool_string, default_value=None):
-    """Attempt to extract Boolean meaning from string, return default_value if failed.
+def string_to_boolean(bool_string: str) -> bool | None:
+    """Attempt to extract Boolean meaning from string, return None if failed.
 
     Parameters
     ----------
     bool_string : str
         A string representing a boolean value. Interpretable values are:
         'true', 'yes, 'y', 'false', 'no', 'n', all case-insensitive.
-
-    default_value : any object
-        Value to be returned if ``bool_string`` is not interpreted as boolean.
 
     Returns
     -------
@@ -784,4 +797,4 @@ def string_to_boolean(bool_string, default_value=None):
         return True
     if sl in ['false', 'no', 'n']:
         return False
-    return default_value
+    return None

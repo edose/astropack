@@ -69,9 +69,9 @@ def test_string_to_boolean():
                 for s in ['False', 'fALse', 'false', 'No', 'no', 'N', 'n']])
 
     # Non-boolean string case:
-    assert ini.string_to_boolean('hahaha', True) == True
-    assert ini.string_to_boolean('hahaha', False) == False
     assert ini.string_to_boolean('hahaha') is None
+    assert ini.string_to_boolean('') is None
+    assert ini.string_to_boolean('6') is None
 
 
 def test_class_site():

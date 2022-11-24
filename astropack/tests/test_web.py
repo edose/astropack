@@ -14,7 +14,7 @@ from astropy.time import Time
 from astroquery.exceptions import InvalidQueryError
 
 # Author's other modules:
-from astropack.ini import Site
+# from astropack.ini import Site
 
 # Test target:
 import astropack.web as web
@@ -26,8 +26,9 @@ TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "tests")
 
 
 def test_get_mp_ephem():
-    site_fullpath = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test', 'NMS_dome.ini')
-    site = Site(site_fullpath)
+    # site_fullpath = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test', 'NMS_dome.ini')
+    # site = Site(site_fullpath)
+    site_mpc_code = 'H12'
     utc_start = Time('2022-03-01 00:11:22')
     hours_spacing = 2
     n_entries = 6
@@ -35,7 +36,7 @@ def test_get_mp_ephem():
     # Case: MP id is integer:
     mp_id = 333
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
-                          num_entries=n_entries, site=site)
+                          num_entries=n_entries, site_mpc_code=site_mpc_code)
     assert isinstance(df, pd.DataFrame)
     assert list(df.loc[:, 'Altitude'].values) == [-12, 13, 38, 59, 64, 45]
     assert list(df.columns) == ['Date', 'RA', 'Dec', 'Delta', 'r', 'Elongation',
@@ -46,7 +47,7 @@ def test_get_mp_ephem():
     # Case: MP id is string representing integer:
     mp_id = '123'
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
-                          num_entries=n_entries, site=site)
+                          num_entries=n_entries, site_mpc_code=site_mpc_code)
     assert isinstance(df, pd.DataFrame)
     assert str(df['Date'].iloc[0]) == '2022-03-01 00:00:00'
     assert list(df.loc[:, 'Azimuth'].values) == [265, 286, 67, 93, 106, 120]
@@ -54,20 +55,20 @@ def test_get_mp_ephem():
     # Case: MP id is string representing Name:
     mp_id = 'Badenia'  # (MP number 333)
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
-                          num_entries=n_entries, site=site)
+                          num_entries=n_entries, site_mpc_code=site_mpc_code)
     assert list(df.loc[:, 'Altitude'].values) == [-12, 13, 38, 59, 64, 45]
 
     # Case: MP id is string representing Designation:
     mp_id = '2004 AA'
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
-                          num_entries=n_entries, site=site)
+                          num_entries=n_entries, site_mpc_code=site_mpc_code)
     assert list(df.loc[:, 'Altitude'].values) == [12, -13, -38, -60, -64, -45]
 
     # Case: utc_start is string interpretable by astropy Time:
     mp_id = 333
     utc_start = '2022-03-01T00:11:22'
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
-                          num_entries=n_entries, site=site)
+                          num_entries=n_entries, site_mpc_code=site_mpc_code)
     assert str(df['Date'].iloc[0]) == '2022-03-01 00:00:00'
     assert list(df.loc[:, 'Altitude'].values) == [-12, 13, 38, 59, 64, 45]
 
@@ -76,20 +77,20 @@ def test_get_mp_ephem():
     utc_start = datetime(2022, 3, 12, 12, 45, 0).\
         replace(tzinfo=timezone(offset=timedelta(hours=3)))
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
-                          num_entries=n_entries, site=site)
+                          num_entries=n_entries, site_mpc_code=site_mpc_code)
     assert str(df['Date'].iloc[0]) == '2022-03-12 12:00:00'
     assert list(df.loc[:, 'Altitude'].values) == [10, -14, -36, -48, -43, -24]
 
     # Error case: utc_start is wrong type:
     with pytest.raises(TypeError):
         _ = web.get_mp_ephem(mp_id=mp_id, utc_start=345.67, step_hours=hours_spacing,
-                             num_entries=n_entries, site=site)
+                             num_entries=n_entries, site_mpc_code=site_mpc_code)
 
     # Error case: MP id is not matched to a real MP:
     with pytest.raises(InvalidQueryError):
         _ = web.get_mp_ephem(mp_id='Not a real MP ID.',
                              utc_start='2022-03-01T00:11:22', step_hours=hours_spacing,
-                             num_entries=n_entries, site=site)
+                             num_entries=n_entries, site_mpc_code=site_mpc_code)
 
 
 def test_get_mp_info():

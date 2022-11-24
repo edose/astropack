@@ -9,6 +9,7 @@ __author__ = "Eric Dose, Albuquerque"
 import os
 from datetime import datetime, timedelta
 from math import floor, pow, ceil
+from typing import List
 
 # External packages:
 import astropy.units as u
@@ -34,7 +35,6 @@ __all__ = ['Timespan',                  # ok
 
 THIS_PACKAGE_ROOT_DIRECTORY = \
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 _____CLASSES________________________________________________ = 0
 
@@ -89,7 +89,7 @@ class Timespan:
 
     """
 
-    def __init__(self, start_time, end_time):
+    def __init__(self, start_time: datetime | Time, end_time: datetime | Time):
         if not isinstance(start_time, (datetime, Time)) or \
           not isinstance(end_time, (datetime, Time)):
             raise TypeError('Both inputs must be either datetime or Time objects.')
@@ -114,22 +114,22 @@ class Timespan:
         self.days = self.duration.jd
         self.midpoint = self.start + TimeDelta(self.duration / 2)
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Timespan') -> bool:
         """Provides == operator."""
         return self.start == other.start and self.end == other.end
 
-    def copy(self):
+    def copy(self) -> 'Timespan':
         """Return new |Timespan| exactly equivalent to this timespan."""
         return Timespan(self.start, self.end)
 
-    def delay_by(self, delay):
+    def delay_by(self, delay: float | timedelta | TimeDelta) -> 'Timespan':
         """ Return new |Timespan| with start and end delayed by param 'delay'.
 
         Parameters
         ----------
         delay : float, or |py.timedelta|, or |TimeDelta|
             A duration by which to delay the start and end of new Timespan, relative
-            to the present instance. If float, delay is in seconds.
+            to the present instance. If a float, delay is in seconds.
 
         Returns
         -------
@@ -145,7 +145,7 @@ class Timespan:
                             'or astropy.TimeDelta.')
         return Timespan(self.start + delay, self.end + delay)
 
-    def expand_by(self, expansion):
+    def expand_by(self, expansion: float | timedelta | TimeDelta) -> 'Timespan':
         """ Return new |Timespan| expanded or contracted at both start and end.
 
         Parameters
@@ -153,7 +153,7 @@ class Timespan:
         expansion : float, or |py.timedelta|, or |TimeDelta|
             The extent to which to extend both the start and the end away from the
             midpoint, relative to this timespan.
-            If float, expansion is in seconds.
+            If a float, expansion is in seconds.
             If negative, new |Timespan| is contracted relative to this timespan,
             but it will not contract beyond zero duration, in which case both
             start and end of the new |Timespan| will equal this timespan's ``midpoint``.
@@ -176,7 +176,7 @@ class Timespan:
         new_end = max(self.end + delay, self.midpoint)
         return Timespan(new_start, new_end)
 
-    def intersection(self, other):
+    def intersection(self, other: 'Timespan') -> 'Timespan':
         """Return new |Timespan| containing only times common to (overlapping with)
         this timespan and ``other``. Returns zero-duration |Timespan| if timespans
         do not intersect.
@@ -195,7 +195,7 @@ class Timespan:
         new_end = min(self.end, other.end)
         return Timespan(new_start, new_end)
 
-    def union(self, other):
+    def union(self, other: 'Timespan') -> 'Timespan' | List['Timespan']:
         """Return a new |Timespan| representing all times in either timespan.
         If the present and other timespan do not intersect,
         return list of the two |Timespan|.
@@ -214,11 +214,11 @@ class Timespan:
             return [self, other]
         return Timespan(min(self.start, other.start), max(self.end, other.end))
 
-    def add(self, other):
+    def add(self, other: 'Timespan') -> 'Timespan':
         """Alias for :meth:`Timespan.union()`."""
         return self.union(other)
 
-    def subtract(self, other):
+    def subtract(self, other: 'Timespan') -> 'Timespan' | List['Timespan']:
         """Return a new |Timespan| having all times in this timespan, but not
         in ``other``, in effect subtracting any times in ``other``.
 
@@ -252,7 +252,7 @@ class Timespan:
             return Timespan(self.start, other.start)
         return Timespan(other.end, self.end)
 
-    def contains(self, other):
+    def contains(self, other: 'Timespan') -> bool:
         """Returns True if this timespan wholly contains ``other``, else returns False.
 
         Parameters
@@ -273,7 +273,7 @@ class Timespan:
         raise TypeError('Timespan.contains() requires Time, datetime, '
                         'or Timespan object as parameter.')
 
-    def split_at(self, time):
+    def split_at(self, time: datetime | Time) -> 'Timespan' | List['Timespan']:
         """Splits current timespan at ``time`` to give two contiguous |Timespan|,
         or the original timespan if ``time`` is not contained.
 
@@ -298,7 +298,7 @@ class Timespan:
         return self.copy()
 
     @staticmethod
-    def longer(ts1, ts2):
+    def longer(ts1: 'Timespan', ts2: 'Timespan') -> 'Timespan':
         """Returns the |Timespan| with longer duration (larger ``.seconds``), or
         of equal duration, return ``ts1``.
 
@@ -320,7 +320,8 @@ class Timespan:
             return ts1
         return ts2
 
-    def periodic_events(self, ref_time, period, max_events=10):
+    def periodic_events(self, ref_time: datetime | Time, period: datetime | Time,
+                        max_events: int | None = 10) -> List[Time]:
         """Returns times of periodic events that occur within a given |Timespan|.
 
         Parameters
@@ -360,18 +361,18 @@ class Timespan:
         event_times = [first_time + i * period for i in range(n_events)]
         return event_times
 
-    def __str__(self):
-        return "Timespan '" + str(self.start) + "' to '" + str(self.end) + "' = " + \
-               '{0:.3f}'.format(self.seconds) + " seconds."
+    def __str__(self) -> str:
+        return f"Timespan '{str(self.start)}' to '{str(self.end)}' = " \
+               f"{self.seconds:.3f} seconds."
 
     def __repr__(self):
-        return 'Timespan(' + self.start.iso + ', ' + self.end.iso + ')'
+        return f'Timespan({self.start.iso}, {self.end.iso})'
 
 
 __________TIME_and_DATE_FUNCTIONS_____________________________________________ = 0
 
 
-def hhmm_from_datetime_utc(datetime_utc):
+def hhmm_from_datetime_utc(datetime_utc: datetime) -> str:
     """Return UTC time-of-day string of form 'hhmm' for a UTC datetime.
 
     If datetime falls on the half-minute, rounding is performed to the nearest even
@@ -408,7 +409,7 @@ def hhmm_from_datetime_utc(datetime_utc):
 _____RA_and_DEC_FUNCTIONS_____________________________________ = 0
 
 
-def ra_as_degrees(ra_string):
+def ra_as_degrees(ra_string: str) -> float | None:
     """Takes string representing Right Ascension as either sexigesimal hours or
     decimal degrees, returns value in degrees.
 
@@ -439,7 +440,7 @@ def ra_as_degrees(ra_string):
     return ra_degrees
 
 
-def hex_as_degrees(degrees_string):
+def hex_as_degrees(degrees_string: str) -> float:
     """Takes string representing an angle as sexigesimal or as decimal degrees,
     returns value in degrees.
 
@@ -473,7 +474,7 @@ def hex_as_degrees(degrees_string):
     return angle_degrees
 
 
-def dec_as_degrees(dec_string):
+def dec_as_degrees(dec_string: str) -> float | None:
     """Takes Declination as string (hex or degrees), returns degrees as float.
 
     Parameters
@@ -493,7 +494,7 @@ def dec_as_degrees(dec_string):
     return dec_degrees
 
 
-def ra_as_hours(ra_degrees, seconds_decimal_places=2):
+def ra_as_hours(ra_degrees: float, seconds_decimal_places: int = 2) -> str | None:
     """Takes Right Ascension in degrees, returns string representing RA in hours.
 
     Parameters
@@ -548,7 +549,7 @@ def ra_as_hours(ra_degrees, seconds_decimal_places=2):
     return ra_string
 
 
-def dec_as_hex(dec_degrees, arcseconds_decimal_places=0):
+def dec_as_hex(dec_degrees: float, arcseconds_decimal_places: int = 0) -> str | None:
     """Takes degrees Declination, returns sexigesimal string representation.
 
     Parameters
@@ -572,7 +573,7 @@ def dec_as_hex(dec_degrees, arcseconds_decimal_places=0):
     return dec_string
 
 
-def degrees_as_hex(angle_degrees, arcseconds_decimal_places=2):
+def degrees_as_hex(angle_degrees: float, arcseconds_decimal_places: int = 2) -> str:
     """Takes angle in degrees, returns sexigesimal string representation.
 
     Parameters
@@ -628,7 +629,7 @@ def degrees_as_hex(angle_degrees, arcseconds_decimal_places=2):
     return hex_string
 
 
-def parse_hex(hex_string):
+def parse_hex(hex_string: str) -> list[str, str, str]:
     """Takes sexigesimal string representing an angle,
     returns a list of 3 str representing int or float values.
     Helper function not normally called diretly by user code.
@@ -656,7 +657,7 @@ def parse_hex(hex_string):
     return string_list
 
 
-def concatenate_skycoords(skycoord_input):
+def concatenate_skycoords(skycoord_input: SkyCoord | list[SkyCoord]) -> SkyCoord:
     """Compiles an astropy |SkyCoord| or list of |SkyCoord|, array-based or scalar
     in any combination, and returns one array-based |SkyCoord| object containing
     all input coordinates. Order of input skycoords is retained.
@@ -698,7 +699,9 @@ def concatenate_skycoords(skycoord_input):
                     'SkyCoord object or a list of them.')
 
 
-def combine_ra_dec_bounds(skycoord_input, extension_percent=3):
+def combine_ra_dec_bounds(skycoord_input: SkyCoord | list[SkyCoord],
+                          extension_percent: int = 3) \
+        -> tuple[float, float, float, float] | None:
     """Computes and returns sky coordinates of the smallest RA, Dec bounding box
     that can cover all input sky coordinates.
 
@@ -746,7 +749,7 @@ def combine_ra_dec_bounds(skycoord_input, extension_percent=3):
 __________FILESYSTEM_FUNCTIONS___________________________________ = 0
 
 
-def make_directory_if_not_exists(directory_path):
+def make_directory_if_not_exists(directory_path: str) -> bool:
     """Makes new directory on the file system only if no directory already exists
     at ``directory_path``.
 
@@ -767,7 +770,7 @@ def make_directory_if_not_exists(directory_path):
     return path_preexists
 
 
-def count_files_immediate(dir_fullpath):
+def count_files_immediate(dir_fullpath: str) -> int:
     """Rapidly counts number of files in the specified directory, but not in child
     directories (non-recursive count).
 
@@ -788,7 +791,7 @@ def count_files_immediate(dir_fullpath):
 __________GENERAL_UTILITY_FUNCTIONS__________________________________________ = 0
 
 
-def pressure_from_elevation(elevation):
+def pressure_from_elevation(elevation: float) -> float:
     """Return standard atmospheric pressure in mbar (= hectoPascals) from
     given elevation in meters. Derived from a formula from the U.S. NOAA at
     https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf

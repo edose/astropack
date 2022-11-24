@@ -15,11 +15,13 @@ __author__ = "Eric Dose, Albuquerque"
 from datetime import datetime, timezone
 
 # External packages:
-# import pandas as pd
+import pandas as pd
 import astropy.units as u
 from astropy.time import Time
 # from astropy.coordinates import Latitude, Longitude
-from astroquery.mpc import MPC
+from astroquery.mpc import MPC  # MPC gives warning (astroquery error).
+
+# From other modules, this package:
 
 
 __all__ = ['get_mp_info', 'get_mp_ephem']
@@ -28,7 +30,11 @@ __all__ = ['get_mp_info', 'get_mp_ephem']
 __________FUNCTIONS___________________________________________________________ = 0
 
 
-def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
+def get_mp_ephem(mp_id: str | int, utc_start: datetime | Time | str,
+                 step_hours: int, num_entries: int,
+                 site_mpc_code: str | None = None) \
+                 -> pd.DataFrame:
+
     """Return MPES ephemeris information from one MPES web page
     (i.e., for one asteroid/minor planet).
 
@@ -51,7 +57,7 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
     num_entries : int
         Number of ephemeris entries wanted.
 
-    site : |Site| instance, or None, optional
+    site_mpc_code : str or None, optional
         The earth location for which data are wanted, or
         None (default) for geocentric data. Default is None.
 
@@ -73,10 +79,10 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
                         'or string convertible to astropy Time.')
     step = step_hours * u.hour
     number = num_entries
-    if site is None:
+    if site_mpc_code is None:
         location = None
     else:
-        location = site.mpc_code
+        location = site_mpc_code
     table = MPC.get_ephemeris(target=target, location=location, start=start,
                               step=step, number=number, unc_links=False)
     df = table.to_pandas()
@@ -87,6 +93,7 @@ def get_mp_ephem(mp_id, utc_start, step_hours, num_entries, site=None):
 
 
 def get_mp_info(mp_number=None, mp_name=None):
+    # TODO: Logic around query_result seems messed up.
     """Given either a Minor Planet number or name (not both),
     return a python dictionary of principal data as retrieved from the Minor Planet
     Center database.
@@ -115,14 +122,16 @@ def get_mp_info(mp_number=None, mp_name=None):
     query_result = None  # keep IDE happy.
     if mp_number is not None:
         if isinstance(mp_number, int):
-            query_result = MPC.query_object(target_type='asteroid', number=mp_number)
+            query_result = MPC.query_object(target_type='asteroid',
+                                            number=mp_number)
         elif isinstance(mp_number, str):
             try:
                 _ = int(mp_number)
             except ValueError:
                 raise TypeError('Parameter \'mp_number\' must be None, an integer,'
                                 ' or a string representing an integer.')
-        query_result = MPC.query_object(target_type='asteroid', number=str(mp_number))
+        query_result = MPC.query_object(target_type='asteroid',
+                                        number=str(mp_number))
     elif mp_name is not None:
         if isinstance(mp_name, str):
             query_result = MPC.query_object(target_type='asteroid', name=mp_name)
