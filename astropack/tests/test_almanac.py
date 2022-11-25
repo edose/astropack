@@ -592,10 +592,8 @@ def test_astronight_attributes_basic():
     assert (an.observable_end_utc - Time('2022-02-09 13:10:43')).sec == \
            pytest.approx(0, abs=2)
     assert an.timespan_observable.seconds == pytest.approx(42558.126, abs=2)
+    assert an.mid_observable_utc == an.timespan_observable.midpoint
 
-    assert (an.middark_utc - an.timespan_observable.midpoint).sec == \
-           pytest.approx(0, abs=2)
-    assert an.middark_lst == pytest.approx(9 + 31/60 + 26.26/3600, abs=3/3600)  # hours
     assert an.moon_illumination == pytest.approx(0.57, abs=0.01)
     assert an.moon_skycoord.ra.degree == pytest.approx(55.0, abs=0.2)
     assert an.moon_skycoord.dec.degree == pytest.approx(19.3, abs=0.2)

@@ -210,8 +210,8 @@ class Astronight:
             TimeDelta(24 * 3600, format='sec')
 
         # Get time when sun is farthest below horizon:
-        sun_antitransit_utc = engine.sun_antitransit_utc(approx_midnight_utc)
-        _, sun_antitransit_alt = engine.sun_azalt(time=sun_antitransit_utc)
+        self.sun_antitransit_utc = engine.sun_antitransit_utc(approx_midnight_utc)
+        _, sun_antitransit_alt = engine.sun_azalt(time=self.sun_antitransit_utc)
         if sun_antitransit_alt > HORIZON_USNO:
             raise SunAlwaysUpError(f"Astronight date {self.an_date.an_str}, "
                                    f"latitude {site.latitude:.2f}")
@@ -220,31 +220,33 @@ class Astronight:
                                   f"latitude {site.latitude:.2f}")
 
         # No-sun (sun below horizon) timespan:
-        self.sunset_utc = engine.prev_sunset_utc(ref_time_utc=sun_antitransit_utc)
-        self.sunrise_utc = engine.next_sunrise_utc(ref_time_utc=sun_antitransit_utc)
+        self.sunset_utc = \
+            engine.prev_sunset_utc(ref_time_utc=self.sun_antitransit_utc)
+        self.sunrise_utc = \
+            engine.next_sunrise_utc(ref_time_utc=self.sun_antitransit_utc)
         self.timespan_no_sun = Timespan(self.sunset_utc, self.sunrise_utc)
 
         # Calculate dark (sun sufficiently below horizon) timespan,
         # but limited to 12 hours to each side of lowest sun angle:
         self.dark_start_utc = \
-            engine.prev_dark_start_utc(ref_time_utc=sun_antitransit_utc)
+            engine.prev_dark_start_utc(ref_time_utc=self.sun_antitransit_utc)
         self.dark_end_utc = \
-            engine.next_dark_end_utc(ref_time_utc=sun_antitransit_utc)
+            engine.next_dark_end_utc(ref_time_utc=self.sun_antitransit_utc)
         self.observable_start_utc = max(self.dark_start_utc,
-                                        sun_antitransit_utc - timedelta(hours=12))
+                                        self.sun_antitransit_utc - timedelta(hours=12))
         self.observable_end_utc = min(self.dark_end_utc,
-                                      sun_antitransit_utc + timedelta(hours=12))
+                                      self.sun_antitransit_utc + timedelta(hours=12))
         self.timespan_observable = Timespan(self.observable_start_utc,
                                             self.observable_end_utc)
-
-        # Other reference times for this Astronight:
-        self.middark_utc = self.timespan_observable.midpoint
-        self.middark_lst = engine.local_sidereal_time(time=self.middark_utc)
+        self.mid_observable_utc = self.timespan_observable.midpoint
 
         # Moon quantities for this Astronight:
-        self.moon_illumination = engine.moon_illumination(time=self.middark_utc)
-        self.moon_skycoord = engine.moon_skycoord(time=self.middark_utc)
-        self.moon_transit_utc = engine.moon_transit_time(ref_time_utc=self.middark_utc)
+        self.moon_illumination = \
+            engine.moon_illumination(time=self.mid_observable_utc)
+        self.moon_skycoord = \
+            engine.moon_skycoord(time=self.mid_observable_utc)
+        self.moon_transit_utc = \
+            engine.moon_transit_time(ref_time_utc=self.mid_observable_utc)
         moonsets_moonrises = engine.moonsets_and_moonrises(
             self.timespan_observable.start,
             self.timespan_observable.end)

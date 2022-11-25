@@ -8,9 +8,11 @@ __author__ = "Eric Dose, Albuquerque"
 import os
 from datetime import datetime, timezone
 from math import floor, ceil
+from typing import Tuple, List
 
 # External packages:
 import pandas as pd
+import numpy as np
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import Angle
@@ -18,19 +20,53 @@ from astropy.stats import circmean
 
 # EVD packages:
 from .reference import DAYS_PER_YEAR_NOMINAL
+from .util import count_files_immediate
 
 
 __all__ = ['AtlasRefcat2']
 
 
-__________ATLAS_REFCAT2_NEW________________________________________________________ = 0
+__________CLASS_ATLASREFCAT2_________________________________________________ = 0
 
-from .util import count_files_immediate
 
-# ATLAS_REFCAT2_DIRECTORY = 'D:/Astro/Catalogs/ATLAS-refcat2/mag-0-16/'
 ATLAS_REFCAT2_EPOCH_UTC = (datetime(2015, 1, 1) +
                            (datetime(2016, 1, 1) - datetime(2015, 1, 1)) / 2.0) \
     .replace(tzinfo=timezone.utc)  # refcat2 proper-motion catalog_epoch is 2015.5
+
+
+class MissingIndexFileError(Exception):
+    """Raised when user's given index file is missing from atlas_top_directory."""
+    pass
+
+
+class Invalid_RA_RangeError(Exception):
+    """Raised when user's ra_deg_range is missing or invalid."""
+    pass
+
+
+class Invalid_Dec_RangeError(Exception):
+    """Raised when user's dec_deg_range is missing or invalid."""
+    pass
+
+
+class InvalidTargetEpochError(Exception):
+    """Raised when user's target epoch appears invalid, probably because neither
+    a python datetime nor astropy Time instance."""
+    pass
+
+
+class InvalidSortTypeError(Exception):
+    """Raised when user's parameter 'sort_by' is not in the allowable list. """
+    pass
+
+
+class InvalidOverlapDistanceError(Exception):
+    """Raised when user's overlap distance parameter is unrealistic."""
+
+
+class InvalidAtlasRefcat2Directory(Exception):
+    """Raised when something is wrong with ATLAS Refcat2 subdirectory."""
+    pass
 
 
 class AtlasRefcat2:
@@ -91,24 +127,26 @@ class AtlasRefcat2:
         after class instance construction, via user calls to ``select_on_*()`` methods.
     """
 
-    def __init__(self, atlas_top_directory, index_filename='subdirs.txt',
-                 ra_deg_range=None, dec_deg_range=None, target_epoch=None,
-                 overlap_distance=10, sort_by='ra'):
-        if not (os.path.exists(atlas_top_directory) and
-                os.path.isdir(atlas_top_directory)):
-            raise NotADirectoryError('ATLAS refcat2 top directory \'' +
-                                     atlas_top_directory + '\' not found.')
-        if isinstance(target_epoch, Time):
-            self.target_epoch = target_epoch
-        elif isinstance(target_epoch, datetime):
+    def __init__(self, atlas_top_directory: str, index_filename: str = 'subdirs.txt',
+                 ra_deg_range: Tuple[float, float] | None = None,
+                 dec_deg_range: Tuple[float, float] | None = None,
+                 target_epoch: datetime | Time | None = None,
+                 overlap_distance: float = 10, sort_by: str = 'ra'):
+        self._validate_input_values(atlas_top_directory, index_filename,
+                                    ra_deg_range, dec_deg_range, target_epoch,
+                                    overlap_distance, sort_by)
+
+        # Store inputs as instance fields (in case user needs them later):
+        self.atlas_top_directory = atlas_top_directory
+        self.index_filename = index_filename
+        self.ra_deg_range = ra_deg_range
+        self.dec_deg_range = dec_deg_range
+        if isinstance(target_epoch, datetime):
             self.target_epoch = Time(target_epoch, scale='utc')
         else:
-            raise ValueError('Parameter \'target_epoch\' is required and '
-                             'must be a py datetime or astropy Time object.')
-        if sort_by is not None:
-            if sort_by.lower() not in ['ra', 'dec', 'r']:
-                raise ValueError('Parameter \'sort_by\' must be None, '
-                                 '\'ra\', \'dec\', or \'r\'.')
+            self.target_epoch = target_epoch
+        self.overlap_distance = overlap_distance
+        self.sort_by = sort_by
 
         # Load requested stars from catalog and pre-process:
         self.df_subcat = self._locate_subdirs(atlas_top_directory, index_filename)
@@ -121,7 +159,43 @@ class AtlasRefcat2:
         self.df_selected = self.df_all.copy()  # for later star selections by user.
 
     @staticmethod
-    def _locate_subdirs(atlas_top_directory, subdir_listing):
+    def _validate_input_values(atlas_top_directory: str, index_filename: str,
+                               ra_deg_range: Tuple[float, float],
+                               dec_deg_range: Tuple[float, float],
+                               target_epoch: datetime | Time,
+                               overlap_distance: float, sort_by: str) -> None:
+        """If any obvious problems in user's input values, raise exception and stop."""
+
+        if not (os.path.exists(atlas_top_directory) and
+                os.path.isdir(atlas_top_directory)):
+            print('>>> Should raise NotADirectoryError here. <<<')
+            raise NotADirectoryError('ATLAS refcat2 top directory \'' +
+                                     atlas_top_directory + '\' not found.')
+
+        index_fullpath = os.path.join(atlas_top_directory, index_filename)
+        if not os.path.exists(index_fullpath):
+            raise MissingIndexFileError()
+
+        if not isinstance(target_epoch, (datetime, Time)):
+            raise InvalidTargetEpochError('Parameter \'target_epoch\' is required and '
+                                          'must be a py datetime or '
+                                          'astropy Time object.')
+
+        if not ((0 <= ra_deg_range[0] <= 360) and (0 <= ra_deg_range[1] <= 360)):
+            raise Invalid_RA_RangeError(f'{ra_deg_range}')
+        if not ((-90 <= dec_deg_range[0] <= 90) and (-90 <= dec_deg_range[1] <= 90)):
+            raise Invalid_Dec_RangeError(f'{dec_deg_range}')
+
+        if not (0 < overlap_distance <= 50):
+            raise InvalidOverlapDistanceError(f'{overlap_distance}')
+
+        if sort_by is not None:
+            if sort_by.lower() not in ['ra', 'dec', 'r']:
+                raise InvalidSortTypeError('Parameter \'sort_by\' must be None, '
+                                           '\'ra\', \'dec\', or \'r\'.')
+
+    @staticmethod
+    def _locate_subdirs(atlas_top_directory: str, subdir_listing: str) -> pd.DataFrame:
         """Locate subcatalog directories, make dataframe."""
         fullpath = os.path.join(atlas_top_directory, subdir_listing)
         df_subcat = pd.read_csv(fullpath, sep=':', engine='python', header=None,
@@ -139,12 +213,15 @@ class AtlasRefcat2:
         for _, row in df_subcat.iterrows():
             subdir_path = os.path.join(atlas_top_directory, row['Subdir'])
             if not (64798 <= row['Nfiles'] <= 64802):
-                raise ValueError('Subdirectory \'' + subdir_path +
-                                 '\' is not a valid ATLAS refcat2 directory.')
+                message = f'Please check both subdirectory {subdir_path} ' \
+                          f'and index file {fullpath}.'
+                raise InvalidAtlasRefcat2Directory(subdir_path, message)
         return df_subcat
 
     @staticmethod
-    def _get_stars_by_index(df_subcat, ra_deg_range, dec_deg_range):
+    def _get_stars_by_index(df_subcat: pd.DataFrame,
+                            ra_deg_range: Tuple[float, float],
+                            dec_deg_range: Tuple[float, float]) -> pd.DataFrame:
         """Get catalog star data within RA and Dec range, return as a dataframe."""
         # Make lists of all integer RA and Dec indices to retrieve from catalog:
         ra_index_list = _make_ra_index_list(ra_deg_range, include_max_bound=False)
@@ -164,8 +241,9 @@ class AtlasRefcat2:
         return df
 
     @staticmethod
-    def _read_one_subdir_one_file(gri_max, subdir_path,
-                                  ra_index, dec_index, max_stars=None):
+    def _read_one_subdir_one_file(gri_max: int, subdir_path: str,
+                                  ra_index: int, dec_index: int,
+                                  max_stars: int = None) -> pd.DataFrame:
         """Read one file (square degree) from one catalog subdirectory."""
         filename = '{:03d}'.format(ra_index) + '{:+03d}'.format(dec_index) + '.rc2'
         fullpath = os.path.join(subdir_path, filename)
@@ -203,11 +281,12 @@ class AtlasRefcat2:
         id_prefix = '{:03d}'.format(ra_index) + '{:+03d}'.format(dec_index) + '_'
         id_list = [gri_max_prefix + id_prefix + '{:0>6d}'.format(i + 1)
                    for i in range(len(df))]  # unique in entire catalog.
-        df.insert(0, 'CatalogID', id_list)
+        df.insert(0, 'CatalogID', np.array(id_list))
         return df
 
     @staticmethod
-    def _trim_to_ra_dec_range(df, ra_deg_range, dec_deg_range):
+    def _trim_to_ra_dec_range(df: pd.DataFrame, ra_deg_range: Tuple[float, float],
+                              dec_deg_range: Tuple[float, float]) -> pd.DataFrame:
         """Remove rows of dataframe that lie outside RA range or Dec range.
         Respects RA zero-crossings."""
         # Detect RA out of range, managing gracefully any RA zero-crossing:
@@ -231,7 +310,7 @@ class AtlasRefcat2:
         return df_trimmed
 
     @staticmethod
-    def _remove_overlapping(df, overlap_distance):
+    def _remove_overlapping(df: pd.DataFrame, overlap_distance: float) -> pd.DataFrame:
         """Remove rows (stars) which have other nearby stars (i.e., which will
         interfere with photometry).
         Current implementation uses only criterion based on 'RP1' = 'radius point-one',
@@ -245,7 +324,7 @@ class AtlasRefcat2:
         return df.loc[list(~rp1_too_close), :].copy()
 
     @staticmethod
-    def _add_new_columns(df):
+    def _add_new_columns(df: pd.DataFrame) -> pd.DataFrame:
         """Add new columns 'BminusV', 'APASS_R', and 'ri_color' with derived data."""
         df.loc[:, 'BminusV'] = [(0.830 * g - 0.803 * r)
                                 for (g, r) in zip(df['g'], df['r'])]
@@ -256,7 +335,7 @@ class AtlasRefcat2:
         return df.copy()
 
     @staticmethod
-    def _update_epoch(df, target_epoch):
+    def _update_epoch(df: pd.DataFrame, target_epoch: datetime | Time) -> pd.DataFrame:
         """Update RA and Dec of each star for proper motion between catalog epoch
         and target epoch."""
         delta_years = (target_epoch - Time(ATLAS_REFCAT2_EPOCH_UTC)).jd /\
@@ -270,7 +349,7 @@ class AtlasRefcat2:
         return df
 
     @staticmethod
-    def _sort_by(df, sort_by):
+    def _sort_by(df: pd.DataFrame, sort_by: str) -> pd.DataFrame | None:
         """Sort stars (Dataframe rows) by one of: 'ra', 'dec', or 'r';
         or None to skip sorting."""
         if sort_by is None:
@@ -287,10 +366,10 @@ class AtlasRefcat2:
             return df.copy().sort_values(by='Dec_deg')
         if sort_by.lower() == 'r':
             return df.copy().sort_values(by='r')
-        raise ValueError('Parameter \'sort by\' must be '
-                         '\'ra\', \'dec\', \'r\', or None.')
+        return None  # sort_by is pre-screened, so this stmt should never be reached.
 
-    def _select_on(self, column_name, minimum=None, maximum=None):
+    def _select_on(self, column_name: str,
+                   minimum: float = None, maximum: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum value in column_name."""
         at_least_minimum = len(self.df_selected) * [True]  # default value
         at_most_maximum = at_least_minimum.copy()          # default value
@@ -302,7 +381,7 @@ class AtlasRefcat2:
                         for (mn, mx) in zip(at_least_minimum, at_most_maximum)]
         self.df_selected = self.df_selected.loc[rows_to_keep, :]
 
-    def select_on_g_mag(self, min_g_mag=None, max_g_mag=None):
+    def select_on_g_mag(self, min_g_mag: float = None, max_g_mag: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum Sloan g' magnitude.
 
         Parameters
@@ -321,7 +400,7 @@ class AtlasRefcat2:
         """
         self._select_on(column_name='g', minimum=min_g_mag, maximum=max_g_mag)
 
-    def select_on_r_mag(self, min_r_mag=None, max_r_mag=None):
+    def select_on_r_mag(self, min_r_mag: float = None, max_r_mag: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum Sloan r' magnitude.
 
         Parameters
@@ -340,7 +419,7 @@ class AtlasRefcat2:
         """
         self._select_on(column_name='r', minimum=min_r_mag, maximum=max_r_mag)
 
-    def select_on_i_mag(self, min_i_mag=None, max_i_mag=None):
+    def select_on_i_mag(self, min_i_mag: float = None, max_i_mag: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum Sloan i' magnitude.
 
         Parameters
@@ -359,7 +438,8 @@ class AtlasRefcat2:
         """
         self._select_on(column_name='i', minimum=min_i_mag, maximum=max_i_mag)
 
-    def select_on_g_uncert(self, min_g_uncert=None, max_g_uncert=None):
+    def select_on_g_uncert(self, min_g_uncert: float = None,
+                           max_g_uncert: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum catalog uncertainty in
         Sloan g' magnitude.
 
@@ -381,7 +461,8 @@ class AtlasRefcat2:
         """
         self._select_on(column_name='dg', minimum=min_g_uncert, maximum=max_g_uncert)
 
-    def select_on_r_uncert(self, min_r_uncert=None, max_r_uncert=None):
+    def select_on_r_uncert(self, min_r_uncert: float = None,
+                           max_r_uncert: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum catalog uncertainty in
         Sloan r' magnitude.
 
@@ -403,7 +484,8 @@ class AtlasRefcat2:
         """
         self._select_on(column_name='dr', minimum=min_r_uncert, maximum=max_r_uncert)
 
-    def select_on_i_uncert(self, min_i_uncert=None, max_i_uncert=None):
+    def select_on_i_uncert(self, min_i_uncert: float = None,
+                           max_i_uncert: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum catalog uncertainty in
         Sloan i' magnitude.
 
@@ -425,7 +507,8 @@ class AtlasRefcat2:
         """
         self._select_on(column_name='di', minimum=min_i_uncert, maximum=max_i_uncert)
 
-    def select_on_bv_color(self, min_bv_color=None, max_bv_color=None):
+    def select_on_bv_color(self, min_bv_color: float = None,
+                           max_bv_color: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum Johnson B-V color index.
 
         Parameters
@@ -445,7 +528,8 @@ class AtlasRefcat2:
         self._select_on(column_name='BminusV',
                         minimum=min_bv_color, maximum=max_bv_color)
 
-    def select_on_ri_color(self, min_ri_color=None, max_ri_color=None):
+    def select_on_ri_color(self, min_ri_color: float = None,
+                           max_ri_color: float = None) -> None:
         """Select rows (stars) on minimum and/or maximum Sloan r'-i' color index.
 
         Parameters
@@ -469,7 +553,8 @@ class AtlasRefcat2:
 __________GENERAL_CATALOG_FUNCTIONS_____________________________________________ = 0
 
 
-def _make_ra_index_list(ra_deg_range, include_max_bound=False):
+def _make_ra_index_list(ra_deg_range: Tuple[float, float],
+                        include_max_bound: bool = False) -> List[int]:
     """Accept tuple (RA_min, RA_max), return all integer RA values covering the range.
        Handles RA zero-crossing gracefully. Assumes RA range less than 180 deg."""
     # Generate list of integer RA values needed to cover the entire RA range:
@@ -485,7 +570,8 @@ def _make_ra_index_list(ra_deg_range, include_max_bound=False):
     return ra_index_list
 
 
-def _make_dec_index_list(dec_deg_range, include_max_bound=False):
+def _make_dec_index_list(dec_deg_range: Tuple[float, float],
+                         include_max_bound: bool = False) -> List[int]:
     """Accept tuple (Dec_min, Dec_max), return all integer Declination values
     covering the range."""
     dec_deg_first = floor(dec_deg_range[0])
