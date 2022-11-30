@@ -117,15 +117,15 @@ def test_class_fits_skycoords_to_xy():
     sc1 = SkyCoord(ra=124.00 * u.degree, dec=30.10 * u.degree, frame='icrs')
     xy1 = fits.skycoords_to_xy(sc1)
     assert sc1.size == 1
-    assert xy1[0] == pytest.approx(762.8360547833112)
-    assert xy1[1] == pytest.approx(1152.8791205364719)
+    assert xy1.x == pytest.approx(762.8360547833112)
+    assert xy1.y == pytest.approx(1152.8791205364719)
 
     sc3 = SkyCoord([124.00, 124.05, 124.10], [30.10, 30.12, 30.14],
                    frame="icrs", unit="deg")
     xy3 = fits.skycoords_to_xy(sc3)
     assert sc3.size == 3
     assert xy3[0] == xy1
-    assert xy3[2][1] == pytest.approx(942.4950312316655)
+    assert xy3[2].y == pytest.approx(942.4950312316655)
 
 
 def test_class_fits_corner_skycoords():
@@ -158,7 +158,7 @@ __________TEST_CLASS_POINTSOURCEAP_____________________________________ = 0
 
 def test_class_pointsourceap_constructor():
     fits = get_test_fits_file()
-    ap = image.PointSourceAp(image_xy=fits.image_xy, xy_center=(1489, 955),
+    ap = image.PointSourceAp(image_xy=fits.image_xy, xy_center=XY(1489, 955),
                              foreground_radius=12, gap=5, background_width=8,
                              source_id='some star', obs_id='whatever')
     assert ap.foreground_radius == 12
@@ -188,8 +188,8 @@ def test_class_pointsourceap_constructor():
     assert ap.foreground_min == 1097
     assert ap.raw_flux == pytest.approx(1621816, abs=100)
     assert ap.net_flux == pytest.approx(1146418, abs=100)
-    assert ap.xy_centroid == pytest.approx((1488.3887587250026, 955.2717900451668),
-                                           abs=0.01)
+    assert ap.xy_centroid.as_tuple == \
+           pytest.approx((1488.3887587250026, 955.2717900451668), abs=0.01)
     assert ap.sigma == pytest.approx(3.400, abs=0.002)
     assert ap.fwhm == pytest.approx(7.439, abs=0.002)
     assert ap.elongation == pytest.approx(1.173, abs=0.002)
@@ -199,22 +199,23 @@ def test_class_pointsourceap_constructor():
 
 def test_class_pointsourceap_recenter():
     fits = get_test_fits_file()
-    ap = image.PointSourceAp(image_xy=fits.image_xy, xy_center=(1482, 952),
+    ap = image.PointSourceAp(image_xy=fits.image_xy, xy_center=XY(1482, 952),
                              foreground_radius=12, gap=5, background_width=8,
                              source_id='some star', obs_id='whatever')
+    assert isinstance(ap, image.PointSourceAp)
     assert ap.xy_center.as_tuple == pytest.approx((1482, 952))
-    assert tuple(ap.xy_centroid) == pytest.approx((1487.8586617491405,
-                                                   955.097767706891),
-                                                  abs=0.01)
+    assert ap.xy_centroid.as_tuple == pytest.approx((1487.8586617491405,
+                                                     955.097767706891),
+                                                    abs=0.01)
 
     ap_1 = ap.recenter(max_iterations=1)
-    assert ap_1.xy_center.as_tuple == ap.xy_centroid
-    assert ap_1.xy_centroid == pytest.approx((1488.350973107373,
+    assert ap_1.xy_center == ap.xy_centroid
+    assert ap_1.xy_centroid.as_tuple == pytest.approx((1488.350973107373,
                                                        955.2710427996668),
                                                       abs=0.01)
 
     ap_2 = ap.recenter(max_iterations=2)
-    assert ap_2.xy_centroid == pytest.approx((1488.3554435661015,
+    assert ap_2.xy_centroid.as_tuple == pytest.approx((1488.3554435661015,
                                                        955.2871555171624),
                                                       abs=0.01)
 
@@ -230,9 +231,10 @@ __________TEST_CLASS_MOVINGSOURCEAP_____________________________________ = 0
 def test_class_movingsourceap_constructor():
     fits = get_test_fits_file()
     ap = image.MovingSourceAp(image_xy=fits.image_xy,
-                              xy_start=(1223, 972.8), xy_end=(1226.4, 973.8),
+                              xy_start=XY(1223, 972.8), xy_end=XY(1226.4, 973.8),
                               foreground_radius=12, gap=5, background_width=8,
                               source_id='some MP', obs_id='rock observation')
+    assert isinstance(ap, image.MovingSourceAp)
     assert ap.xy_start.as_tuple == pytest.approx((1223, 972.8))
     assert ap.xy_end.as_tuple == pytest.approx((1226.4, 973.8))
     assert ap.foreground_radius == 12
@@ -243,7 +245,8 @@ def test_class_movingsourceap_constructor():
     assert ap.source_id == 'some MP'
     assert ap.obs_id == 'rock observation'
     assert ap.is_valid == True
-    assert ap.xy_center == ap.xy_start + (ap.xy_end - ap.xy_start) / 2.0
+    assert ap.xy_center.as_tuple == \
+           pytest.approx((ap.xy_start + (ap.xy_end - ap.xy_start) / 2.0).as_tuple)
     assert ap.dxy_offset.as_tuple == (1196, 945)
     # assert ap.input_background_mask.shape == (57, 55)  # nb: x,y index order.
     # assert ap.input_background_mask.shape == ap.input_foreground_mask.shape
@@ -260,7 +263,7 @@ def test_class_movingsourceap_constructor():
     assert ap.foreground_min == 1008.0
     assert ap.raw_flux == pytest.approx(762126.0)
     assert ap.net_flux == pytest.approx(189147.0, abs=1)
-    assert ap.xy_centroid == pytest.approx((1225.622, 973.242), abs=0.002)
+    assert ap.xy_centroid.as_tuple == pytest.approx((1225.622, 973.242), abs=0.002)
     assert ap.sigma == pytest.approx(3.002, abs=0.002)
     assert ap.fwhm == pytest.approx(7.069, abs=0.002)  # seems suspiciously high.
     assert ap.elongation == pytest.approx(1.368, abs=0.002)  # ~ high given MP motion.
@@ -271,21 +274,22 @@ def test_class_movingsourceap_constructor():
 def test_class_movingsourceap_recenter():
     fits = get_test_fits_file()
     ap = image.MovingSourceAp(image_xy=fits.image_xy,
-                              xy_start=(1223, 972.8), xy_end=(1226.4, 973.8),
+                              xy_start=XY(1223, 972.8), xy_end=XY(1226.4, 973.8),
                               foreground_radius=12, gap=5, background_width=8,
                               source_id='some MP', obs_id='rock observation')
-    assert ap.xy_centroid == pytest.approx((1225.622, 973.242), abs=0.002)
+    assert ap.xy_centroid.as_tuple == pytest.approx((1225.622, 973.242), abs=0.002)
 
     ap_1 = ap.recenter(max_iterations=1)
-    assert ap_1.xy_center.as_tuple == ap.xy_centroid
-    assert ap_1.xy_centroid == pytest.approx((1225.671140374866,
-                                              973.2309884931738),
-                                             abs=0.002)
+    assert isinstance(ap_1, image.MovingSourceAp)
+    assert ap_1.xy_center == ap.xy_centroid
+    assert ap_1.xy_centroid.as_tuple == pytest.approx((1225.671140374866,
+                                                       973.2309884931738),
+                                                      abs=0.002)
 
     ap_2 = ap.recenter(max_iterations=2)
-    assert tuple(ap_2.xy_centroid) == pytest.approx((1225.6740937846748,
-                                                     973.2286770544649),
-                                                    abs=0.002)
+    assert ap_2.xy_centroid.as_tuple == pytest.approx((1225.6740937846748,
+                                                       973.2286770544649),
+                                                      abs=0.002)
 
     ap_3 = ap.recenter(max_iterations=3)
     assert ap_3.xy_centroid == ap_2.xy_centroid

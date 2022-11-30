@@ -8,7 +8,7 @@ __author__ = "Eric Dose :: Albuquerque"
 
 # Python core packages:
 from math import ceil, sqrt
-from typing import Self, TypeAlias
+from typing import TypeAlias, Tuple
 
 # External packages:
 import numpy as np
@@ -26,6 +26,7 @@ from photutils.segmentation import make_source_mask
 from .reference import FWHM_PER_SIGMA, ARCSECONDS_PER_RADIAN
 from .geometry import XY, DXY, Circle_in_2D, Rectangle_in_2D
 
+Ap_type: TypeAlias = 'Ap'
 PointSourceAp_type: TypeAlias = 'PointSourceAp'
 MovingSourceAp_type: TypeAlias = 'MovingSourceAp'
 
@@ -193,14 +194,14 @@ class FITS:
         self.object = self.header_value('OBJECT')  # name of target, e.g., 'MP_845'.
         # self._is_calibrated = self._is_calibrated()  # True iff apparently calibrated.
         self.focal_length = self._get_focal_length()  # in mm.
-        self.exposure = self.header_value(['EXPTIME', 'EXPOSURE'])  # in seconds
-        self.temperature = self.header_value(['SET-TEMP', 'CCD-TEMP'])
-        self.utc_start = self._get_utc_start()  # py datetime.
+        self.exposure = float(self.header_value(['EXPTIME', 'EXPOSURE']))  # in seconds
+        self.temperature = float(self.header_value(['SET-TEMP', 'CCD-TEMP']))
+        self.utc_start = self._get_utc_start()
         self.utc_mid = self.utc_start + TimeDelta(self.exposure / 2.0, format='sec')
         self.filter = self.header_value('FILTER')
         self.airmass = self.header_value('AIRMASS')
-        self.guide_exposure = self.header_value('TRAKTIME')  # in seconds
-        self.fwhm = self.header_value('FWHM')
+        self.guide_exposure = float(self.header_value('TRAKTIME'))  # in seconds
+        self.fwhm = float(self.header_value('FWHM'))
         self.is_calibrated = self._is_calibrated()
 
         # Make 2 WCS objects: (1) internal from FITS as-is,
@@ -214,7 +215,7 @@ class FITS:
         xy_center = XY(self.image_xy.shape[0] / 2.0, self.image_xy.shape[1] / 2.0)
         skycoord_center = self.xy_to_skycoords(xy_center)
         self.ra_deg, self.dec_deg = skycoord_center.ra.degree,\
-                                    skycoord_center.dec.degree
+            skycoord_center.dec.degree
 
         self.is_valid = True  # if it got through all that initialization.
 
@@ -272,7 +273,7 @@ class FITS:
 
         Returns
         -------
-        ra_dec : |SkyCoord|, scalar or array
+        ra_dec : |SkyCoord|, scalar-type or array-type
             Sky coordinates corresponding to ``xy`` image coordinates, as derived
             using ``wcs_corrected``. |SkyCoord| is scalar type if ``xy`` is one tuple,
             or array type if ``xy`` is a list.
@@ -296,7 +297,7 @@ class FITS:
         return pixel_to_skycoord(x, y, self.wcs_corrected, origin=0,
                                  mode='wcs', cls=SkyCoord)
 
-    def skycoords_to_xy(self, skycoords: SkyCoord) -> tuple[float, float] | list[tuple]:
+    def skycoords_to_xy(self, skycoords: SkyCoord) -> XY | list[XY]:
         """Convert (RA, Dec) sky coordinates to image (x,y) coordinates.
 
         Wrapper for :meth:`astropy.wcs.WCS.world_to_pixel()`, using ``wcs_corrected``.
@@ -308,19 +309,17 @@ class FITS:
 
         Returns
         -------
-        xy : tuple of 2 float, or a list of such tuple
+        xy : XY instance, or a list of XY
             Image (x,y) coordinates corresponding to sky coordinates, as
             derived using ``wcs_corrected``.
-            ``xy`` is one tuple if ``skycoords`` is a |SkyCoord| of scalar type (one
-            (RA, Dec) sky coordinate, or a list of tuples if ``skycoords``
-            is array type.
+            ``xy`` is XY instance if ``skycoords`` is a |SkyCoord| of scalar type (one
+            (RA, Dec) sky coordinate, or a list of XY if ``skycoords`` is array type.
         """
-        # TODO: consider returning astropack.geometry.XY (namedtuple) or list of them.
-        xy = skycoord_to_pixel(skycoords, self.wcs_corrected, origin=0, mode='wcs')
-        if xy[0].size == 1:
-            xy = float(xy[0]), float(xy[1])  # fix python weirdness with return types.
+        px = skycoord_to_pixel(skycoords, self.wcs_corrected, origin=0, mode='wcs')
+        if px[0].size == 1:
+            xy = XY(float(px[0]), float(px[1]))  # kludge python return-type weirdness.
         else:
-            xy = list(zip(xy[0], xy[1]))
+            xy = [XY(x, y) for (x, y) in zip(px[0], px[1])]
         return xy
 
     def corner_skycoords(self) -> SkyCoord:
@@ -353,11 +352,11 @@ class FITS:
     def _is_plate_solved(self) -> bool:
         return self.wcs_fits is not None
 
-    def _get_focal_length(self) -> str | None:
+    def _get_focal_length(self) -> float | None:
         # If FL available, return it. Else, compute FL from plate solution.
         value = self.header_value('FOCALLEN')
         if value is not None:
-            return value  # mm
+            return float(value)  # mm
         x_pixel = self.header_value('XPIXSZ')
         y_pixel = self.header_value('YPIXSZ')
         x_scale = self.header_value('CDELT1')
@@ -368,7 +367,7 @@ class FITS:
                                                        (3600 * 1800))
         fl_y = float(y_pixel) / abs(float(y_scale)) * (ARCSECONDS_PER_RADIAN /
                                                        (3600 * 1800))
-        return str((fl_x + fl_y) / 2.0)
+        return (fl_x + fl_y) / 2.0
 
     def _get_utc_start(self) -> Time:
         utc_string = self.header_value('DATE-OBS')
@@ -509,7 +508,7 @@ class Ap:
     stats : `~photutils.segmentation.SourceCatalog
         Summary of statistics for `cutout`.
 
-    xy_centroid : tuple of 2 float
+    xy_centroid : |XY|
         Best (current) estimate of the background-corrected centroid (x,y)
         for the light source in ``cutout``.
 
@@ -534,8 +533,8 @@ class Ap:
         self.xy_center = xy_center
         # Cutout offset (dx,dy), relative to image (0,0).
         self.dxy_offset = dxy_offset
-        input_foreground_mask = foreground_mask
-        input_background_mask = background_mask
+        self.input_foreground_mask = foreground_mask
+        self.input_background_mask = background_mask
         self.source_id = str(source_id)
         self.obs_id = str(obs_id)
 
@@ -545,34 +544,35 @@ class Ap:
 
         # Ensure background mask is boolean array of same shape as foreground mask:
         # If no background mask given, make one from inverse of foreground mask:
-        if input_background_mask is None:
-            self.background_mask = np.logical_not(input_foreground_mask)
+        if self.input_background_mask is None:
+            self.background_mask = np.logical_not(self.input_foreground_mask)
         # If background mask is given but int or float array (rare),
         # convert it to a boolean numpy array:
-        elif type(input_background_mask) in (int, float) and input_background_mask == 0:
-            self.background_mask = np.full_like(input_foreground_mask,
+        elif type(self.input_background_mask) in (int, float) and \
+                self.input_background_mask == 0:
+            self.background_mask = np.full_like(self.input_foreground_mask,
                                                 fill_value=True, dtype=bool)
         # If background mask is valid array, use it directly
-        elif isinstance(input_background_mask, np.ndarray):
-            if input_background_mask.shape != input_foreground_mask.shape:
+        elif isinstance(self.input_background_mask, np.ndarray):
+            if self.input_background_mask.shape != self.input_foreground_mask.shape:
                 raise MaskError('Foreground and background masks differ in shape.')
-            self.background_mask = input_background_mask
+            self.background_mask = self.input_background_mask
         else:
             raise MaskError('Background mask type ' +
-                            str(type(input_background_mask)) + ' is not valid.')
+                            str(type(self.input_background_mask)) + ' is not valid.')
 
         # Determine x and y boundaries of cutout containing foreground and background:
         self.x_low = self.dxy_offset.dx
         self.y_low = self.dxy_offset.dy
-        self.x_high = self.dxy_offset.dx + input_foreground_mask.shape[0] - 1
-        self.y_high = self.dxy_offset.dy + input_foreground_mask.shape[1] - 1
+        self.x_high = self.dxy_offset.dx + self.input_foreground_mask.shape[0] - 1
+        self.y_high = self.dxy_offset.dy + self.input_foreground_mask.shape[1] - 1
         if not self._cutout_is_wholly_inside_image():
             self.is_valid = False
             return
 
         # Make the final cutout array and masks, all with indices in x,y order:
         self.cutout = image_xy[self.x_low: self.x_high + 1, self.y_low: self.y_high + 1]
-        self.foreground_mask = input_foreground_mask.copy()  # indices x,y order.
+        self.foreground_mask = self.input_foreground_mask.copy()  # indices x,y order.
         self.background_mask = self.background_mask.copy()        # "
 
         # Compute pixels in use by both masks (should always be zero):
@@ -604,8 +604,8 @@ class Ap:
             background=np.full_like(cutout_net_ma.data,
                                     fill_value=self.background_level))
         # NB: self.stats yields numpy (y,x) order.
-        self.xy_centroid = (self.stats.ycentroid + self.dxy_offset.dx,
-                            self.stats.xcentroid + self.dxy_offset.dy)
+        self.xy_centroid = XY(self.stats.ycentroid + self.dxy_offset.dx,
+                              self.stats.xcentroid + self.dxy_offset.dy)
 
         # Sigma and FWHM represent spreading *other than* motion
         # (i.e., real optical dispersion).
@@ -649,7 +649,7 @@ class Ap:
         flux_stddev = sqrt(flux_variance)
         return flux_stddev
 
-    def _make_new_object(self, new_xy_center):
+    def _make_new_object(self, new_xy_center: XY) -> Ap_type:
         """ Make new object from same image using new xy_center, with same mask shape.
             Each subclass of Ap must implement ``_make_new_object()``.
             Used mostly by ``recenter()``.
@@ -657,7 +657,7 @@ class Ap:
         raise NotImplementedError("Every subclass of Ap must implement "
                                   "._make_new_object().")
 
-    def recenter(self, max_adjustment: float = None, max_iterations: int = 3) -> Self:
+    def recenter(self, max_adjustment: float = None, max_iterations: int = 3) -> 'Ap':
         """Iteratively refine estimate of light source's center, and adjust the image
         cutout's location on the image if needed.
 
@@ -686,8 +686,8 @@ class Ap:
             new_xy_center = previous_centroid
             next_ap = self._make_new_object(new_xy_center)
             new_centroid = next_ap.xy_centroid
-            adjustment_distance = sqrt((new_centroid[0] - previous_centroid[0])**2 +
-                                       (new_centroid[1] - previous_centroid[1])**2)
+            adjustment_distance = sqrt((new_centroid.x - previous_centroid.x)**2 +
+                                       (new_centroid.y - previous_centroid.y)**2)
             if (max_adjustment is not None) and (adjustment_distance < max_adjustment):
                 return next_ap
             previous_ap = next_ap
@@ -737,42 +737,7 @@ class PointSourceAp(Ap):
     Attributes
     ----------
 
-    image_xy : 2-dimensional |ndarray| of float
-        Image array, with (x,y) indexing.
-        Most conveniently arranged via |FITS| instance and passing its ``image_xy``.
-
-    xy_center : |XY| instance
-        Pixel position (x,y) of light source within parent image.
-        This should be the best prior estimate of the light source's centroid
-        at mid-exposure.
-
-    dxy_offset : |DXY| instance
-        lowest (x,y) index of cutout (upper-left corner of image), that is,
-        the offset of cutout origin from parent image's origin.
-
-    foreground_mask : 2-dmensional |ndarray| of bool
-        Mask array for pixels to be counted in flux, centroid, etc.
-        Required. Uses (x,y) index convention and numpy mask convention
-        (True = pixel is masked out and unused).
-        Mask shape defines shape of cutout to be used.
-
-    background_mask : 2-dimensional |ndarray| of bool, or int, or float, optional
-        Specifies Mask array for pixels to be counted in background flux, centroid, etc.
-        If |ndarray|: boolean array in same shape as foreground_mask, giving mask
-        directly.
-        If int or float: this mask will be set to that value per pixel. If zero,
-        background mask is not used.
-        If unspecified: this mask will be set to the inverse of `foreground_mask`.
-        Numpy mask convention (True -> pixel masked out, unused).
-
-    source_id : str, optional
-        String identifying the source (e.g., comp star ID, MP number) that this
-        aperture is intended to measure. Default is empty string.
-
-    obs_id : str, optional
-        String identifying the specific observation to which this aperture applies,
-        typically unique among all observations (aperture instances) in one image.
-        Default is empty string.
+    Most attributes are documented under parent class `~.image.Ap`.
 
     foreground_radius : float
         Radial size of foreground around point source centroid, in pixels, from
@@ -793,62 +758,10 @@ class PointSourceAp(Ap):
     annulus_outer_radius : float
         Radius of outer edge of background annulus, in pixels.
 
-    is_valid : Bool
-        True if aperture appears valid, else False.
-
-    cutout : |ndarray|
-        Small subset of image emcompassing the aperture and masks.
-
-    mask_overlap_pixel_count : int
-        Number of image pixels in both the foreground mask and background mask.
-        Ideally zero.
-
-    foreground_pixel_count : int
-        Number of pixels for which foreground flux is summed.
-
-    background_pixel_count : int
-        Number of pixels for which background flux is summed.
-
-    foreground_max : float
-        Maximum ADU of any pixel in the foreground.
-
-    background_min : float
-        Maximum ADU of any pixel in the foreground.
-
-    raw_flux : float
-        Total flux in foreground, before subtracting background level.
-
-    net_flux : float
-        Background-corrected foreground flux in foreground.
-        Used in computing the instrumental magnitude.
-
-    stats : photutils :class:~photutils.segmentation.SourceCatalog instance
-        A bundle of statistics derived from this aperture.
-
-        See https://photutils.readthedocs.io/en/stable/api/photutils.segmentation.
-        SourceCatalog.html#photutils.segmentation.SourceCatalog
-
-    xy_centroid : tuple of 2 float
-        Pixel (x,y) position for centroid of background-corrected flux,
-        for this target
-
-    sigma : float
-        RMS distance of pixels from centroid, weighted by background-corrected flux.
-        A measure of flux spreading.
-
-    fwhm : float
-        Full-width at half-maximum of background-corrected flux. A measure of flux
-        spreading, and estimated from ``sigma``.
-
-    elongation : float
-        A measure of non-circularity of background-corrected flux.
-        Circular flux profiles will give zero.
-        Specifically, elongation is the ratio of the lengths of semi-major and
-        semi-minor axes of the corrected flux, considered as having best-fit
         elliptical shape.
     """
 
-    def __init__(self, image_xy: np.ndarray[float], xy_center: XY,
+    def __init__(self, image_xy: np.ndarray[float], xy_center: XY | Tuple[float, float],
                  foreground_radius: float, gap: float, background_width: float,
                  source_id: str = '', obs_id: str = ''):
         if isinstance(xy_center, tuple):
@@ -940,9 +853,7 @@ class MovingSourceAp(Ap):
     Attributes
     ----------
 
-    image_xy : 2-dimensional |ndarray| of float
-        Image array, with (x,y) indexing.
-        Most conveniently arranged via |FITS| instance and passing its ``image_xy``.
+    Most attributes are documented under parent class `~.image.Ap`.
 
     xy_start :|XY| instance
         Pixel position (x,y) of light source within parent image, at the beginning
@@ -951,34 +862,6 @@ class MovingSourceAp(Ap):
     xy_end : |XY| instance
         Pixel position (x,y) of light source within parent image, at the end
         time of exposure.
-
-    dxy_offset : |DXY| instance
-        lowest (x,y) index of cutout (upper-left corner of image), that is,
-        the offset of cutout origin from parent image's origin.
-
-    foreground_mask : 2-dmensional |ndarray| of bool
-        Mask array for pixels to be counted in flux, centroid, etc.
-        Required. Uses (x,y) index convention and numpy mask convention
-        (True = pixel is masked out and unused).
-        Mask shape defines shape of cutout to be used.
-
-    background_mask : 2-dimensional |ndarray| of bool, or int, or float, optional
-        Specifies Mask array for pixels to be counted in background flux, centroid, etc.
-        If |ndarray|: boolean array in same shape as foreground_mask, giving mask
-        directly.
-        If int or float: this mask will be set to that value per pixel. If zero,
-        background mask is not used.
-        If unspecified: this mask will be set to the inverse of `foreground_mask`.
-        Numpy mask convention (True -> pixel masked out, unused).
-
-    source_id : str, optional
-        String identifying the source (e.g., comp star ID, MP number) that this
-        aperture is intended to measure. Default is empty string.
-
-    obs_id : str, optional
-        String identifying the specific observation to which this aperture applies,
-        typically unique among all observations (aperture instances) in one image.
-        Default is empty string.
 
     foreground_radius : float
         Radial size of foreground around point source centroid, in pixels, from
@@ -993,51 +876,6 @@ class MovingSourceAp(Ap):
         outside radii of background annulus, in pixels, from input parameter
         ``background_width``.
 
-    annulus_inner_radius : float
-        Radius of inner edge of background annulus, in pixels.
-
-    annulus_outer_radius : float
-        Radius of outer edge of background annulus, in pixels.
-
-    is_valid : Bool
-        True if aperture appears valid, else False.
-
-    cutout : |ndarray|
-        Small subset of image emcompassing the aperture and masks.
-
-    mask_overlap_pixel_count : int
-        Number of image pixels in both the foreground mask and background mask.
-        Ideally zero.
-
-    foreground_pixel_count : int
-        Number of pixels for which foreground flux is summed.
-
-    background_pixel_count : int
-        Number of pixels for which background flux is summed.
-
-    foreground_max : float
-        Maximum ADU of any pixel in the foreground.
-
-    background_min : float
-        Maximum ADU of any pixel in the foreground.
-
-    raw_flux : float
-        Total flux in foreground, before subtracting background level.
-
-    net_flux : float
-        Background-corrected foreground flux in foreground.
-        Used in computing the instrumental magnitude.
-
-    stats : photutils :class:~photutils.segmentation.SourceCatalog instance
-        A bundle of statistics derived from this aperture.
-
-        See https://photutils.readthedocs.io/en/stable/api/photutils.segmentation.
-        SourceCatalog.html#photutils.segmentation.SourceCatalog
-
-    xy_centroid : tuple of 2 float
-        Pixel (x,y) position for centroid of background-corrected flux,
-        for this target
-
     sigma : float
         RMS distance of pixels from centroid, weighted by background-corrected flux.
         A measure of flux spreading.
@@ -1045,17 +883,10 @@ class MovingSourceAp(Ap):
     fwhm : float
         Full-width at half-maximum of background-corrected flux. A measure of flux
         spreading, and estimated from ``sigma``.
-
-    elongation : float
-        A measure of non-circularity of background-corrected flux.
-        Circular flux profiles will give zero.
-        Specifically, elongation is the ratio of the lengths of semi-major and
-        semi-minor axes of the corrected flux, considered as having best-fit
-        elliptical shape.        Radius of outer edge of background annulus, in pixels.
     """
 
     def __init__(self, image_xy: np.ndarray,
-                 xy_start: XY | tuple[float, float], xy_end: XY | tuple[float, float],
+                 xy_start: XY | Tuple[float, float], xy_end: XY | Tuple[float, float],
                  foreground_radius: float, gap: float, background_width: float,
                  source_id: str = '', obs_id: str = ''):
         self.xy_start = xy_start if isinstance(xy_start, XY) \
@@ -1160,7 +991,7 @@ def make_circular_mask(mask_size: int, xy_origin: XY | tuple[float, float],
     return mask
 
 
-def make_pill_mask(mask_shape_xy: XY | tuple[int, int],
+def make_pill_mask(mask_shape_xy: DXY | tuple[int, int],
                    xya: XY | tuple[float, float], xyb: XY | tuple[float, float],
                    radius: float) -> np.ndarray:
     """Construct a mask array for light source in motion (e.g., minor planet)
@@ -1169,7 +1000,7 @@ def make_pill_mask(mask_shape_xy: XY | tuple[int, int],
 
     Parameters
     ----------
-    mask_shape_xy : |XY|, or tuple of 2 int
+    mask_shape_xy : |DXY|, or tuple of 2 int
         Pixel size (x,y) of mask array to generate.
 
     xya : |XY|, or tuple of 2 float

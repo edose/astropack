@@ -108,6 +108,26 @@ def test_calc_approx_midnight():
     assert abs(approx_midnight - Time('2022-11-19 14:00:00')) < ONE_SECOND
 
 
+def test_calc_phase_angle_bisector():
+    site = make_new_site()
+    # For MPs 3229 & 3166:
+    times = [Time('2022-11-22 03:00:00'), Time('2022-11-24 05:00:00')]
+    mp_skycoords = [SkyCoord(['01 25 39.7 +26 18 20.4'],
+                             frame='icrs', unit=(u.hourangle, u.deg)),
+                    SkyCoord(['04 31 32.2 +20 58 46.1'],
+                             frame='icrs', unit=(u.hourangle, u.deg))]
+    deltas = [1.291, 1.384]
+    pabs = almanac.calc_phase_angle_bisector(times, mp_skycoords, deltas, site)
+    pab_longitudes = [sc.lon.degree for sc in pabs]
+    pab_latitudes = [sc.lat.degree for sc in pabs]
+    expected_pab_longitudes = [36.4, 67.8]  # from minorplanet.info query
+    expected_pab_latitudes = [12.8, -0.7]   # "
+    assert all([calc == pytest.approx(exp, abs=0.1)
+                for (calc, exp) in zip(pab_longitudes, expected_pab_longitudes)])
+    assert all([calc == pytest.approx(exp, abs=0.1)
+                for (calc, exp) in zip(pab_latitudes, expected_pab_latitudes)])
+
+
 _____TEST_CLASS_SKYFIELD_ENGINE_CONSTRUCTORS_________________________________ = 0
 
 

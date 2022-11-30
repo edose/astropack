@@ -15,8 +15,9 @@ from enum import Enum, auto
 
 # External packages:
 from numpy import diff, flatnonzero, clip, sign
+import astropy.units as u
 from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord, Angle
+from astropy.coordinates import SkyCoord, Angle, get_sun, EarthLocation
 import skyfield.vectorlib
 import skyfield.starlib
 import skyfield.timelib
@@ -41,6 +42,7 @@ HOURS_TO_ASSURE_HALF_NIGHT = 14
 __all__ = ['Astronight',
            'NoDarkTimeError',
            'SunAlwaysUpError',
+           'AN_date'
            ]
 
 AN_date_type: TypeAlias = 'AN_date'
@@ -232,6 +234,7 @@ class Astronight:
             engine.prev_dark_start_utc(ref_time_utc=self.sun_antitransit_utc)
         self.dark_end_utc = \
             engine.next_dark_end_utc(ref_time_utc=self.sun_antitransit_utc)
+        self.timespan_dark = Timespan(self.dark_start_utc, self.dark_end_utc)
         self.observable_start_utc = max(self.dark_start_utc,
                                         self.sun_antitransit_utc - timedelta(hours=12))
         self.observable_end_utc = min(self.dark_end_utc,
@@ -307,6 +310,74 @@ def calc_approx_midnight(an_date: AN_date_type, longitude_hours: float) -> Time:
                          an_date.day, 0, 0, 0), scale='utc') + \
            TimeDelta(-longitude_hours * 3600, format='sec') + \
            TimeDelta(24 * 3600, format='sec')
+
+
+def calc_phase_angle_bisector(times: List[Time], mp_skycoords: List[SkyCoord],
+                              deltas: List[float], site: Site) -> List[SkyCoord]:
+    """Calculate and return phase angle bisectors at time for a minor planet.
+    :param times: list of times [list of astropy Time objects].
+    :param mp_skycoords: list of MP RA,Dec sky locations corresponding to the times.
+           [list of SkyCoord objects]
+    :param deltas: list of distances site-to-MP, in AU. [list of floats]
+    :param site: Site object for observing location. [Site object]
+    :return: list of phase angle bisectors. [SkyCoord objects]
+    """
+    # Internally, all coordinates and vectors are in GCRS frame and
+    # in meters (even if dimensionless).
+    if len(times) != len(mp_skycoords):
+        raise ValueError('parameters \'times\' and \'mp_skycoords\' '
+                         'must agree in length.')
+
+    # Get GCRS location of sun center, as ndarray [x,y,z] in meters:
+    sun_xyz_gcrs = [get_sun(t).gcrs.cartesian.xyz.to(u.m) for t in times]
+
+    # Get GCRS location of observing site, as ndarray [x,y,z] in meters:
+    site_loc = EarthLocation.from_geodetic(lon=site.longitude, lat=site.latitude,
+                                           height=site.elevation)
+    site_xyz_gcrs = [site_loc.get_gcrs_posvel(t)[0].xyz.to(u.m) for t in times]
+
+    # Get GCRS location of MP (NB: Delta is from MP to site (not to geocenter),
+    # as ndarray [x,y,z] in meters:
+    mp_xyz_from_geocenter = [SkyCoord(ra=sc.ra, dec=sc.dec, distance=delta * u.au,
+                                      frame='gcrs').gcrs.cartesian.xyz.to(u.m)
+                             for (sc, delta) in zip(mp_skycoords, deltas)]
+    mp_xyz_gcrs = [(s[0] + m[0], s[1] + m[1], s[2] + m[2])
+                   for (s, m) in zip(site_xyz_gcrs, mp_xyz_from_geocenter)]
+
+    # Make vectors from MP to sun, MP to observing site, sun to site:
+    vector_mp_to_sun = [(sun[0] - mp[0], sun[1] - mp[1], sun[2] - mp[2])
+                        for (sun, mp) in zip(sun_xyz_gcrs, mp_xyz_gcrs)]
+    vector_mp_to_site = [(site[0] - mp[0], site[1] - mp[1], site[2] - mp[2])
+                         for (site, mp) in zip(site_xyz_gcrs, mp_xyz_gcrs)]
+    vector_sun_to_site = [(site[0] - sun[0], site[1] - sun[1], site[2] - sun[2])
+                          for (site, sun) in zip(site_xyz_gcrs, sun_xyz_gcrs)]
+
+    # Getting vector lengths, renamed per angle bisector theorem:
+    v_ab = vector_mp_to_sun
+    v_ac = vector_mp_to_site
+    v_bc = vector_sun_to_site
+    len_ab = [sqrt(v[0].value ** 2 + v[1].value ** 2 + v[2].value ** 2) * u.m
+              for v in v_ab]
+    len_ac = [sqrt(v[0].value ** 2 + v[1].value ** 2 + v[2].value ** 2) * u.m
+              for v in v_ac]
+    len_bc = [sqrt(v[0].value ** 2 + v[1].value ** 2 + v[2].value ** 2) * u.m
+              for v in v_bc]
+
+    # Solve for point d along bc and on bac's angle bisector:
+    fraction = [l_ab / (l_ac + l_ab)
+                for (l_ab, l_ac, l_bc) in zip(len_ab, len_ac, len_bc)]
+    d_xyz_gcrs = [(sun_loc[0] + f * vss[0],
+                   sun_loc[1] + f * vss[1],
+                   sun_loc[2] + f * vss[2])
+                  for (f, sun_loc, vss) in
+                  zip(fraction, sun_xyz_gcrs, vector_sun_to_site)]
+    # Make vector ad, convert it to ecliptic coordinates:
+    v_ad = [(d[0] - sun[0], d[1] - sun[1], d[2] - sun[2])
+            for (sun, d) in zip(mp_xyz_gcrs, d_xyz_gcrs)]
+    sc_list = [SkyCoord(x=-v[0], y=-v[1], z=-v[2], unit='m', frame='gcrs',
+                        representation_type='cartesian').geocentricmeanecliptic
+               for v in v_ad]
+    return sc_list
 
 
 # def calc_timespan_no_sun(approx_midnight: Time) -> [Timespan, None]:

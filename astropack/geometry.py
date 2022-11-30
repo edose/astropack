@@ -9,7 +9,7 @@ __author__ = "Eric Dose, Albuquerque"
 from collections import namedtuple
 import numbers
 from math import sqrt, atan2, pi
-from typing import TypeAlias, Union
+from typing import TypeAlias, Union, Tuple
 
 # External packages:
 import numpy as np
@@ -52,7 +52,7 @@ class XY:
         Y point location.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x: float, y: float):
         self.x, self.y = x, y
 
     @classmethod
@@ -72,7 +72,7 @@ class XY:
         return XY(xy_tuple[0], xy_tuple[1])
 
     @property
-    def as_tuple(self) -> tuple[float, ...]:
+    def as_tuple(self) -> Tuple[float, float]:
         """Return (x,y) as a tuple of floats.
 
         Returns
@@ -80,7 +80,7 @@ class XY:
         xy_tuple : tuple of 2 float
             (x,y) as a tuple of 2 float numbers
         """
-        return tuple([self.x, self.y])
+        return self.x, self.y
 
     def __eq__(self, other: XY_type) -> bool:
         """True if this XY instance is numerically equivalent to ``other``,

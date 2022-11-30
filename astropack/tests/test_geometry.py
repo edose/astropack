@@ -15,6 +15,7 @@ class Test_Class_XY:
     @staticmethod
     @pytest.fixture(scope='function')
     def setup_xy():
+        """ Helper function for testing XY. """
         xy1a = geom.XY(4, 5)
         xy1b = geom.XY(4, 5)
         xy2 = geom.XY(7, 9)
@@ -24,6 +25,7 @@ class Test_Class_XY:
     def test_xy_constructor(self, setup_xy):
         xy1a, xy1b, xy2, dxy = setup_xy
         assert xy1a == geom.XY(4, 5)
+        # assert geom.XY(xy1a) == xy1a
 
     def test_from_tuple(self):
         tupa = (44, 56)
