@@ -7,7 +7,7 @@ __author__ = "Eric Dose, Albuquerque"
 
 # Python core:
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from math import floor, pow, ceil
 from typing import List
 
@@ -17,20 +17,23 @@ from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord
 from astropy.stats import circmean
 
-__all__ = ['Timespan',                  # ok
-           'hhmm_from_datetime_utc',    # ok
-           'ra_as_degrees',             # ok
-           'hex_as_degrees',            # ok
-           'dec_as_degrees',            # ok
-           'ra_as_hours',               # ok
-           'dec_as_hex',                # ok
-           'degrees_as_hex',            # ok
-           'parse_hex',                 # ok
-           'concatenate_skycoords',     # ok
-           'combine_ra_dec_bounds',     # ok
+# 'ok' in the following means: 'converted to astropy Time and tested'.
+__all__ = ['Timespan',                      # ok
+           'hhmm',                          # ok
+           # 'jd_from_datetime_utc',        # DELETED (native support in astropy).
+           # 'datetime_utc_from_jd',        # DELETED (native support in astropy).
+           'ra_as_degrees',                 # ok
+           'hex_as_degrees',                # ok
+           'dec_as_degrees',                # ok
+           'ra_as_hours',                   # ok
+           'dec_as_hex',                    # ok
+           'degrees_as_hex',                # ok
+           'parse_hex',                     # ok
+           'concatenate_skycoords',         # ok
+           'combine_ra_dec_bounds',         # ok
            'make_directory_if_not_exists',  # ok
-           'count_files_immediate',     # ok
-           'pressure_from_elevation']   # ok
+           'count_files_immediate',         # ok
+           'pressure_from_elevation']       # ok
 
 
 THIS_PACKAGE_ROOT_DIRECTORY = \
@@ -41,6 +44,8 @@ _____CLASSES________________________________________________ = 0
 
 class Timespan:
     """ Represents a span of time and provides for operations on and between timespans.
+    Inputs may be astropy Time or python datetime, but internal time representation
+    and returned times are always astropy Time.
 
     |Timespan| instances are expected to be immutable. Attributes are computed at time
     of construction and will not be recomputed if ``start_time`` or ``end_time`` are
@@ -88,7 +93,6 @@ class Timespan:
         --------
 
     """
-
     def __init__(self, start_time: datetime | Time, end_time: datetime | Time):
         if not isinstance(start_time, (datetime, Time)) or \
           not isinstance(end_time, (datetime, Time)):
@@ -320,7 +324,7 @@ class Timespan:
             return ts1
         return ts2
 
-    def periodic_events(self, ref_time: datetime | Time, period: datetime | Time,
+    def periodic_events(self, ref_time: datetime | Time, period: timedelta | TimeDelta,
                         max_events: int | None = 10) -> List[Time]:
         """Returns times of periodic events that occur within a given |Timespan|.
 
@@ -353,11 +357,9 @@ class Timespan:
         n_start = ceil((self.start - ref_time).sec / period.sec)
         first_time = ref_time + n_start * period
         if not self.contains(first_time):
-            print('\n No events within Timespan.')
             return []
         n_events = min(max_events, 1 +
                        floor(Timespan(first_time, self.end).seconds / period.sec))
-        # print('\nn_events', str(n_events))
         event_times = [first_time + i * period for i in range(n_events)]
         return event_times
 
@@ -372,25 +374,27 @@ class Timespan:
 __________TIME_and_DATE_FUNCTIONS_____________________________________________ = 0
 
 
-def hhmm_from_datetime_utc(datetime_utc: datetime) -> str:
-    """Return UTC time-of-day string of form 'hhmm' for a UTC datetime.
+def hhmm(time: Time) -> str:
+    """Return UTC time-of-day string of form 'hhmm' for a scalar astropy Time.
 
     If datetime falls on the half-minute, rounding is performed to the nearest even
     minute, per 'banker's rounding'.
 
-    >>> from astropack.util import hhmm_from_datetime_utc
-    >>> from datetime import datetime, timezone
-    >>> date = datetime(2016, 1, 31, 0, 0, 30, 0).replace(tzinfo=timezone.utc)
-    >>> print(hhmm_from_datetime_utc(date))
+    >>> from astropack.util import hhmm
+    >>> from astropy.time import Time
+    >>> dt = datetime(2016, 1, 31, 0, 0, 30, 0).replace(tzinfo=timezone.utc)
+    >>> time = Time(dt)
+    >>> print(hhmm(time))
     0000
-    >>> date = datetime(2016, 1, 31, 0, 1, 30, 0).replace(tzinfo=timezone.utc)
-    >>> print(hhmm_from_datetime_utc(date))
+    >>> dt = datetime(2016, 1, 31, 0, 1, 30, 0).replace(tzinfo=timezone.utc)
+    >>> time = Time(dt)
+    >>> print(hhmm(date))
     0002
 
     Parameters
     ----------
-    datetime_utc : |py.datetime|
-        UTC date and time.
+    time : |Time|, scalar
+        Time to represent as 'hhmm'. A scalar astropy Time object.
 
     Returns
     -------
@@ -398,12 +402,52 @@ def hhmm_from_datetime_utc(datetime_utc: datetime) -> str:
         String of form 'hhmm' (e.g., '1352') representing UTC time of day.
     """
     # Apply banker's rounding: for a tie, give the nearest even value:
+    datetime_utc = time.to_datetime()
     minutes_of_day = int(round(datetime_utc.hour*60 +
                                datetime_utc.minute +
                                datetime_utc.second/60 +
                                datetime_utc.microsecond/(60*1000000))) % 1440
     hh, mm = divmod(minutes_of_day, 60)
     return '{0:0>4d}'.format(100 * hh + mm)
+
+
+# def jd_from_datetime_utc(datetime_utc: datetime) -> float:
+#     """ For python datetime, return Julian Date.
+#
+#     Parameters
+#     ----------
+#     datetime_utc : |datetime|
+#         Datetime for which Julian Date is wanted.
+#
+#     Returns
+#     -------
+#     jd : float
+#         Julian Date corresponding to given datetime_utc.
+#     """
+#     datetime_j2000 = datetime(2000, 1, 1, 0, 0, 0).replace(tzinfo=timezone.utc)
+#     jd_j2000 = 2451544.5
+#     seconds_since_j2000 = (datetime_utc - datetime_j2000).total_seconds()
+#     return jd_j2000 + seconds_since_j2000 / (24*3600)
+#
+#
+# def datetime_utc_from_jd(jd: float) -> datetime:
+#     """ For Julian Date, return python datetime UTC.
+#
+#     Parameters
+#     ----------
+#     jd : float
+#         Julian Date for which datetime UTC is wanted.
+#
+#     Returns
+#     -------
+#     dt : |datetime|
+#         Datetime UTC corresponding to given Julian Date.
+#
+#     """
+#     datetime_j2000 = datetime(2000, 1, 1, 0, 0, 0).replace(tzinfo=timezone.utc)
+#     jd_j2000 = 2451544.5
+#     seconds_since_j2000 = 24 * 3600 * (jd - jd_j2000)
+#     return datetime_j2000 + timedelta(seconds=seconds_since_j2000)
 
 
 _____RA_and_DEC_FUNCTIONS_____________________________________ = 0
