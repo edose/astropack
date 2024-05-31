@@ -411,43 +411,11 @@ def hhmm(time: Time) -> str:
     return '{0:0>4d}'.format(100 * hh + mm)
 
 
-# def jd_from_datetime_utc(datetime_utc: datetime) -> float:
-#     """ For python datetime, return Julian Date.
-#
-#     Parameters
-#     ----------
-#     datetime_utc : |datetime|
-#         Datetime for which Julian Date is wanted.
-#
-#     Returns
-#     -------
-#     jd : float
-#         Julian Date corresponding to given datetime_utc.
-#     """
-#     datetime_j2000 = datetime(2000, 1, 1, 0, 0, 0).replace(tzinfo=timezone.utc)
-#     jd_j2000 = 2451544.5
-#     seconds_since_j2000 = (datetime_utc - datetime_j2000).total_seconds()
-#     return jd_j2000 + seconds_since_j2000 / (24*3600)
-#
-#
-# def datetime_utc_from_jd(jd: float) -> datetime:
-#     """ For Julian Date, return python datetime UTC.
-#
-#     Parameters
-#     ----------
-#     jd : float
-#         Julian Date for which datetime UTC is wanted.
-#
-#     Returns
-#     -------
-#     dt : |datetime|
-#         Datetime UTC corresponding to given Julian Date.
-#
-#     """
-#     datetime_j2000 = datetime(2000, 1, 1, 0, 0, 0).replace(tzinfo=timezone.utc)
-#     jd_j2000 = 2451544.5
-#     seconds_since_j2000 = 24 * 3600 * (jd - jd_j2000)
-#     return datetime_j2000 + timedelta(seconds=seconds_since_j2000)
+def nearest_time(time_list: List[Time], ref_time: Time) -> Time | None:
+    """ Return the time from time_list that is nearest to ref_time. """
+    if len(time_list) == 0:
+        return None
+    return min(time_list, key=lambda t: abs(t - ref_time))
 
 
 _____RA_and_DEC_FUNCTIONS_____________________________________ = 0

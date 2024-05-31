@@ -16,11 +16,17 @@ import astropy.io.fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import pixel_to_skycoord, skycoord_to_pixel
 from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, Angle
 from astropy.stats import sigma_clipped_stats
 from astropy.convolution import Gaussian2DKernel
+from astropy import units as u
 from photutils.morphology import data_properties
 from photutils.segmentation import make_source_mask
+
+# Suppress FITS warnings raised by Astropy:
+import warnings
+from astropy.wcs import FITSFixedWarning
+warnings.simplefilter('ignore', category=FITSFixedWarning)
 
 # From elsewhere in this package:
 from .reference import FWHM_PER_SIGMA, ARCSECONDS_PER_RADIAN
@@ -200,22 +206,41 @@ class FITS:
         self.utc_mid = self.utc_start + TimeDelta(self.exposure / 2.0, format='sec')
         self.filter = self.header_value('FILTER')
         self.airmass = self.header_value('AIRMASS')
-        self.guide_exposure = float(self.header_value('TRAKTIME'))  # in seconds
-        self.fwhm = float(self.header_value('FWHM'))
+        #  TRAKTIME is absent if no guiding, for which return None.
+        if self.header_value('TRAKTIME') is not None:
+            self.guide_exposure = float(self.header_value('TRAKTIME'))  # in seconds
+        else:
+            self.guide_exposure = None
+        #  FWHM may be absent if not plate-solved, for which return None.
+        if self.header_value('FWHM') is not None:
+            self.fwhm = float(self.header_value('FWHM'))
+        else:
+            self.fwhm = None
         self.is_calibrated = self._is_calibrated()
 
         # Make 2 WCS objects: (1) internal from FITS as-is,
         # (2) corrected pixel scale (normally used):
         self.wcs_fits = WCS(self.header)
+
+        # # ################# TEST:
+        # if fullpath.endswith('MP_784-S001-R001-C001-BB.fts') or \
+        #     fullpath.endswith('MP_784-S001-R001-C002-BB.fts'):
+        #     iiii = 4
+        # # ################# End TEST.
+
         self.is_plate_solved = self._is_plate_solved()
         self.is_plate_solved_by_pinpoint = self._detect_pinpoint_plate_solution()
         self.wcs_corrected = self._make_corrected_wcs()
 
         # Determine image center (RA, Dec), whatever WCS chose as center pixels:
-        xy_center = XY(self.image_xy.shape[0] / 2.0, self.image_xy.shape[1] / 2.0)
-        skycoord_center = self.xy_to_skycoords(xy_center)
-        self.ra_deg, self.dec_deg = skycoord_center.ra.degree,\
-            skycoord_center.dec.degree
+        if self.is_plate_solved:
+            xy_center = XY(self.image_xy.shape[0] / 2.0, self.image_xy.shape[1] / 2.0)
+            skycoord_center = self.xy_to_skycoords(xy_center)
+            self.ra_deg, self.dec_deg = skycoord_center.ra.degree,\
+                skycoord_center.dec.degree
+        else:
+            self.ra_deg = Angle(self.header_value('RA'), unit=u.hourangle).degree
+            self.dec_deg = Angle(self.header_value('DEC'), unit=u.degree).degree
 
         self.is_valid = True  # if it got through all that initialization.
 
@@ -350,7 +375,8 @@ class FITS:
         return any([is_c for is_c in calib_fn_list])
 
     def _is_plate_solved(self) -> bool:
-        return self.wcs_fits is not None
+        return self.wcs_fits.pixel_scale_matrix.min() != 0.0 and \
+               self.wcs_fits.pixel_scale_matrix.max() != 1.1
 
     def _get_focal_length(self) -> float | None:
         # If FL available, return it. Else, compute FL from plate solution.

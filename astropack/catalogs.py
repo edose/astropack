@@ -9,6 +9,7 @@ import os
 from datetime import datetime, timezone
 from math import floor, ceil
 from typing import Tuple, List
+from functools import lru_cache
 
 # External packages:
 import pandas as pd
@@ -28,10 +29,10 @@ __all__ = ['AtlasRefcat2']
 
 __________CLASS_ATLASREFCAT2_________________________________________________ = 0
 
-
-ATLAS_REFCAT2_EPOCH_UTC = (datetime(2015, 1, 1) +
-                           (datetime(2016, 1, 1) - datetime(2015, 1, 1)) / 2.0) \
-    .replace(tzinfo=timezone.utc)  # refcat2 proper-motion catalog_epoch is 2015.5
+# refcat2 proper-motion catalog_epoch is 2015.5:
+ATLAS_REFCAT2_EPOCH_UTC = Time((datetime(2015, 1, 1) +
+                               (datetime(2016, 1, 1) - datetime(2015, 1, 1)) / 2.0)
+                               .replace(tzinfo=timezone.utc))
 
 
 class MissingIndexFileError(Exception):

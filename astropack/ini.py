@@ -4,6 +4,7 @@
 """
 
 __author__ = "Eric Dose, Albuquerque"
+
 # Python core:
 import os
 import os.path
@@ -11,12 +12,16 @@ import configparser
 from datetime import datetime, timezone
 from math import pi, cos
 
+# Other packages:
+from astropy.time import Time
+
 
 THIS_PACKAGE_ROOT_DIRECTORY = \
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 __all__ = ['Site',
-           'SiteParseError', 'SiteValueError',
+           'SiteParseError',
+           'SiteValueError',
            'Instrument',
            'MultilineParseError',
            'TransformParseError',
@@ -234,8 +239,10 @@ class Site:
             raise SiteValueError('Coldest date must represent valid '
                                  'month-day date of year.')
 
-    def _get_date_phase(self, date: datetime):
-        """For ``date`` as |py.datetime|, return annual date phase."""
+    def _get_date_phase(self, date: datetime | Time) -> float:
+        """For ``date`` as |py.datetime| or |Time|, return annual date phase."""
+        if isinstance(date, Time):
+            date = date.to_datetime().replace(tzinfo=timezone.utc)
         coldest_datetime = datetime(year=date.year,
                                     month=self.coldest_date[0],
                                     day=self.coldest_date[1]).\
@@ -243,23 +250,25 @@ class Site:
         phase = (date - coldest_datetime).days / 365.25
         return phase
 
-    def _interpolate_for_date(self, date: datetime,
+    def _interpolate_for_date(self, date: datetime | Time,
                               summer_quantity: float, winter_quantity: float) -> float:
         """Private utility to interpolate quantities between
         summer and winter nominal values."""
+        if isinstance(date, Time):
+            date = date.to_datetime().replace(tzinfo=timezone.utc)
         amplitude = summer_quantity - winter_quantity
         mean = (summer_quantity + winter_quantity) / 2
         phase_in_radians = self._get_date_phase(date) * 2 * pi
         quantity_for_date = mean - (amplitude / 2) * cos(phase_in_radians)
         return quantity_for_date
 
-    def midnight_temperature_for_date(self, date: datetime) -> float:
+    def midnight_temperature_for_date(self, date: datetime | Time) -> float:
         """Return interpolated nominal midnight temperature for site and date,
         based on summer and winter values.
 
         Parameters
         ----------
-        date : |py.datetime|
+        date : |py.datetime| or |Time|
             Date, including year, for which midnight temperature estimate is needed.
             UTC will be assumed if no timezone info is given.
 
@@ -268,6 +277,8 @@ class Site:
         temp_for_date : float
             Midnight temperature estimate for date, in degrees C.
         """
+        if isinstance(date, Time):
+            date = date.to_datetime().replace(tzinfo=timezone.utc)
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
         temp_for_date = self._interpolate_for_date(date,
@@ -275,13 +286,13 @@ class Site:
                                                    self.winter_midnight_temperature)
         return temp_for_date
 
-    def midnight_humidity_for_date(self, date: datetime) -> float:
+    def midnight_humidity_for_date(self, date: datetime | Time) -> float:
         """Return interpolated nominal midnight humidity for date,
         based on summer and winter values.
 
         Parameters
         ----------
-        date : |py.datetime|
+        date : |py.datetime| or |Time|
             Date, including year, for which midnight humidity estimate is needed.
             UTC will be assumed if no timezone info is given.
 
@@ -290,6 +301,8 @@ class Site:
         humidity_for_date : float
             Midnight relative humidity estimate for date, in range [0, 100].
         """
+        if isinstance(date, Time):
+            date = date.to_datetime().replace(tzinfo=timezone.utc)
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
         humidity_for_date = self._interpolate_for_date(date,
@@ -297,12 +310,12 @@ class Site:
                                                        self.winter_midnight_humidity)
         return humidity_for_date
 
-    def extinction_for_date(self, date: datetime, filter: str) -> float:
+    def extinction_for_date(self, date: datetime | Time, filter: str) -> float:
         """Return interpolated extinction for date, based on summer and winter values.
 
         Parameters
         ----------
-        date : |py.datetime|
+        date : |py.datetime| or |Time|
             Date, including year, for which atmospheric extinction estimate is wanted.
             UTC will be assumed if no timezone info is given.
 
@@ -315,6 +328,8 @@ class Site:
             Midnight atmospheric extinction estimate for date and filter,
             always positive.
         """
+        if isinstance(date, Time):
+            date = date.to_datetime().replace(tzinfo=timezone.utc)
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
         summer_extinction, winter_extinction = self.extinction[filter][0],\

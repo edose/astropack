@@ -75,6 +75,9 @@ def test_class_an_date():
     assert type(a.an_str) == str
     assert (a.year, a.month, a.day) == (2022, 11, 19)
 
+    assert almanac.AN_date(20221216).day_of_week.upper() == 'FRIDAY'
+    assert almanac.AN_date(20221225).day_of_week.upper() == 'SUNDAY'
+
     with pytest.raises(almanac.Invalid_ANDate_Error):
         _ = almanac.AN_date('not a date string')
     with pytest.raises(almanac.Invalid_ANDate_Error):
@@ -248,7 +251,6 @@ def test__horizon_crossings():
                       almanac.SkyfieldEngine._HorizonCrossing.SETTING,
                       almanac.SkyfieldEngine._HorizonCrossing.RISING]
     for c, etime, etype in zip(crossings, expected_times, expected_types):
-        # print(c[0], etime)
         diff_seconds = abs(c[0] - etime) * 24 * 3600
         assert diff_seconds < 1
         assert c[1] == etype
@@ -430,6 +432,14 @@ def test_prev_sunset_utc():
     diff_seconds = abs(sunset_utc - expected_utc).sec
     assert diff_seconds < 1
 
+    # Case: no prev sunset within allowable timespan:
+    site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'PointBarrow.ini')
+    site_barrow = ini.Site(site_fullpath)
+    sfe_barrow = almanac.SkyfieldEngine.from_site(site_barrow, -10)
+    t_ref = Time('2022-06-22 11:00:00')
+    sunset_utc = sfe_barrow.prev_sunset_utc(ref_time_utc=t_ref, horizon_degrees=0)
+    assert sunset_utc is None
+
 
 # noinspection DuplicatedCode
 def test_next_sunrise_utc():
@@ -448,6 +458,14 @@ def test_next_sunrise_utc():
     expected_utc = Time('2022-05-27 11:56:19')
     diff_seconds = abs(sunrise_utc - expected_utc).sec
     assert diff_seconds < 1
+
+    # Case: no next sunrise within allowable timespan:
+    site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'PointBarrow.ini')
+    site_barrow = ini.Site(site_fullpath)
+    sfe_barrow = almanac.SkyfieldEngine.from_site(site_barrow, -10)
+    t_ref = Time('2022-06-22 11:00:00')
+    sunrise_utc = sfe_barrow.next_sunrise_utc(ref_time_utc=t_ref)
+    assert sunrise_utc is None
 
 
 # noinspection DuplicatedCode
@@ -507,6 +525,78 @@ def test_sun_antitransit_utc():
     expected_utc = Time('2022-05-27 06:59:16')
     diff_seconds = abs(antitransit_utc - expected_utc).sec
     assert diff_seconds < 1
+
+
+def test_target_transit_utc():
+    sfe = make_new_skyfield_engine()
+    rigel = SkyCoord(15 * 5.2422978748, -8.20164055, unit='deg')  # Rigel
+    transit_utc = sfe.target_transit_utc(rigel, Time('2022-02-08 07:20:00'))
+    expected_utc = Time('2022-02-08 03:04:53')
+    diff_seconds = abs(transit_utc - expected_utc).sec
+    assert diff_seconds < 1
+    transit_utc = sfe.target_transit_utc(rigel, Time('2022-07-22 23:20:00'))
+    expected_utc = Time('2022-07-22 16:16:07')
+    diff_seconds = abs(transit_utc - expected_utc).sec
+    assert diff_seconds < 1
+
+
+# noinspection DuplicatedCode
+def test_prev_target_rise_utc():
+    # Normal cases:
+    sfe = make_new_skyfield_engine()
+    rigel = SkyCoord(15 * 5.2422978748, -8.20164055, unit='deg')  # Rigel
+    transit_utc = sfe.target_transit_utc(rigel, Time('2022-02-08 07:20:00'))
+    prev_rise_utc = sfe.prev_target_rise_utc(rigel, transit_utc, horizon_degrees=30)
+    expected_utc = Time('2022-02-08 00:01:23')
+    diff_seconds = abs(prev_rise_utc - expected_utc).sec
+    assert diff_seconds < 1
+    transit_utc = sfe.target_transit_utc(rigel, Time('2022-07-22 23:20:00'))
+    prev_rise_utc = sfe.prev_target_rise_utc(rigel, transit_utc, horizon_degrees=30)
+    expected_utc = Time('2022-07-22 13:12:36')
+    diff_seconds = abs(prev_rise_utc - expected_utc).sec
+    assert diff_seconds < 1
+    prev_rise_utc = sfe.prev_target_rise_utc(rigel, transit_utc, horizon_degrees=15)
+    expected_utc = Time('2022-07-22 11:52:15')
+    diff_seconds = abs(prev_rise_utc - expected_utc).sec
+    assert diff_seconds < 1
+
+    # Case: target always below horizon, never rises:
+    site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'PointBarrow.ini')
+    site_barrow = ini.Site(site_fullpath)
+    sfe_barrow = almanac.SkyfieldEngine.from_site(site_barrow, -10)
+    antares = SkyCoord(15 * 16.4901280308, -26.43200249, unit='deg')  # Antares
+    prev_rise_utc = sfe_barrow.prev_target_rise_utc(antares, transit_utc,
+                                                    horizon_degrees=0)
+    assert prev_rise_utc is None
+
+
+# noinspection DuplicatedCode
+def test_next_target_set_utc():
+    sfe = make_new_skyfield_engine()
+    rigel = SkyCoord(15 * 5.2422978748, -8.20164055, unit='deg')  # Rigel
+    transit_utc = sfe.target_transit_utc(rigel, Time('2022-02-08 07:20:00'))
+    next_set_utc = sfe.next_target_set_utc(rigel, transit_utc, horizon_degrees=30)
+    expected_utc = Time('2022-02-08 06:08:23')
+    diff_seconds = abs(next_set_utc - expected_utc).sec
+    assert diff_seconds < 1
+    transit_utc = sfe.target_transit_utc(rigel, Time('2022-07-22 23:20:00'))
+    next_set_utc = sfe.next_target_set_utc(rigel, transit_utc, horizon_degrees=30)
+    expected_utc = Time('2022-07-22 19:19:39')
+    diff_seconds = abs(next_set_utc - expected_utc).sec
+    assert diff_seconds < 1
+    next_set_utc = sfe.next_target_set_utc(rigel, transit_utc, horizon_degrees=15)
+    expected_utc = Time('2022-07-22 20:40:00')
+    diff_seconds = abs(next_set_utc - expected_utc).sec
+    assert diff_seconds < 1
+
+    # Case: target always below horizon, never rises:
+    site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'PointBarrow.ini')
+    site_barrow = ini.Site(site_fullpath)
+    sfe_barrow = almanac.SkyfieldEngine.from_site(site_barrow, -10)
+    antares = SkyCoord(15 * 16.4901280308, -26.43200249, unit='deg')  # Antares
+    next_set_utc = sfe_barrow.next_target_set_utc(antares, transit_utc,
+                                                  horizon_degrees=0)
+    assert next_set_utc is None
 
 
 def test_moon_skycoord():
@@ -597,59 +687,28 @@ def test_astronight_attributes_basic():
     assert an.site_name == 'New Mexico Skies (Dome)'
     assert an.an_date.an_str == '20220208'
     assert an.sun_altitude_dark == -9.0
-    assert (an.sunset_utc - Time('2022-02-09 00:41:13')).sec == \
-           pytest.approx(0, abs=2)
-    assert (an.sunrise_utc - Time('2022-02-09 13:50:51')).sec == \
-           pytest.approx(0, abs=2)
+    assert isinstance(an.engine, almanac.AlmanacEngine)
+    assert abs((an.sun_antitransit_utc - Time('2022-02-09 07:16:17')).sec) < 2
+    assert abs((an.sunset_utc - Time('2022-02-09 00:41:13')).sec) < 2
+    assert abs((an.sunrise_utc - Time('2022-02-09 13:50:51')).sec) < 2
     assert an.timespan_no_sun.seconds == pytest.approx(47378.631, abs=3)
-
-    assert (an.dark_start_utc - Time('2022-02-09 01:21:25')).sec == \
-           pytest.approx(0, abs=2)
-    assert (an.dark_end_utc - Time('2022-02-09 13:10:43')).sec == \
-           pytest.approx(0, abs=2)
-    assert (an.observable_start_utc - Time('2022-02-09 01:21:25')).sec == \
-           pytest.approx(0, abs=2)
-    assert (an.observable_end_utc - Time('2022-02-09 13:10:43')).sec == \
-           pytest.approx(0, abs=2)
-    assert an.timespan_observable.seconds == pytest.approx(42558.126, abs=2)
-    assert an.mid_observable_utc == an.timespan_observable.midpoint
-
+    assert abs((an.dark_start_utc - Time('2022-02-09 01:21:25')).sec) < 2
+    assert abs((an.dark_end_utc - Time('2022-02-09 13:10:43')).sec) < 2
+    assert an.timespan_dark.seconds == pytest.approx(42558.126, abs=3)
     assert an.moon_illumination == pytest.approx(0.57, abs=0.01)
     assert an.moon_skycoord.ra.degree == pytest.approx(55.0, abs=0.2)
     assert an.moon_skycoord.dec.degree == pytest.approx(19.3, abs=0.2)
     assert an.moon_skycoord.isscalar == True
     assert (an.moon_transit_utc - Time('2022-02-09 01:18:23')).sec == \
            pytest.approx(0, abs=5)  # skyfield not so accurate re: moon.
+    assert abs((an.timespan_dark_no_moon.start - Time('2022-02-09 08:21:09')).sec) < 5
+    assert an.timespan_dark_no_moon.end == an.dark_end_utc
 
     # Case: missing sun_altitude_dark:
     site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'NMS_Dome.ini')
     site = ini.Site(site_fullpath)
     an_1 = almanac.Astronight(site, 20220208)
     assert an_1.sun_altitude_dark == site.sun_altitude_dark
-
-
-def test_astronight_timespan_dark_no_moon():
-    an = make_new_astronight(an_date=20220208)
-    assert (an.timespan_dark_no_moon.start - Time('2022-02-09 08:21:12')).sec == \
-        pytest.approx(0, abs=5)
-    assert an.timespan_dark_no_moon.end == an.dark_end_utc
-
-    an = make_new_astronight(an_date=20220222)
-    assert an.timespan_dark_no_moon.start == an.dark_start_utc
-    assert (an.timespan_dark_no_moon.end - Time('2022-02-23 07:23:43')).sec == \
-        pytest.approx(0, abs=5)
-
-    an = make_new_astronight(an_date=20211218)  # moon up all night.
-    assert an.timespan_dark_no_moon is None
-
-    an = make_new_astronight(an_date=20211203)  # moon down all night.
-    assert an.timespan_dark_no_moon == an.timespan_observable
-
-    an = make_new_astronight(an_date=20220628)
-    assert an.timespan_dark_no_moon == an.timespan_observable
-
-    an = make_new_astronight(an_date=20220613)
-    assert an.timespan_dark_no_moon is None
 
 
 def test_astronight_exceptions():
@@ -668,171 +727,95 @@ def test_astronight_exceptions():
     site = ini.Site(site_fullpath)
     with pytest.raises(almanac.NoDarkTimeError):
         _ = almanac.Astronight(site, 20220815, -9.0)
-    # .timespan_observable() absent min_alt or min_moon_dist:
-    an = make_new_astronight()
-    sc = SkyCoord(10, 20, unit="deg")
-    with pytest.raises(ValueError):
-        _ = an.timespan_observable(sc)
 
 
 _____TEST_ASTRONIGHT_METHODS___________________________________________________ = 0
 
 
-def test_astronight_transit():
+def test_astronight_moon_distance():
     site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'NMS_Dome.ini')
     site = ini.Site(site_fullpath)
     an = almanac.Astronight(site, 20220402)
     betelgeuse = SkyCoord('05h 55m 10.30536s +07d 24m 25.4304s')
-    transit_time = an.transit(betelgeuse)
+    assert an.moon_distance(betelgeuse) == pytest.approx(53.16, abs=0.1)
+
+
+def test_astronight_target_transit():
+    site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'NMS_Dome.ini')
+    site = ini.Site(site_fullpath)
+    an = almanac.Astronight(site, 20220402)
+    betelgeuse = SkyCoord('05h 55m 10.30536s +07d 24m 25.4304s')
+    transit_time = an.target_transit_utc(betelgeuse)
     assert isinstance(transit_time, Time)
     assert (transit_time - Time('2022-04-03 00:13:12.8')).to_value(u.second) == \
            pytest.approx(0, abs=2)
 
 
-def test_astronight_timespan_observable():
+def test_astronight_target_observable():
     site_fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'NMS_Dome.ini')
     site = ini.Site(site_fullpath)
     an = almanac.Astronight(site, 20220402)
     betelgeuse = SkyCoord('05h 55m 10.30536s +07d 24m 25.4304s')
-    ts_obs = an.timespan_observable(betelgeuse, min_alt=30, min_moon_dist=45)
-    assert isinstance(ts_obs, Timespan)
-    assert ts_obs.start == an.timespan_observable.start
-    assert (ts_obs.end - Time('2022-04-03 04:08:12.3')).to_value(u.second) == \
-           pytest.approx(0, abs=2)
+
+    # Case: moon distant enough:
+    ts_obs = an.target_observable(betelgeuse, min_alt=30, min_moon_dist=45)
+    assert ts_obs.start == an.dark_start_utc
+    assert abs((ts_obs.end - Time('2022-04-03 04:08:12')).sec) < 2
+
+    # Case: moon too close (min_moon_dist changes):
+    ts_obs = an.target_observable(betelgeuse, min_alt=30, min_moon_dist=90)
+    assert ts_obs.seconds == 0
 
 
-# def test_find_target_up_down():
-#     an = make_new_astronight()
-#     with pytest.raises(ValueError):
-#         _ = almanac.find_target_up_down(an.obs, an.sf_master_eph, an.sf_master_eph['moon'],
-#                                         an.sf_timescale,
-#                                         an.timespan_dark, up_down='INVALID')
-#     test_timespan = Timespan(Time('2022-02-09 21:00:00'), Time('2022-02-10 21:00:00'))
-#     # print()
-#
-#     # ===== Moon, up and down:
-#     # print('\nMoon:')
-#     moon_set_actual = Time('2022-02-10 09:22:55')   # within a second.
-#     moon_rise_actual = Time('2022-02-10 19:30:41')  # "
-#     moon_up = almanac.find_target_up_down(an.obs, an.sf_master_eph, an.sf_master_eph['moon'],
-#                                           an.sf_timescale, test_timespan, 'up',
-#                                           horizon=almanac.HORIZON_USNO)
-#     # print(str(moon_up))
-#     assert isinstance(moon_up, list)
-#     assert len(moon_up) == 2
-#     assert moon_up[0].start == test_timespan.start
-#     assert (moon_up[0].end - moon_set_actual).sec == pytest.approx(0, abs=2)
-#     assert (moon_up[1].start - moon_rise_actual).sec == pytest.approx(0, abs=2)
-#     assert moon_up[1].end == test_timespan.end
-#     moon_down = almanac.find_target_up_down(an.obs, an.sf_master_eph,
-#                                             an.sf_master_eph['moon'], an.sf_timescale,
-#                                             test_timespan, 'down',
-#                                             horizon=almanac.HORIZON_USNO)
-#     # print(str(moon_down))
-#     assert isinstance(moon_down, list)
-#     assert len(moon_down) == 1
-#     assert (moon_down[0].start - moon_set_actual).sec == pytest.approx(0, abs=2)
-#     assert (moon_down[0].end - moon_rise_actual).sec == pytest.approx(0, abs=2)
-#
-#     # ===== Sun, up and down:
-#     # print('\nSun:')
-#     sun_set_actual = Time('2022-02-10 00:42:08')
-#     sun_rise_actual = Time('2022-02-10 13:49:59')
-#     sun_up = almanac.find_target_up_down(an.obs, an.sf_master_eph, an.sf_master_eph['sun'],
-#                                          an.sf_timescale, test_timespan, 'up',
-#                                          horizon=almanac.HORIZON_USNO)
-#     # print(str(sun_up))
-#     assert isinstance(sun_up, list)
-#     assert len(sun_up) == 2
-#     assert sun_up[0].start == test_timespan.start
-#     assert (sun_up[0].end - sun_set_actual).sec == pytest.approx(0, abs=2)
-#     assert (sun_up[1].start - sun_rise_actual).sec == pytest.approx(0, abs=2)
-#     assert sun_up[1].end == test_timespan.end
-#     sun_down = almanac.find_target_up_down(an.obs, an.sf_master_eph, an.sf_master_eph['sun'],
-#                                            an.sf_timescale, test_timespan, 'down',
-#                                            horizon=almanac.HORIZON_USNO)
-#     # print(str(sun_down))
-#     assert isinstance(sun_down, list)
-#     assert len(sun_down) == 1
-#     assert (sun_down[0].start - sun_set_actual).sec == pytest.approx(0, abs=2)
-#     assert (sun_down[0].end - sun_rise_actual).sec == pytest.approx(0, abs=2)
-#
-#     # ===== Star Procyon, rises and sets at this observatory:
-#     # print('\nProcyon:')
-#     procyon_rise_actual = Time('2022-02-09 23:05:07')
-#     procyon_set_actual = Time('2022-02-10 11:37:54')
-#     procyon = Star(ra_hours=(7, 39, 18), dec_degrees=(5, 13, 30))
-#     procyon_up = almanac.find_target_up_down(an.obs, an.sf_master_eph, procyon,
-#                                              an.sf_timescale, test_timespan, 'up',
-#                                              horizon=almanac.HORIZON_USNO)
-#     # print(str(procyon_up))
-#     assert isinstance(procyon_up, list)
-#     assert len(procyon_up) == 1
-#     assert (procyon_up[0].start - procyon_rise_actual).sec == pytest.approx(0, abs=2)
-#     assert (procyon_up[0].end - procyon_set_actual).sec == pytest.approx(0, abs=2)
-#     procyon_down = almanac.find_target_up_down(an.obs, an.sf_master_eph, procyon,
-#                                                an.sf_timescale, test_timespan, 'down',
-#                                                horizon=almanac.HORIZON_USNO)
-#     # print(str(procyon_down))
-#     assert isinstance(procyon_down, list)
-#     assert len(procyon_down) == 2
-#     assert procyon_down[0].start == test_timespan.start
-#     assert (procyon_down[0].end - procyon_rise_actual).sec == pytest.approx(0, abs=2)
-#     assert (procyon_down[1].start - procyon_set_actual).sec == pytest.approx(0, abs=2)
-#     assert procyon_down[1].end == test_timespan.end
-#
-#     # ===== Star Kochab, always up at this observatory:
-#     # print('\nKochab:')
-#     kochab = Star(ra_hours=(14, 50, 42), dec_degrees=(74, 9, 20))
-#     kochab_up = almanac.find_target_up_down(an.obs, an.sf_master_eph, kochab, an.sf_timescale,
-#                                             test_timespan, 'up',
-#                                             horizon=almanac.HORIZON_USNO)
-#     # print(str(kochab_up))
-#     assert kochab_up == [test_timespan]
-#     kochab_down = almanac.find_target_up_down(an.obs, an.sf_master_eph, kochab,
-#                                               an.sf_timescale, test_timespan, 'down',
-#                                               horizon=almanac.HORIZON_USNO)
-#     # print(str(kochab_down))
-#     assert kochab_down is None
-#
-#     # ===== Star Gatria, always down at this observatory:
-#     # print('\nGatria:')
-#     gatria = Star(ra_hours=(15, 18, 55), dec_degrees=(-68, 40, 46))
-#     gatria_up = almanac.find_target_up_down(an.obs, an.sf_master_eph, gatria, an.sf_timescale,
-#                                             test_timespan, 'up',
-#                                             horizon=almanac.HORIZON_USNO)
-#     # print(str(gatria_up))
-#     assert gatria_up is None
-#     gatria_down = almanac.find_target_up_down(an.obs, an.sf_master_eph, gatria,
-#                                               an.sf_timescale, test_timespan, 'down',
-#                                               horizon=almanac.HORIZON_USNO)
-#     # print(str(gatria_down))
-#     assert gatria_down == [test_timespan]
+def test_astronight_time_from_hhmm():
+    an = make_new_astronight(an_date=20220208)  # sun antitransit ~ 07:16 UTC.
+    assert an.time_from_hhmm('00:00') == Time('2022-02-09 00:00:00')
+    assert an.time_from_hhmm('0001') == Time('2022-02-09 00:01:00')   # colon is absent.
+    assert an.time_from_hhmm('12:00') == Time('2022-02-09 12:00:00')  # after night.
+    assert an.time_from_hhmm('22:34') == Time('2022-02-08 22:34:00')  # before night.
+    assert an.time_from_hhmm('19:10') == Time('2022-02-09 19:10:00')  # after night.
+    assert an.time_from_hhmm('20:02') == Time('2022-02-08 20:02:00')  # before night.
+    assert an.time_from_hhmm('07:16') == Time('2022-02-09 07:16:00')  # ~ sun antitr.
 
 
-# def test_calc_timespan_no_sun():
-#     # Normal case:
-#     an = make_new_astronight()
-#     ts = almanac.calc_timespan_no_sun(an.obs, an.sf_master_eph, an.sf_timescale,
-#                                       an.local_middark_utc)
-#     assert isinstance(ts, Timespan)
-#     assert (ts.start - Time('2022-02-09 00:41:13')).sec == pytest.approx(0, abs=2)
-#     assert (ts.end - Time('2022-02-09 13:50:52')).sec == pytest.approx(0, abs=2)
-#     del an, ts
-#     # Case: no rises, should return :
-#     fullpath = os.path.join(DATA_FOR_TEST_DIRECTORY, 'PointBarrow.ini')
-#     site = ini.Site(fullpath)
-#     # Case: sun never above horizon.
-#     an_winter = almanac.Astronight(site, '20211221')
-#     ts_winter = almanac.calc_timespan_no_sun(an_winter.obs, an_winter.sf_master_eph,
-#                                              an_winter.sf_timescale,
-#                                              an_winter.local_middark_utc)
-#     print()
-#     print(ts_winter, str(an_winter.local_middark_utc))
-#     # Case: sun never below horizon.
-#     with pytest.raises(almanac.SunAlwaysUpError):
-#         an_summer = almanac.Astronight(site, '20210621')
-#         ts_summer = almanac.calc_timespan_no_sun(an_summer.obs, an_summer.sf_master_eph,
-#                                                  an_summer.sf_timescale,
-#                                                  an_summer.local_middark_utc)
+def test_astronight_times_at_sun_alt():
+    an = make_new_astronight(an_date=20221210)
+    prev, next = an.times_at_sun_alt(sun_alt=-9)
+    assert abs(prev - Time('2022-12-11 00:39')).sec < 60
+    assert abs(next - Time('2022-12-11 13:11')).sec < 60
+    assert an.times_at_sun_alt(sun_alt=-89) == (None, None)
 
+
+def test_astronight_acp_header_string():
+    an = make_new_astronight(an_date=20230115)
+    # an = make_new_astronight(an_date=20221213)
+    header = an.acp_header_string
+    assert len(header) == 3
+    # Otherwise, test is largely by inspection.
+    print('\n*************')
+    for line in header:
+        print(line)
+
+
+def test_astronight__calc_dark_no_moon():
+    an = make_new_astronight(an_date=20220208)
+    assert (an.timespan_dark_no_moon.start - Time('2022-02-09 08:21:12')).sec == \
+        pytest.approx(0, abs=5)
+    assert an.timespan_dark_no_moon.end == an.dark_end_utc
+
+    an = make_new_astronight(an_date=20220222)
+    assert an.timespan_dark_no_moon.start == an.dark_start_utc
+    assert (an.timespan_dark_no_moon.end - Time('2022-02-23 07:23:43')).sec == \
+        pytest.approx(0, abs=5)
+
+    an = make_new_astronight(an_date=20211218)  # moon up all night.
+    assert an.timespan_dark_no_moon is None
+
+    an = make_new_astronight(an_date=20211203)  # moon down all night.
+    assert an.timespan_dark_no_moon == an.timespan_dark
+
+    an = make_new_astronight(an_date=20220628)
+    assert an.timespan_dark_no_moon == an.timespan_dark
+
+    an = make_new_astronight(an_date=20220613)
+    assert an.timespan_dark_no_moon is None

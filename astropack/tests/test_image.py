@@ -25,10 +25,9 @@ TEST_TOP_DIRECTORY = os.path.join(THIS_PACKAGE_ROOT_DIRECTORY, "tests")
 __________TEST_CLASS_FITS____________________________________________________ = 0
 
 
-def test_class_fits_constructor():
+def test_class_fits_constructor_normal_case():
+    """ For example FITS file that is calibrated, plate-solved, and guided. """
     fits = get_test_fits_file()
-    # print('fullpath >', fullpath, '<')
-    # fits = image.FITS(fullpath, pinpoint_pixel_scale_multiplier=0.99)
     print('exposure (630)', str(fits.exposure))
     assert fits.airmass == pytest.approx(1.01368, abs=0.00002)
     assert fits.exposure == 630.0
@@ -58,6 +57,29 @@ def test_class_fits_constructor():
     assert fits.wcs_corrected.wcs.cd[0][0] == pytest.approx(-0.00018850249345455)
     assert fits.ra_deg == pytest.approx(123.83138202)
     assert fits.dec_deg == pytest.approx(30.12364316)
+
+
+def test_class_fits_constructor_without_guiding():
+    fits = get_test_fits_file_without_guiding()
+    assert fits.guide_exposure is None  # indicates no guiding happened.
+    assert fits.is_plate_solved == True
+    assert fits.exposure == 240.0
+    assert fits.fwhm == pytest.approx(5.42848799229)
+
+
+def test_class_fits_constructor_not_plate_solved():
+    fits = get_test_fits_file_not_plate_solved()
+    assert fits.is_plate_solved == False
+    assert fits.guide_exposure is not None
+    assert fits.exposure == 240.0
+    assert fits.fwhm is None  # because FWHM is a plate-solution result.
+
+
+def test_class_fits_constructor_not_calibrated():
+    fits1, fits2 = get_two_test_fits_files_not_calibrated()
+    assert fits1.is_calibrated == False
+    assert fits2.is_calibrated == False
+    assert fits1.exposure == fits2.exposure == 240.0
 
 
 def test_class_fits_header_value():
@@ -149,6 +171,12 @@ def test_class_fits__is_calibrated():
     assert fits._is_calibrated() == False
     fits.header['CALSTAT'] = 'BDF'
     assert fits._is_calibrated() == True
+
+
+def test_class_fits__get_utc_start():
+    """Test internal function."""
+    fits = get_test_fits_file()
+    assert fits._get_utc_start() == Time('2022-02-10T05:10:23.790')
 
 
 __________TEST_CLASS_POINTSOURCEAP_____________________________________ = 0
@@ -300,10 +328,37 @@ __________HELPER_FUNCTIONS____________________________________________ = 0
 
 def get_test_fits_file():
     """ Helper function to get FITS object."""
-    fullpath = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test', 'MP_1300-0004-BB.fts')
-    # print('fullpath >', fullpath, '<')
+    fullpath = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test',
+                            'MP_1300-0004-BB.fts')
     fits = image.FITS(fullpath, pinpoint_pixel_scale_multiplier=0.99)
     return fits
+
+
+def get_test_fits_file_without_guiding():
+    """ Helper function to get FITS object."""
+    fullpath = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test',
+                            'MP_784-S002-R001-C001-BB.fts')
+    fits = image.FITS(fullpath, pinpoint_pixel_scale_multiplier=0.99)
+    return fits
+
+
+def get_test_fits_file_not_plate_solved():
+    """ Helper function to get FITS object."""
+    fullpath = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test',
+                            'MP_784-S001-R001-C002-BB.fts')
+    fits = image.FITS(fullpath, pinpoint_pixel_scale_multiplier=0.99)
+    return fits
+
+
+def get_two_test_fits_files_not_calibrated():
+    """ Helper function to get 2 FITS objects."""
+    fullpath1 = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test',
+                             'MP_784-S002-R001-C001-BB.fts')
+    fits1 = image.FITS(fullpath1, pinpoint_pixel_scale_multiplier=0.99)
+    fullpath2 = os.path.join(TEST_TOP_DIRECTORY, '$data_for_test',
+                             'MP_784-S001-R001-C002-BB.fts')
+    fits2 = image.FITS(fullpath2, pinpoint_pixel_scale_multiplier=0.99)
+    return fits1, fits2
 
 
 _____IMAGE_and_GEOMETRY_SUPPORT____________________________________ = 0

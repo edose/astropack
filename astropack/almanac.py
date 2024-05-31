@@ -7,29 +7,26 @@ __author__ = "Eric Dose, Albuquerque"
 
 # Python core:
 import os
-from datetime import datetime, timezone, timedelta
-from math import sin, cos, asin, acos, sqrt
+from datetime import datetime, timezone, timedelta, date
+from math import sqrt
 from abc import ABC, abstractmethod
-from typing import TypeAlias, List, Tuple, Callable
+from typing import TypeAlias, List, Tuple
 from enum import Enum, auto
 
 # External packages:
-from numpy import diff, flatnonzero, clip, sign
 import astropy.units as u
 from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord, Angle, get_sun, EarthLocation
+from astropy.coordinates import SkyCoord, get_sun, EarthLocation, angular_separation
 import skyfield.vectorlib
 import skyfield.starlib
 import skyfield.timelib
 import skyfield.toposlib
 from skyfield.api import load, wgs84, Star
-from skyfield.almanac import risings_and_settings, fraction_illuminated, \
-    meridian_transits
+from skyfield.almanac import risings_and_settings, meridian_transits
 from skyfield.searchlib import find_discrete
 
 # Astropack packages:
-from .util import Timespan, ra_as_hours
-from .reference import DEGREES_PER_RADIAN
+from .util import Timespan, nearest_time, hhmm, ra_as_hours
 from .ini import Site
 
 THIS_PACKAGE_ROOT_DIRECTORY = \
@@ -39,10 +36,14 @@ THIS_PACKAGE_ROOT_DIRECTORY = \
 HORIZON_USNO = -0.833  # USNO sun/moon effective horizon (radius & refraction), degrees.
 HOURS_TO_ASSURE_HALF_NIGHT = 14
 
+DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+                'Saturday', 'Sunday']
+
 __all__ = ['Astronight',
            'NoDarkTimeError',
            'SunAlwaysUpError',
-           'AN_date'
+           'AN_date',
+           'calc_phase_angle_bisector'
            ]
 
 AN_date_type: TypeAlias = 'AN_date'
@@ -105,10 +106,10 @@ class Astronight:
         (format yyyymmdd) when the sun sets and observations can begin; it is
         equivalent to ACP's (Astronomer's Control Panel) definition of observing date.
 
-    sun_dark_alt : float, optional
+    sun_dark_alt : float or None
         Altitude of sun's center, in degrees, when has just become sufficiently dark to
         begin observations, i.e., the end of twilight.
-        Default is value of ``site``'s ``sun_altitude_dark`` attribute.
+        If None, use default value of ``site``'s ``sun_altitude_dark`` attribute.
 
     Attributes
     ----------
@@ -116,45 +117,50 @@ class Astronight:
         Observer's location info, from input parameter ``site``.
     site_name : str
         Name of the observer's location, from input parameter ``site``.
+    an_date : AN_date
+        Astronight date object.
     sun_altitude_dark : float
         Maximum sun altitude, in degrees, that is considered observably dark.
+    engine : AlmanacEngine subclass
+        AlmanacEngine subclass object, e.g., SkyfieldEngine object
+    sun_antitransit_utc : |Time|
+        Sun antitransit (lowest below the horizon) time for this night, UTC.
+    sunset_utc : |Time|
+        Sunset time for this night, UTC.
+    sunrise_utc : |Time|
+        Sunrise time for this night, UTC.
     timespan_no_sun : |Timespan|
         Timespan when sun is down for this astronight, at this site.
-    timespan_observable : |Timespan|
-        Timespan when sky is observably dark for this astronight, at this site.
-    local_middark_utc : |Time|
-        Midpoint of ``timespan_dark``.
-        More useful than clock midnight for almanac calculations, as it is practically
-        guaranteed to be dark, unless that astronight has no dark time at all
-        (which raises :class:`~.almanac.SunAlwaysUpError` exception).
-    local_middark_lst_hour_string : str
-        Local sidereal time as sexigesimal string of form 'hh:mm:ss'.
+    dark_start_utc : |Time|
+        Time when sun sets below given .sun_dark_alt, i.e., twilight, UTC.
+    dark_end_utc : |Time|
+        Time when sun rises above given .sun_dark_alt, i.e., twilight, UTC.
+    timespan_dark : |Timespan|
+        Timespan when sun is below .sun_dark_alt, i.e., sky is observably dark, UTC.
     moon_illumination : float
-        Percent illumination of moon at local middark, in range [0-100].
-    moon_ra : float
-        Moon's Right Ascension at local middark, in degrees, in range [0, 360).
-    moon_dec : float
-        Moon's Declination at local middark, in degrees, in range [-90, +90].
+        Fraction illumination of moon at .sun_antitransit_utc, in range [0-1].
     moon_skycoord : |SkyCoord|
-        Moon's sky location at local middark.
-    moon_transit : |Time|
-        The time nearest local middark at which the moon crosses local meridian.
-    moon_up_timespans : |Timespan|, or list of two |Timespan|
-        Timespan when moon is above horizon, as limited by ``timespan_no_sun``.
-        List of 2 |Timespan| if, for this astronight, the moon is above horizon at
-        both sunset and sunrise and below horizon at some time between (rare).
-    timespan_dark_no_moon : |Timespan|, or list of two |Timespan|
+        SkyCoord object holding moon's sky location at .sun_antitransit_utc.
+    moon_transit_utc : |Time|
+        Moon's transit time nearest to .sun_antitransit_utc.
+    timespan_dark_no_moon : |Timespan|
         Timespan when sun is below its user-chosen dark elevation, and moon is below
-        horizon. The best observing timespan(s). This may be a list of two |Timespan|
-        if moon is up in middle of the night (very rare).
+        horizon. The best observing timespan(s). If moon is up in the middle of
+        the night and there are two such timespans, the longer is represented here.
 
     Raises
     ------
+    Invalid_ANDate_Error
+        Raised when AN_Date object cannot be constructed from given input.
+
     SunAlwaysUpError
         Raised when |Astronight| at this site has no sun-down time for observing.
 
     NoDarkTimeError
         Raised when |Astronight| at this site has no dark time for observing.
+
+    SkyCoordNotScalarError
+        Raised when a SkyCoord object is given but a scalar SkyCoord object is required.
 
     Examples
     --------
@@ -189,7 +195,7 @@ class Astronight:
     encouraged to handle these with try/catch blocks.
     """
     def __init__(self, site: Site, an_date: int | str,
-                 sun_dark_alt: float | None = None) -> None:
+                 sun_dark_alt: float | None = None):
         # Handle inputs:
         self.site = site
         self.site_name = site.name
@@ -199,11 +205,10 @@ class Astronight:
         else:
             self.sun_altitude_dark = sun_dark_alt
 
-        # Select the almanac engine to use (the ONLY time we're allowed to reference
-        #   a subclass of abstract class AlmanacEngine):
+        # Select the almanac engine to use (the *ONLY* code line allowed to reference
+        #   a subclass of the abstract class AlmanacEngine):
         self.engine = SkyfieldEngine.from_site(site=site,
                                                sun_altitude_dark=self.sun_altitude_dark)
-        engine = self.engine  # shorter alias.
 
         # Get utc_approx_midnight from an_date and longitude, to use as starting point:
         approx_midnight_utc = Time(datetime(self.an_date.year, self.an_date.month,
@@ -212,8 +217,8 @@ class Astronight:
             TimeDelta(24 * 3600, format='sec')
 
         # Get time when sun is farthest below horizon:
-        self.sun_antitransit_utc = engine.sun_antitransit_utc(approx_midnight_utc)
-        _, sun_antitransit_alt = engine.sun_azalt(time=self.sun_antitransit_utc)
+        self.sun_antitransit_utc = self.engine.sun_antitransit_utc(approx_midnight_utc)
+        _, sun_antitransit_alt = self.engine.sun_azalt(time=self.sun_antitransit_utc)
         if sun_antitransit_alt > HORIZON_USNO:
             raise SunAlwaysUpError(f"Astronight date {self.an_date.an_str}, "
                                    f"latitude {site.latitude:.2f}")
@@ -223,50 +228,164 @@ class Astronight:
 
         # No-sun (sun below horizon) timespan:
         self.sunset_utc = \
-            engine.prev_sunset_utc(ref_time_utc=self.sun_antitransit_utc)
+            self.engine.prev_sunset_utc(ref_time_utc=self.sun_antitransit_utc)
         self.sunrise_utc = \
-            engine.next_sunrise_utc(ref_time_utc=self.sun_antitransit_utc)
+            self.engine.next_sunrise_utc(ref_time_utc=self.sun_antitransit_utc)
         self.timespan_no_sun = Timespan(self.sunset_utc, self.sunrise_utc)
 
         # Calculate dark (sun sufficiently below horizon) timespan,
         # but limited to 12 hours to each side of lowest sun angle:
         self.dark_start_utc = \
-            engine.prev_dark_start_utc(ref_time_utc=self.sun_antitransit_utc)
+            max(self.engine.prev_dark_start_utc(ref_time_utc=self.sun_antitransit_utc),
+                self.sun_antitransit_utc - timedelta(hours=12))
         self.dark_end_utc = \
-            engine.next_dark_end_utc(ref_time_utc=self.sun_antitransit_utc)
+            min(self.engine.next_dark_end_utc(ref_time_utc=self.sun_antitransit_utc),
+                self.sun_antitransit_utc + timedelta(hours=12))
         self.timespan_dark = Timespan(self.dark_start_utc, self.dark_end_utc)
-        self.observable_start_utc = max(self.dark_start_utc,
-                                        self.sun_antitransit_utc - timedelta(hours=12))
-        self.observable_end_utc = min(self.dark_end_utc,
-                                      self.sun_antitransit_utc + timedelta(hours=12))
-        self.timespan_observable = Timespan(self.observable_start_utc,
-                                            self.observable_end_utc)
-        self.mid_observable_utc = self.timespan_observable.midpoint
 
         # Moon quantities for this Astronight:
         self.moon_illumination = \
-            engine.moon_illumination(time=self.mid_observable_utc)
+            self.engine.moon_illumination(time=self.sun_antitransit_utc)
         self.moon_skycoord = \
-            engine.moon_skycoord(time=self.mid_observable_utc)
+            self.engine.moon_skycoord(time=self.sun_antitransit_utc)
         self.moon_transit_utc = \
-            engine.moon_transit_time(ref_time_utc=self.mid_observable_utc)
-        moonsets_moonrises = engine.moonsets_and_moonrises(
-            self.timespan_observable.start,
-            self.timespan_observable.end)
+            self.engine.moon_transit_time(ref_time_utc=self.sun_antitransit_utc)
+        moonsets_moonrises = self.engine.moonsets_and_moonrises(
+            self.timespan_dark.start,
+            self.timespan_dark.end)
         self.timespan_dark_no_moon = self._calc_dark_no_moon(moonsets_moonrises)
+
+    def moon_distance(self, target: SkyCoord) -> float:
+        """ Returns distance of target from moon's position at sun antitransit,
+        in degrees."""
+        return angular_separation(self.moon_skycoord.ra, self.moon_skycoord.dec,
+                                  target.ra, target.dec).to(u.deg).value
+
+    def target_transit_utc(self, target: SkyCoord) -> Time:
+        """ Returns astropy Time at which target crosses meridian. """
+        return self.engine.target_transit_utc(target, self.timespan_dark.midpoint)
+
+    def target_observable(self, target: SkyCoord, min_alt: float,
+                          min_moon_dist: float) -> Timespan:
+        """ Returns timespan within .timespan_dark during which
+        target is observable (i.e., above min_alt in degrees,
+        which is typically about 30). """
+        moon_distance = self.moon_distance(target)
+        if moon_distance < min_moon_dist:
+            return Timespan(self.sun_antitransit_utc, self.sun_antitransit_utc)
+
+        target_transit_utc = self.engine.target_transit_utc(target,
+                                                            self.sun_antitransit_utc)
+        target_rise_utc = self.engine.prev_target_rise_utc(target,
+                                                           target_transit_utc, min_alt)
+        if target_rise_utc is None:
+            return None
+        target_set_utc = self.engine.next_target_set_utc(target,
+                                                         target_rise_utc, min_alt)
+        timespan_target_up = Timespan(target_rise_utc, target_set_utc)
+        timespan_target_observable = self.timespan_dark.intersection(timespan_target_up)
+        return timespan_target_observable
+
+    def time_from_hhmm(self, hhmm_string: str) -> Time:
+        """ Returns astropy Time object corresponding to UTC time 'hhmm' or 'hh:mm'
+            and occurring during this Astronight (or at least, nearest the night's
+            time of sun antitransit).
+        """
+        hhmm = hhmm_string.replace(':', '')  # gives, e.g., '1234'
+        if len(hhmm) != 4:
+            raise ValueError(f'time_from_hhmm() cannot parse \'{hhmm_string}\'.')
+        hhcmm = ':'.join([hhmm[0:2], hhmm[2:4]])  # gives, e.g., '12:34'
+        central_candidate_time = \
+            Time(' '.join([self.sun_antitransit_utc.iso.split()[0], hhcmm]))
+        candidate_times = [central_candidate_time + TimeDelta(n * u.d)
+                           for n in range(-2, 3)]  # i.e., 2-3 days before and after.
+        return nearest_time(candidate_times, self.sun_antitransit_utc)
+
+    def times_at_sun_alt(self, sun_alt: float) -> Tuple[Time | None, Time | None]:
+        """ Returns list of two astropy Times during current Astronight
+            at which sun is at the given sun altitude. If either time doesn't exist,
+            returns None in that place in the list; normally zero place or two places
+            will be None, only one being None would be very rare but possible.
+        """
+        prev_time = self.engine.prev_sunset_utc(self.sun_antitransit_utc, sun_alt)
+        next_time = self.engine.next_sunrise_utc(self.sun_antitransit_utc, sun_alt)
+        return prev_time, next_time
+
+    @property
+    def acp_header_string(self) -> List[str]:
+        """ Return list of text lines (strings) suitable for helping form header
+            text for ACP plan files and Astronight summary files.
+            USAGE: lines = an.acp_header_string """
+        lines = []
+
+        # Sun line:
+        dark_start_sidereal_hours = \
+            self.engine.local_sidereal_time(self.dark_start_utc) % 24
+        dark_start_sidereal_hhmm = ra_as_hours(15 * dark_start_sidereal_hours) \
+            .rsplit(':', maxsplit=1)[0].replace(':', '')
+        dark_end_sidereal_hours = self.engine.local_sidereal_time(self.dark_end_utc)
+        if dark_end_sidereal_hours < 0:
+            dark_end_sidereal_hours += 24.0
+        dark_end_sidereal_hhmm = ra_as_hours(15 * dark_end_sidereal_hours) \
+            .rsplit(':', maxsplit=1)[0].replace(':', '')
+        sun_line = f'; sun --- down: {hhmm(self.sunset_utc)}-'\
+                   f'{hhmm(self.sunrise_utc)} UTC,   '\
+                   f'dark({round(self.sun_altitude_dark):+2d}\N{DEGREE SIGN}): '\
+                   f'{hhmm(self.dark_start_utc)}-{hhmm(self.dark_end_utc)} UTC  = '\
+                   f'{dark_start_sidereal_hhmm}-{dark_end_sidereal_hhmm} LST'
+        lines.append(sun_line)
+
+        # Moon line:
+        if self.timespan_dark_no_moon is None or self.timespan_dark_no_moon.seconds < 1:
+            dark_no_moon_string = 'Moon UP ALL NIGHT'
+        elif self.timespan_dark_no_moon == self.timespan_dark:
+            dark_no_moon_string = 'Moon DOWN ALL NIGHT'
+        else:
+            dark_no_moon_string = \
+                f'no moon: {hhmm(self.timespan_dark_no_moon.start)}'\
+                f'-{hhmm(self.timespan_dark_no_moon.end)} UTC'
+        moon_line = f'; moon -- {round(100.0 * self.moon_illumination)}% '\
+                    f'({self.moon_skycoord.ra.hour:.1f}h,'\
+                    f'{int(round(self.moon_skycoord.dec.degree)):+d}' \
+                    f'\N{DEGREE SIGN})   ' + \
+                    dark_no_moon_string + '    '\
+                    f'transit: {hhmm(self.moon_transit_utc)}'
+        lines.append(moon_line)
+
+        # LST line:
+        lst_hours_at_sun_at = \
+            self.engine.local_sidereal_time(self.sun_antitransit_utc)
+        utc_as_datetime = self.sun_antitransit_utc.to_datetime()
+        utc_hours_at_sun_at = utc_as_datetime.hour + \
+            utc_as_datetime.minute / 60 + utc_as_datetime.second / 3600 + \
+            utc_as_datetime.microsecond / (3600 * 1000000)
+        lst_minus_utc_hours = (lst_hours_at_sun_at - utc_hours_at_sun_at) % 24.0
+        utc_minus_lst_hours = (-lst_minus_utc_hours) % 24.0
+        lst_minus_utc_minutes = int(round(60.0 * lst_minus_utc_hours))
+        utc_minus_lst_minutes = int(round(60.0 * utc_minus_lst_hours))
+        lst_minus_utc_hm = divmod(lst_minus_utc_minutes, 60.0)
+        utc_minus_lst_hm = divmod(utc_minus_lst_minutes, 60.0)
+        lst_minus_utc_hhmm = f'{int(lst_minus_utc_hm[0]):02d}{int(round(lst_minus_utc_hm[1])):02d}'
+        utc_minus_lst_hhmm = f'{int(utc_minus_lst_hm[0]):02d}{int(round(utc_minus_lst_hm[1])):02d}'
+        lst_line = f'; LST = UTC + {lst_minus_utc_hhmm}     '\
+                   f'UTC = LST + {utc_minus_lst_hhmm}    '\
+                   f'@sun antitransit = {hhmm(self.sun_antitransit_utc)} UTC'
+        lines.append(lst_line)
+
+        return lines
 
     def _calc_dark_no_moon(self, moonsets_moonrises: List[Tuple]) -> Timespan | None:
         """ Returns (longest if > 1) contiguous dark-and-no-moon timespan. """
         timespan_edge_times = \
-            [self.timespan_observable.start] + \
+            [self.timespan_dark.start] + \
             [t for (t, value) in moonsets_moonrises] + \
-            [self.timespan_observable.end]
+            [self.timespan_dark.end]
         timespans = [Timespan(timespan_edge_times[i], timespan_edge_times[i + 1])
                      for i in range(len(timespan_edge_times) - 1)]
         longest_moon_down_timespan = None
         longest_duration = 0  # in seconds
         for ts in timespans:
-            if ts.duration > 0:
+            if ts.duration > 0 * u.s:
                 if (self.engine.moon_azalt(ts.midpoint))[1] < 0:
                     if ts.seconds > longest_duration:
                         longest_moon_down_timespan = ts
@@ -308,15 +427,15 @@ def calc_approx_midnight(an_date: AN_date_type, longitude_hours: float) -> Time:
     """
     return Time(datetime(an_date.year, an_date.month,
                          an_date.day, 0, 0, 0), scale='utc') + \
-           TimeDelta(-longitude_hours * 3600, format='sec') + \
-           TimeDelta(24 * 3600, format='sec')
+        TimeDelta(-longitude_hours * 3600, format='sec') + \
+        TimeDelta(24 * 3600, format='sec')
 
 
 def calc_phase_angle_bisector(times: List[Time], mp_skycoords: List[SkyCoord],
                               deltas: List[float], site: Site) -> List[SkyCoord]:
     """Calculate and return phase angle bisectors at time for a minor planet.
     :param times: list of times [list of astropy Time objects].
-    :param mp_skycoords: list of MP RA,Dec sky locations corresponding to the times.
+    :param mp_skycoords: list of MP sky locations corresponding to the times.
            [list of SkyCoord objects]
     :param deltas: list of distances site-to-MP, in AU. [list of floats]
     :param site: Site object for observing location. [Site object]
@@ -380,347 +499,12 @@ def calc_phase_angle_bisector(times: List[Time], mp_skycoords: List[SkyCoord],
     return sc_list
 
 
-# def calc_timespan_no_sun(approx_midnight: Time) -> [Timespan, None]:
-#     """Return |Timespan| representing sunset to sunrise and containing
-#     ``approx_midnight``.
-#
-#     Parameters
-#     ----------
-#     approx_midnight : |Time|
-#         Approximate local midnight, UTC.
-#
-#     Returns
-#     -------
-#     timespan_no_sun : |Timespan|, or None
-#         Timespan from sunset to sunrise.
-#         None if there is no time near ``approx_midnight`` when sun is down
-#         (polar summer).
-#     """
-#
-#     return skyfield_timespan_no_sun(approx_midnight)
-
-
-# def skyfield_timespan_no_sun(approx_midnight: Time) -> [Timespan, None]:
-#     """Return |Timespan| representing sunset to sunrise and containing
-#     ``approx_midnight``.
-#
-#     Parameters
-#     ----------
-#     approx_midnight : |Time|
-#         Approximate local midnight, UTC.
-#
-#     Returns
-#     -------
-#     timespan_no_sun : |Timespan|, or None
-#         Timespan from sunset to sunrise.
-#         None if there is no time near ``approx_midnight`` when sun is down
-#         (polar summer).
-#     """
-#     midnight = sf_obs.sf_timescale.from_astropy(approx_midnight)  # skyfield Time obj.
-#     time_before = midnight - timedelta(hours=HOURS_TO_ASSURE_HALF_NIGHT)
-#     time_after = midnight + timedelta(hours=HOURS_TO_ASSURE_HALF_NIGHT)
-#     sun_fn = risings_and_settings(sf_obs.sf_master_eph, sf_obs.sf_master_eph['sun'],
-#                                   sf_obs.obs, HORIZON_USNO)
-#     sun_fn.step_days = 1.0 / 12.0
-#     set_times, set_values = find_discrete(time_before, midnight, sun_fn)
-#     rise_times, rise_values = find_discrete(midnight, time_after, sun_fn)
-#     topos_at = (sf_obs.sf_master_eph['earth'] + sf_obs.obs).at
-#     alt_midnight = topos_at(midnight).observe(sf_obs.sf_master_eph['sun'])\
-#         .apparent().altaz()[0].degrees
-#
-#     # Case: no rises or sets, sun is either up or down for the entire search period.
-#     if len(set_values) <= 0 and len(rise_values) <= 0:
-#         if alt_midnight <= HORIZON_USNO:
-#             return Timespan(_skyfield_time_to_astropy(time_before),
-#                             _skyfield_time_to_astropy(time_after))
-#         else:
-#             return None
-#     if len(set_values) >= 1:
-#         set_time = _skyfield_time_to_astropy(set_times[-1])
-#     else:
-#         set_time = _skyfield_time_to_astropy(time_before)
-#     if len(rise_values) >= 1:
-#         rise_time = _skyfield_time_to_astropy(rise_times[0])
-#     else:
-#         rise_time = _skyfield_time_to_astropy(time_after)
-#     return Timespan(set_time, rise_time)
-
-
-# def find_target_up_down(sf_obs: SkyfieldObserver,
-#                         target_eph: [skyfield.vectorlib.VectorSum,
-#                                      skyfield.starlib.Star],
-#                         timespan: Timespan, up_down: str, horizon: float = 0.0)\
-#                         -> [list[Timespan], None]:
-#     """Returns |Timespan| for which target is either up or down
-#     (above or below given horizon), within a given timespan.
-#
-#     Parameters
-#     ----------
-#     sf_obs : SkyfieldObserver
-#         SkyfieldObserver instance.
-#
-#     target_eph : skyfield.vectorlib.VectorSum or skyfield.starlib.Star
-#         Target ephemeris; either a solar-system ephemeris (selected from
-#         ``master_eph``) or a skyfield Star object.
-#
-#         See:
-#         https://github.com/skyfielders/python-skyfield/blob/master/skyfield/vectorlib.py
-#         or https://rhodesmill.org/skyfield/api-stars.html#skyfield.starlib.Star
-#
-#     timespan : |Timespan|
-#         Timespan within which result will be constrained.
-#         If ``up_down`` is 'down', one convenient source for ``timespan``
-#         is ``.util.Astronight.timespan_dark``.
-#
-#     up_down : {'up', 'down'}
-#         If 'up', results represent when target is above horizon.
-#         If 'down', results represent when target is below horizon. Required.
-#
-#     horizon : float, optional
-#         Altitude above actual horizon that separates 'up' from 'down', in degrees.
-#         Default is zero (ideal horizon).
-#
-#     Returns
-#     -------
-#     timespan_up_down : list of |Timespan|, or None.
-#         List of timespans for which target is either up or down as selected.
-#         Returns a list even if only one Timespan is returned.
-#         If ``up_down`` is satisfied throughout input timespan, the returned list will
-#         contain a copy of ``timespan``.
-#         If ``up_down`` is never satisfied during input timespan, return None.
-#     """
-#     up_down = up_down.lower().strip()
-#     if up_down not in ['up', 'down']:
-#         raise ValueError('Parameter up_down must equal \'up\' or \'down\'.')
-#     start = sf_obs.sf_timescale.from_astropy(timespan.start)
-#     end = sf_obs.sf_timescale.from_astropy(timespan.end)
-#     dark_fn = risings_and_settings(sf_obs.sf_master_eph, target_eph, sf_obs.obs,
-#                                    horizon)
-#     event_times, event_values = find_discrete(start, end, dark_fn)
-#     # Case: no risings or settings found:
-#     if len(event_values) <= 0:
-#         topos_at = (sf_obs.sf_master_eph['earth'] + sf_obs.obs).at
-#         mid_time = sf_obs.sf_timescale.from_astropy(timespan.midpoint)
-#         alt = topos_at(mid_time).observe(target_eph).apparent().altaz()[0].degrees
-#         if (up_down == 'up' and alt > horizon) or \
-#            (up_down == 'down' and alt <= horizon):
-#             return [timespan.copy()]
-#         else:
-#             return None
-#     # Case: at least one rising or setting found:
-#     # First, convert times to astropy, so that start and end are passed through exactly.
-#     astropy_times = [timespan.start] + \
-#                     [_skyfield_time_to_astropy(t) for t in event_times] + \
-#                     [timespan.end]
-#     values = [0.5] + list(event_values) + [0.5]
-#     diffs = diff(values)
-#     # Now choose events as up or down:
-#     if up_down == 'up':
-#         is_index_qualifying = diffs < 0
-#     else:
-#         is_index_qualifying = diffs > 0
-#     qualifying_indices = flatnonzero(diffs)[is_index_qualifying]
-#     timespans = [Timespan(astropy_times[i], astropy_times[i + 1])
-#                  for i in qualifying_indices]
-#     return timespans
-
-
-# def moon_ra_dec(sf_obs: SkyfieldObserver, time: Time) -> tuple[float, float]:
-#     """Returns moon's sky coordinates at given earth location and time.
-#
-#     Parameters
-#     ----------
-#     sf_obs : SkyfieldObserver
-#         SkyfieldObserver instance.
-#
-#     time : |Time|
-#         Time UTC at which moon's sky location is wanted.
-#
-#     Returns
-#     -------
-#     ra, dec : tuple of float
-#         (RA, Declination), in degrees, of moon at observer location and given time.
-#     """
-#     time_sf = sf_obs.sf_timescale.from_astropy(time)
-#     ra, dec, _ = (sf_obs.sf_master_eph['earth'] + sf_obs.obs).at(time_sf).\
-#         observe(sf_obs.sf_master_eph['moon']).apparent().radec()
-#     return ra.hours * 15.0, dec.degrees
-
-
-# def moon_transit_time(sf_obs: SkyfieldObserver, time: Time) -> Time:
-#     """Return moon's transit time closest to given time.
-#
-#     Parameters
-#     ----------
-#     sf_obs : SkyfieldObserver
-#         SkyfieldObserver instance.
-#
-#     time : |Time|
-#         Time UTC from which moon's nearest transit time is wanted.
-#
-#     Returns
-#     -------
-#     transit_time : |Time|
-#         Moon's transit time UTC at observer's location and nearest to given time.
-#     """
-#     time_sf = sf_obs.sf_timescale.from_astropy(time)  # skyfield Time obj.
-#     time_start = time_sf - timedelta(hours=14)
-#     time_end = time_sf + timedelta(hours=14)
-#     moon_fn = meridian_transits(sf_obs.sf_master_eph, sf_obs.sf_master_eph['moon'],
-#                                 sf_obs.obs)
-#     times, values = find_discrete(time_start, time_end, moon_fn)
-#     return _skyfield_time_to_astropy(_closest_transit(times, values, time_sf))
-
-
-# def target_transit_time(sf_obs: SkyfieldObserver,
-#                         target_skycoord: SkyCoord,
-#                         time: Time) -> Time:
-#     """Return fixed target's transit time closest to a given time.
-#
-#     Parameters
-#     ----------
-#     sf_obs : SkyfieldObserver
-#         SkyfieldObserver instance.
-#
-#     target_skycoord : |SkyCoord|
-#         Target's fixed sky position.
-#
-#     time : |Time|
-#         Time UTC nearest which target's nearest transit time is wanted.
-#
-#     Returns
-#     -------
-#     transit_time : |Time|
-#         Moon's transit time UTC at observer's location and nearest to given time
-#     """
-#     star_list = _skycoords_to_skyfield_stars(target_skycoord)
-#     time_sf = sf_obs.sf_timescale.from_astropy(time)  # skyfield Time obj.
-#     time_start = time_sf - timedelta(hours=14)
-#     time_end = time_sf + timedelta(hours=14)
-#     transit_list = []
-#     for star in star_list:
-#         star_fn = meridian_transits(sf_obs.sf_master_eph, star, sf_obs.obs)
-#         times, values = find_discrete(time_start, time_end, star_fn)
-#         transit_list.append(_skyfield_time_to_astropy(_closest_transit(times,
-#                                                                       values,
-#                                                                       time_sf)))
-#     if len(transit_list) == 1:
-#         return transit_list[0]  # return single time as scalar Time rather than list.
-#     return transit_list
-
-
-# def _closest_transit(times: list[skyfield.timelib.Time],
-#                      values: list[int],
-#                      time_sf: skyfield.timelib.Time) -> skyfield.timelib.Time:
-#     """For times [list of skyfield Time objects], values [list of ints], and
-#     a target time [Skyfield Time object], determine which transit is closest
-#     to target time, return the time as a Skyfield Time object."""
-#     transit_times = [t for (t, v) in zip(times, values) if v == 1]
-#     timedeltas = [abs(time - time_sf) for time in transit_times]
-#     transit_time = transit_times[timedeltas.index(min(timedeltas))]
-#     return transit_time
-
-
-# def local_sidereal_time(longitude: float,
-#                         timescale: skyfield.timelib.Timescale,
-#                         time: Time) -> float:
-#     """Return local sidereal time, in hours, for a given time and earth longitude.
-#
-#     Parameters
-#     ----------
-#     longitude : float
-#         Longitude of observer's earth location, in degrees, in range [-180, +180].
-#
-#     timescale:  skyfield.timelib.Timescale
-#         Skyfield timescale object, available as Astronight.skyfield.ts
-#
-#         See: |skyfield.TS|
-#
-#     time : |Time|
-#         Time UTC for which local sidereal time is wanted.
-#
-#     Returns
-#     -------
-#     lst : float
-#         Local sidereal time at observer's longitude and time, in hours
-#     """
-#     from skyfield.earthlib import sidereal_time
-#     time_sf = timescale.from_astropy(time)  # skyfield Time obj.
-#     gmst = sidereal_time(time_sf)  # in hours
-#     local_offset = longitude / 15.0  # in hours
-#     return gmst + local_offset
-
-
-# def moon_illumination_pct(sf_obs: SkyfieldObserver, time: Time) -> float:
-#     """Return moon illumination extent, as percentage, at a given time.
-#
-#     Parameters
-#     ----------
-#     sf_obs : SkyfieldObserver
-#         SkyfieldObserver instance.
-#
-#     time : |Time|
-#         Time UTC for which moon's illumination is wanted.
-#
-#     Returns
-#     -------
-#     moon_pct : float
-#         Moon's percent illumination at given time, in range [0, 100].
-#     """
-#     time_sf = sf_obs.sf_timescale.from_astropy(time)  # skyfield Time obj.
-#     fraction = 100.0 * fraction_illuminated(sf_obs.sf_master_eph, 'moon', time_sf)
-#     return fraction
-
-
-# def make_skyfield_observatory_from_site(site: Site) \
-#                                         -> skyfield.toposlib.GeographicPosition:
-#     """ Return skyfield observer (earth location) object made
-#     from astropack |Site| instance.
-#
-#     Parameters
-#     ----------
-#     site : |Site|
-#         Earth location, as read from .ini file by |Site| class.
-#
-#     Returns
-#     -------
-#     skyfield_obs : skyfield.toposlib.GeographicPosition
-#         Skyfield GeographicPosition instance.
-#
-#         See: |skyfield.GP|
-#     """
-#     obs = wgs84.latlon(site.latitude, site.longitude, site.elevation)
-#     return obs
-
-# def _skycoords_to_skyfield_stars(skycoords: [SkyCoord, list[SkyCoord]]) -> list[Star]:
-#     """Convert astropy SkyCoord object or list of SkyCoord objects
-#     to a *list of* skyfield Star objects.
-#     Always returns a list, only one sky position per Star.
-#     """
-#     # Nested function, always returns a list of Star objects.
-#     def skycoord_object_to_skyfield_stars(skycoord_obj: SkyCoord):
-#         """Nested function, always returns a list of Star objects."""
-#         if skycoord_obj.size == 1:
-#             return [Star(ra_hours=skycoord_obj.ra.degree / 15.0,
-#                          dec_degrees=skycoord_obj.dec.degree)]
-#         else:
-#             return [Star(ra_hours=sc_element.ra.degree / 15.0,
-#                          dec_degrees=sc_element.dec.degree)
-#                     for sc_element in skycoord_obj]
-#
-#     # Build and return flattened list of skyfield star objects:
-#     if isinstance(skycoords, SkyCoord):
-#         return skycoord_object_to_skyfield_stars(skycoords)
-#     elif isinstance(skycoords, list):
-#         return [coord for sc_obj in skycoords for coord in sc_obj]
-
-
 __________CLASS_AN_DATE_________________________________________________________ = 0
 
 
 class AN_date:
     """Builds, holds, and delivers data based on an Astronight date format."""
-    def __init__(self, an_input: [str, int]) -> None:
+    def __init__(self, an_input: str | int) -> None:
         self.an_str = str(an_input)
         try:
             self.an_int = int(self.an_str)
@@ -737,6 +521,9 @@ class AN_date:
         if self.month == 0 or self.month > 12 or self.day == 0 or self.day > 31:
             raise Invalid_ANDate_Error(f'Date {self.an_str} does not represent '
                                        'a valid calendar date.')
+        an_date = date(year=self.year, month=self.month, day=self.day)
+        self.day_of_week = DAYS_OF_WEEK[an_date.weekday()]
+
 
 __________ABSTRACT_CLASS_ENGINE_________________________________________________ = 0
 
@@ -755,7 +542,6 @@ class AlmanacEngine(ABC):
         ANTITRANSIT = auto()
         DARK_START = auto()
         DARK_END = auto()
-
 
     @abstractmethod
     def sun_azalt(self, time: Time) -> Tuple[float, float]:
@@ -847,7 +633,8 @@ class AlmanacEngine(ABC):
         pass
 
     @abstractmethod
-    def prev_dark_start_utc(self, ref_time_utc: Time, sun_alt_dark: float=None) -> Time:
+    def prev_dark_start_utc(self, ref_time_utc: Time,
+                            sun_alt_dark: float = None) -> Time:
         """
         Parameters
         ----------
@@ -867,7 +654,8 @@ class AlmanacEngine(ABC):
         pass
 
     @abstractmethod
-    def next_dark_end_utc(self, ref_time_utc: Time, sun_alt_dark: float=None) -> Time:
+    def next_dark_end_utc(self, ref_time_utc: Time,
+                          sun_alt_dark: float = None) -> Time:
         """
         Parameters
         ----------
@@ -902,6 +690,76 @@ class AlmanacEngine(ABC):
             Time of sun's antitransit that is nearest the given reference time.
         """
         pass
+
+    @abstractmethod
+    def target_transit_utc(self, target: SkyCoord, ref_time_utc: Time) -> Time:
+        """ Returns target's transit time nearest the given reference time.
+
+        Parameters
+        ----------
+        target : |SkyCoord|
+            Sky coordinates of target whose transit is wanted.
+
+        ref_time_utc : |Time|
+            Approximate local midnight, UTC.
+
+        Returns
+        -------
+        nearest_transit_time : |Time|
+            Time of target's transit nearest the given reference time.
+        """
+
+    @abstractmethod
+    def prev_target_rise_utc(self, target: SkyCoord, ref_time_utc: Time,
+                             horizon_degrees: float) -> Time:
+        """ Return target rise time nearest and previous to given reference time.
+        Ref. time is typically the target's transit time (see .target_transit_utc()).
+        Rise is defined by horizon_degrees.
+
+        Parameters
+        ----------
+        target : |SkyCoord|
+            Sky coordinates of target whose rise time is wanted.
+
+        ref_time_utc : |Time|
+            Approximate local midnight, UTC.
+
+        horizon_degrees : float
+            Degrees above ideal horizon defining target rise (usually for determining
+            observability), typically about 30.
+
+        Returns
+        -------
+        prev_rise_time : |Time|
+            Time of target's previous time of rise above horizon_degrees and
+            nearest the given reference time.
+        """
+
+    @abstractmethod
+    def next_target_set_utc(self, target: SkyCoord, ref_time_utc: Time,
+                            horizon_degrees: float) -> Time:
+        """ Return target set time nearest and after given reference time.
+        Ref. time is typically the target's transit time (see .target_transit_utc()).
+        Setting is defined by horizon_degrees.
+
+        Parameters
+        ----------
+        target : |SkyCoord|
+            Sky coordinates of target whose set time is wanted.
+
+        ref_time_utc : |Time|
+            Approximate local midnight, UTC.
+
+        horizon_degrees : float
+            Degrees above ideal horizon defining target set (usually for determining
+            observability), typically about 30.
+
+        Returns
+        -------
+        next_set_time : |Time|
+            Time of target's next time of setting below horizon_degrees and
+            nearest the given reference time.
+        """
 
     @abstractmethod
     def moon_skycoord(self, time: Time) -> SkyCoord:
@@ -1183,11 +1041,11 @@ class SkyfieldEngine(AlmanacEngine):
         if not target.isscalar:
             raise SkyCoordNotScalarError
         sf_target = self._skycoord_to_skyfield_star(target)
-        print(f'\nsf_target: {sf_target}')
         sf_time = self._astropy_time_to_skyfield(time)
-        return self._target_azalt(sf_target, sf_time)
+        return self._target_azalt(sf_target, sf_time)  # tuple (az, alt)
 
-    def prev_sunset_utc(self, ref_time_utc: Time, horizon_degrees=HORIZON_USNO) -> Time:
+    def prev_sunset_utc(self, ref_time_utc: Time, horizon_degrees=HORIZON_USNO)\
+            -> Time | None:
         """ Return sunset time nearest and previous to given reference time.
         Return None if no sunset found in prev. 25 hours (sun either always up or down).
         """
@@ -1198,6 +1056,8 @@ class SkyfieldEngine(AlmanacEngine):
         crossings_list = self._horizon_crossings(self.sun_eph,
                                                  sf_start_time, sf_end_time,
                                                  horizon_degrees=horizon_degrees)
+        if len(crossings_list) == 0:
+            return None
         # Select only crossings that are sunsets:
         sunset_times = [SkyfieldEngine._skyfield_time_to_astropy(sf_time)
                         for (sf_time, value) in crossings_list
@@ -1205,7 +1065,7 @@ class SkyfieldEngine(AlmanacEngine):
         return max(sunset_times)
 
     def next_sunrise_utc(self, ref_time_utc: Time,
-                         horizon_degrees=HORIZON_USNO) -> Time:
+                         horizon_degrees=HORIZON_USNO) -> Time | None:
         """ Return sunrise time nearest and after given reference time.
         Return None if no sunrise found in next 25 hours (sun either always up or down).
         """
@@ -1216,13 +1076,16 @@ class SkyfieldEngine(AlmanacEngine):
         crossings_list = self._horizon_crossings(self.sun_eph,
                                                  sf_start_time, sf_end_time,
                                                  horizon_degrees=horizon_degrees)
+        if len(crossings_list) == 0:
+            return None
         # Select only crossings that are sunrises:
         sunrise_times = [SkyfieldEngine._skyfield_time_to_astropy(sf_time)
                          for (sf_time, value) in crossings_list
                          if value == SkyfieldEngine._HorizonCrossing.RISING]
         return min(sunrise_times)
 
-    def prev_dark_start_utc(self, ref_time_utc: Time, sun_alt_dark: float=None) -> Time:
+    def prev_dark_start_utc(self, ref_time_utc: Time,
+                            sun_alt_dark: float = None) -> Time:
         """ Return going-dark time nearest and previous to given reference time,
         based on angle of sun below horizon that user has defined as twilight in
         sun_altitude_dark.
@@ -1232,7 +1095,8 @@ class SkyfieldEngine(AlmanacEngine):
         return self.prev_sunset_utc(ref_time_utc=ref_time_utc,
                                     horizon_degrees=sun_alt_dark)
 
-    def next_dark_end_utc(self, ref_time_utc: Time, sun_alt_dark: float=None) -> Time:
+    def next_dark_end_utc(self, ref_time_utc: Time,
+                          sun_alt_dark: float = None) -> Time:
         """ Return going-light time nearest and after given reference time,
         based on angle of sun below horizon that user has defined as twilight in
         sun_altitude_dark.
@@ -1256,9 +1120,66 @@ class SkyfieldEngine(AlmanacEngine):
         antitransit_times = [SkyfieldEngine._skyfield_time_to_astropy(sf_time)
                              for (sf_time, value) in meridian_crossings
                              if value == SkyfieldEngine._MeridianCrossing.ANTITRANSIT]
+        # TODO: use util.nearest_time() here:
         diffs = [abs(t - ref_time_utc).sec for t in antitransit_times]
         nearest_antitransit_time = antitransit_times[diffs.index(min(diffs))]
         return nearest_antitransit_time
+
+    def target_transit_utc(self, target: SkyCoord, ref_time_utc: Time) -> Time:
+        """Return target's transit time nearest the given time.
+        *** See abstract method for parameters and return value.
+        """
+        target_sf = self._skycoord_to_skyfield_star(target)
+        time_sf = self.timescale.from_astropy(ref_time_utc)  # skyfield Time obj.
+        time_start = time_sf - timedelta(hours=15)
+        time_end = time_sf + timedelta(hours=15)
+        meridian_crossings = self._meridian_crossings(target_sf,
+                                                      time_start, time_end)
+        transit_times = [SkyfieldEngine._skyfield_time_to_astropy(sf_time)
+                         for (sf_time, value) in meridian_crossings
+                         if value == SkyfieldEngine._MeridianCrossing.TRANSIT]
+        # TODO: use util.nearest_time() here:
+        diffs = [abs(t - ref_time_utc).sec for t in transit_times]
+        nearest_transit_time = transit_times[diffs.index(min(diffs))]
+        return nearest_transit_time
+
+    def prev_target_rise_utc(self, target: SkyCoord, ref_time_utc: Time,
+                             horizon_degrees: float) -> Time | None:
+        """ Return target rise time nearest and previous to given reference time.
+        Ref. time is typically the target's transit time (see .target_transit_utc())."""
+        target_sf = self._skycoord_to_skyfield_star(target)
+        sf_ref_time = self.timescale.from_astropy(ref_time_utc)  # skyfield Time obj.
+        sf_start_time = sf_ref_time - timedelta(hours=36)
+        sf_end_time = sf_ref_time
+        crossings_list = self._horizon_crossings(target_sf,
+                                                 sf_start_time, sf_end_time,
+                                                 horizon_degrees=horizon_degrees)
+        if len(crossings_list) == 0:
+            return None
+        rise_times = [SkyfieldEngine._skyfield_time_to_astropy(sf_time)
+                      for (sf_time, value) in crossings_list
+                      if value == SkyfieldEngine._HorizonCrossing.RISING]
+        return max(rise_times)
+
+    def next_target_set_utc(self, target: SkyCoord, ref_time_utc: Time,
+                            horizon_degrees: float) -> Time:
+        """ Return target set time nearest and after the given reference time.
+        Ref. time is typically the target's transit time (see .target_transit_utc())."""
+        target_sf = self._skycoord_to_skyfield_star(target)
+        if ref_time_utc is None:
+            iiii = 4
+        sf_ref_time = self.timescale.from_astropy(ref_time_utc)  # skyfield Time obj.
+        sf_start_time = sf_ref_time
+        sf_end_time = sf_ref_time + timedelta(hours=36)
+        crossings_list = self._horizon_crossings(target_sf,
+                                                 sf_start_time, sf_end_time,
+                                                 horizon_degrees=horizon_degrees)
+        if len(crossings_list) == 0:
+            return None
+        set_times = [SkyfieldEngine._skyfield_time_to_astropy(sf_time)
+                     for (sf_time, value) in crossings_list
+                     if value == SkyfieldEngine._HorizonCrossing.SETTING]
+        return min(set_times)
 
     def moon_skycoord(self, time: Time) -> SkyCoord:
         """Returns moon's sky coordinates at site location and given time.

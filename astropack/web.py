@@ -23,8 +23,10 @@ from astroquery.mpc import MPC  # MPC gives warning (astroquery error).
 
 # From other modules, this package:
 
-
-__all__ = ['get_mp_info', 'get_mp_ephem']
+# 'ok' in the following means: 'converted to astropy Time and tested'.
+__all__ = ['get_mp_info',  # ok
+           'get_mp_ephem'  # ok
+           ]
 
 
 __________FUNCTIONS___________________________________________________________ = 0
@@ -89,6 +91,8 @@ def get_mp_ephem(mp_id: str | int, utc_start: datetime | Time | str,
     columns_to_keep = [c for c in df.columns
                        if not c.startswith(('Uncertainty ', 'Unc. '))]
     df_mp = df.loc[:, columns_to_keep]
+    # Ensure astropy Time. Pandas pkg has a bad habit of converting to Timestamps.
+    df_mp['Date'] = [Time(d) for d in df_mp['Date']]
     return df_mp
 
 
@@ -119,7 +123,7 @@ def get_mp_info(mp_number=None, mp_name=None):
             * H: reduced magnitude, V band
             * G: phase slope, V band
     """
-    query_result = None  # keep IDE happy.
+    # query_result = None  # keep IDE happy.
     if mp_number is not None:
         if isinstance(mp_number, int):
             query_result = MPC.query_object(target_type='asteroid',

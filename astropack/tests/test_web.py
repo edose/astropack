@@ -49,7 +49,9 @@ def test_get_mp_ephem():
     df = web.get_mp_ephem(mp_id=mp_id, utc_start=utc_start, step_hours=hours_spacing,
                           num_entries=n_entries, site_mpc_code=site_mpc_code)
     assert isinstance(df, pd.DataFrame)
-    assert str(df['Date'].iloc[0]) == '2022-03-01 00:00:00'
+    date0 = df['Date'].iloc[0]
+    assert isinstance(date0, Time)
+    assert str(date0) == '2022-03-01 00:00:00'
     assert list(df.loc[:, 'Azimuth'].values) == [265, 286, 67, 93, 106, 120]
 
     # Case: MP id is string representing Name:

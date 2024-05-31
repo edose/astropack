@@ -22,22 +22,34 @@ THIS_PACKAGE_ROOT_DIRECTORY = \
 __________TIME_and_DATE_FUNCTIONS____________________________________________ = 0
 
 
-def test_hhmm_from_datetime_utc():
-    dt = datetime(2016, 1, 1, 23, 34, 45, 454545).replace(tzinfo=timezone.utc)
-    assert util.hhmm_from_datetime_utc(dt) == '2335'
-    dt = datetime(2016, 1, 1, 23, 34, 29, 999999).replace(tzinfo=timezone.utc)
-    assert util.hhmm_from_datetime_utc(dt) == '2334'
-    dt = datetime(2016, 1, 1, 23, 59, 31, 454545).replace(tzinfo=timezone.utc)
-    assert util.hhmm_from_datetime_utc(dt) == '0000'
-    dt = datetime(2016, 1, 31, 0, 0, 0, 0).replace(tzinfo=timezone.utc)
-    assert util.hhmm_from_datetime_utc(dt) == '0000'
-    # Using banker's rounding to nearest minute:
-    dt = datetime(2016, 1, 31, 0, 0, 30, 0).replace(tzinfo=timezone.utc)
-    assert util.hhmm_from_datetime_utc(dt) == '0000'
-    dt = datetime(2016, 1, 31, 0, 1, 30, 0).replace(tzinfo=timezone.utc)
-    assert util.hhmm_from_datetime_utc(dt) == '0002'
-    dt = datetime(2016, 1, 31, 0, 0, 30, 1).replace(tzinfo=timezone.utc)
-    assert util.hhmm_from_datetime_utc(dt) == '0001'
+def test_hhmm():
+    fn = util.hhmm
+    assert fn(Time('2016-01-01 23:34:45.454545')) == '2335'
+    assert fn(Time('2016-01-01 23:34:29.999999')) == '2334'
+    assert fn(Time('2016-01-01 23:59:31.454545')) == '0000'
+    assert fn(Time('2016-01-31 00:00:00')) == '0000'
+    # Verify banker's rounding to nearest minute:
+    assert fn(Time('2016-01-31 00:00:30')) == '0000'
+    assert fn(Time('2016-01-31 00:01:30')) == '0002'
+    assert fn(Time('2016-01-31 00:00:30.000001')) == '0001'
+
+
+def test_nearest_time():
+    fn = util.nearest_time
+    time_list = [Time('2022-11-12'), Time('2022-11-15'),
+                 Time('2022-12-12'), Time('2022-12-13')]
+    assert fn(time_list, Time('2022-11-11')) == Time('2022-11-12')
+    assert fn(time_list, Time('2022-11-14')) == Time('2022-11-15')
+    assert fn(time_list, Time('2022-11-30')) == Time('2022-12-12')
+    assert fn(time_list, Time('2022-12-30')) == Time('2022-12-13')
+    assert fn(time_list, Time('2023-12-30')) == Time('2022-12-13')
+    time_list = [Time('2022-11-12 08:30'), Time('2022-11-12 07:30'),
+                 Time('2022-11-13 08:30'), Time('2022-11-13 11:30')]
+    assert fn(time_list, Time('2022-11-11 00:00')) == Time('2022-11-12 07:30')
+    assert fn(time_list, Time('2022-11-12 00:00')) == Time('2022-11-12 07:30')
+    assert fn(time_list, Time('2022-11-13 00:00')) == Time('2022-11-13 08:30')
+    assert fn(time_list, Time('2022-11-14 00:00')) == Time('2022-11-13 11:30')
+
 
 
 __________RA_and_DEC_FUNCTIONS_____________________________________________________ = 0
@@ -202,13 +214,11 @@ def test_degrees_as_hex():
 
 
 def test_parse_hex():
-    assert util.parse_hex('00:00:00') == util.parse_hex('00 00 00') == \
-           ['00', '00', '00']
-    assert util.parse_hex('12:34:56.89') == \
-           util.parse_hex('12 34 56.89') == ['12', '34', '56.89']
-    assert util.parse_hex('-50:30') == \
-           util.parse_hex('-50 30') == ['-50', '30', '0']
-    assert util.parse_hex('34') == ['34']
+    fn = util.parse_hex
+    assert fn('00:00:00') == fn('00 00 00') == ['00', '00', '00']
+    assert fn('12:34:56.89') == fn('12 34 56.89') == ['12', '34', '56.89']
+    assert fn('-50:30') == fn('-50 30') == ['-50', '30', '0']
+    assert fn('34') == ['34']
 
 
 def test_concatenate_skycoords():
@@ -350,7 +360,8 @@ def test_class_timespan():
     assert isinstance(ts1.end, Time)
     assert isinstance(ts1.duration, TimeDelta)
     assert isinstance(ts1.seconds, float)
-    assert isinstance(ts1.start, Time)
+    assert isinstance(ts1.days, float)
+    assert isinstance(ts1.midpoint, Time)
     assert ts1.start == t1
     assert ts1.end == t2
     assert ts1.duration == t2 - t1

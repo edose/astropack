@@ -57,6 +57,8 @@ CH_CLOUD_BLACK = '\u2601'
 """\u2601  Unicode cloud character"""
 CH_BULLET_POINT = '\u2022'
 """\u2022  Unicode bullet point (unordered list) character"""
+CH_ELLIPSIS = '\u2026'
+"""\u2026  Unicode ellipsis character"""
 CH_INFINITY = '\u221E'
 """\u221E  Unicode infinity character"""
 CH_COPYRIGHT = '\u00A9'
