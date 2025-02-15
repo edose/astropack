@@ -9,5 +9,5 @@ except ImportError:
     __version__ = ''
 
 # Create the test function for self test
-from astropy.tests.runner import TestRunner
-test = TestRunner.make_test_runner_in(os.path.dirname(__file__))
+# from astropy.tests.runner import TestRunner
+# test = TestRunner.make_test_runner_in(os.path.dirname(__file__))
